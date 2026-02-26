@@ -1,4 +1,4 @@
-package com.example.dynalar_frontend.ui.theme
+package com.example.dynalar_frontend_v1.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
