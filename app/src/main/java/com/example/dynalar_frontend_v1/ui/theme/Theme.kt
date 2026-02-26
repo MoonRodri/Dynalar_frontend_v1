@@ -10,6 +10,10 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import com.example.dynalar_frontend_v1.R
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -32,6 +36,22 @@ private val LightColorScheme = lightColorScheme(
     onSurface = Color(0xFF1C1B1F),
     */
 )
+
+
+// Tipografías personalizadas
+val AbyssinicaSIL = FontFamily(
+    Font(R.font.abyssinicasil_regular, FontWeight.Normal)
+)
+val AGBookRounded = FontFamily(
+    Font(R.font.ag_book_rounded_regular, FontWeight.Normal)
+)
+val RegularFont = FontFamily(
+    Font(R.font.regular, FontWeight.Normal)
+)
+val SFCompactDisplayBold = FontFamily(
+    Font(R.font.sf_compact_display_bold, FontWeight.Bold)
+)
+
 
 @Composable
 fun Dynalar_frontend_v1Theme(
