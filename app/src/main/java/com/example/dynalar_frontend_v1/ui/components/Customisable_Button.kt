@@ -1,9 +1,18 @@
 package com.example.dynalar_frontend_v1.ui.components
 
+import android.R.attr.text
+import android.R.attr.title
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -20,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
@@ -28,6 +38,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.dynalar_frontend_v1.ui.theme.ButtonPrimary
 
+
+
+
+//Boton de navegacion global
 @Composable
 fun Customisable_Button(
     text: String,
@@ -52,8 +66,6 @@ fun Customisable_Button(
     }
 }
 
-
-
 /*Customisable_Button(
   text = "Entrar",
    onClick = {
@@ -62,6 +74,8 @@ fun Customisable_Button(
    modifier = Modifier.fillMaxWidth()
 */
 
+
+//Circulo ( lo he utilizado para hacer el boton global
 @Composable
 fun CustomisableCircle(
     size: Dp = 24.dp,
@@ -76,42 +90,67 @@ fun CustomisableCircle(
     )
 }
 
-
-/*CustomisableCircle(
-size = 50.dp,
-color = Color.Green
-)*/
-
-
-
+//Botones que te permiten navegar(los del homePage)
 @Composable
-fun CustomisableRectangle(
-    width: Dp = 50.dp,
-    height: Dp = 24.dp,
-    color: Color = ButtonPrimary,
-    elevation: Dp = 4.dp,
-    cornerRadius: Dp = 8.dp,
-    modifier: Modifier = Modifier
+fun CustomisableRectangleButton(
+
+    title: String,
+    subtitle: String,
+    width: Dp = 350.dp,
+    height: Dp = 60.dp,
+    circleColor: Color = Color.Green,
+    elevation: Dp = 3.dp,
+    cornerRadius: Dp = 15.dp,
+    backgroundColor: Color = ButtonPrimary,
+    onClick: () -> Unit = {}
 ) {
+
     val shape = RoundedCornerShape(cornerRadius)
 
     Box(
-        modifier = modifier
-            .shadow(elevation = elevation, shape = shape)
-            .size(width = width, height = height)
-            .clip(CircleShape)
-            .background(color)
-    )
+
+        modifier = Modifier
+            .size(width, height)
+            .shadow(elevation, shape)
+            .clip(shape)
+            .background(backgroundColor)
+            .clickable { onClick() },
+        contentAlignment = Alignment.CenterStart
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(start = 10.dp)) {
+
+            CustomisableCircle(
+                size = 50.dp,
+                color = circleColor,
+                modifier = Modifier
+                    .offset(x = 5.dp)
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column{
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White
+                )
+
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White.copy(alpha = 0.6f)
+                )
+
+            }
+
+        }
+
+    }
 }
 
-
-/*CustomisableRectangle(
-    width = 100.dp,
-    height = 50.dp,
-    elevation = 4.dp,
-    cornerRadius = 12.dp
-)*/
-
+//Desplejable en un futuro se tiene que enlazar con la base de datos
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T> CustomisableDynamicDropdownMenu(

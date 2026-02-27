@@ -27,14 +27,20 @@ val Typography = Typography(
     ),
 
     //Respuestas a lo pedido del usuarioo/ calendario(dentro de los boxes)
-    //Pequeño Grande
+    //Pequeño Normal
     bodyMedium = TextStyle(
         fontFamily = AGBookRounded,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp
     ),
+//Pequeño pequeño
+    bodySmall = TextStyle(
+        fontFamily = AGBookRounded,
+        fontWeight = FontWeight.Normal,
+        fontSize = 10.sp
+    ),
     //Nombres de usuario Pequeño
-    //Pequeño Normal
+    //Pequeño Grande
     titleSmall = TextStyle(
         fontFamily = AGBookRounded,
         fontWeight = FontWeight.Normal,
