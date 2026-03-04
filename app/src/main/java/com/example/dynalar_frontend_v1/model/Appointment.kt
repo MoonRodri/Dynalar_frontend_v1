@@ -1,3 +1,5 @@
+import com.example.dynalar_frontend_v1.model.Box
+
 data class Appointment(
     val id: Long? = null,
     val treatment: Treatment? = null,

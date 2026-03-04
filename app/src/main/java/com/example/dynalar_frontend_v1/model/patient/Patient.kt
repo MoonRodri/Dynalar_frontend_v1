@@ -1,7 +1,17 @@
 
 data class Patient(
-    val id,
-    val name,
-    val surname,
-    val
+    val id: Long? = null,
+    val name: String? = null,
+    val lastName: String? = null,
+    val email: String? = null,
+    val dni: String? = null,
+    val socialSecurityNumber: String? = null,
+    val phone: String? = null,
+    val treatmentConsent: Boolean? = null,
+    val anesthesiaConsent: Boolean? = null,
+    val billing: String? = null,
+    val medicalRecord: MedicalRecord? = null,
+    val odontogram: Odontogram? = null,
+    val documents: List<Document>? = emptyList(),
+    val appointments: List<Appointment>? = emptyList()
 )
