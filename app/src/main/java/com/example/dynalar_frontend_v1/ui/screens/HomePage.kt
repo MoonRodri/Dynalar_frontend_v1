@@ -35,19 +35,23 @@ import com.example.dynalar_frontend_v1.ui.components.CustomisableRectangleButton
 
 
 @Composable
-fun HomePage(){
+fun HomePage(
+    onNavigatePatients: () -> Unit
+){
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Header_HomePage()
-        
+
         Spacer(modifier = Modifier.height(20.dp))
         CalendarHomepage()
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Button_HomePage()
+        Button_HomePage(
+            onGestionarPacientesClick = onNavigatePatients
+        )
     }
 }
 
@@ -120,15 +124,13 @@ fun CalendarHomepage() {
 
 //Botones HomePage par navegar
 @Composable
-fun Button_HomePage(){
+fun Button_HomePage( onGestionarPacientesClick: () -> Unit){
 
     CustomisableRectangleButton(
         title = "Afegir Pacient",
         subtitle = "Gestiona pacient",
         circleColor = Color.White,
-        onClick = {
-
-        }
+        onClick = onGestionarPacientesClick
     )
     Spacer(modifier = Modifier.height(35.dp))
 
