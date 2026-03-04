@@ -1,6 +1,7 @@
 package com.example.dynalar_frontend_v1.ui.screens
 
 
+import Patient
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -39,7 +40,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dynalar_frontend_v1.R
-import com.example.dynalar_frontend_v1.entities.Patient
 import androidx.compose.ui.layout.ContentScale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,14 +47,13 @@ import androidx.compose.ui.layout.ContentScale
 fun PatientsScreen(
     onBackClick: () -> Unit = {}
 ) {
-
     val patients = remember {
         listOf(
-            Patient(1, "Ana López", 32),
-            Patient(2, "Andrés Ruiz", 41),
-            Patient(3, "Brenda Gómez", 29),
-            Patient(4, "Carlos Pérez", 50),
-            Patient(5, "Carla Díaz", 37)
+            Patient(id = 1, name = "Ana López"),
+            Patient(id = 2, name = "Andrés Ruiz"),
+            Patient(id = 3, name = "Brenda Gómez"),
+            Patient(id = 4, name = "Carlos Pérez"),
+            Patient(id = 5, name = "Carla Díaz")
         )
     }
 
@@ -63,11 +62,13 @@ fun PatientsScreen(
     val filteredPatients = remember(textFieldState.text) {
         if (textFieldState.text.isBlank()) patients
         else patients.filter {
-            it.name.contains(textFieldState.text, ignoreCase = true)
+            it.name?.contains(textFieldState.text, ignoreCase = true) == true
         }
     }
 
-    val groupedPatients = filteredPatients.groupBy { it.name.first() }
+    val groupedPatients = filteredPatients
+        .filter { !it.name.isNullOrBlank() }
+        .groupBy { it.name!!.first() }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -226,7 +227,7 @@ fun PatientItem(
 
             Image(
                 painter = painterResource(id = R.drawable.usuario_hombre),
-                contentDescription = "Paciente",
+                contentDescription = "Pacient",
                 modifier = Modifier
                     .size(42.dp)
                     .clip(CircleShape)
@@ -236,17 +237,12 @@ fun PatientItem(
 
             Column(modifier = Modifier.weight(1f)) {
 
+
                 Text(
-                    text = patient.name,
-                    fontWeight = FontWeight.SemiBold,
+                    text = patient.name ?: "",
                     fontSize = 16.sp
                 )
 
-                Text(
-                    text = "Edad: ${patient.age}",
-                    fontSize = 14.sp,
-                    color = Color.Gray
-                )
             }
         }
     }
