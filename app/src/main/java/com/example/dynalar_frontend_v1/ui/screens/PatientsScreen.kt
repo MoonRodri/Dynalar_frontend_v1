@@ -41,11 +41,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dynalar_frontend_v1.R
 import androidx.compose.ui.layout.ContentScale
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.dynalar_frontend_v1.ui.components.Generic_Button
+import com.example.dynalar_frontend_v1.ui.components.SwipeToDeleteContainer
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PatientsScreen(
-    onBackClick: () -> Unit = {}
+    onBackClick: () -> Unit = {},
+    onUserProfile: () -> Unit
 ) {
     val patients = remember {
         listOf(
@@ -77,6 +82,7 @@ fun PatientsScreen(
 
         item {
             PatientsTopBar(
+                onUserProfile = onUserProfile,
                 onBackClick = onBackClick,
                 backIconRes = R.drawable.general_volver
             )
@@ -97,17 +103,30 @@ fun PatientsScreen(
                 CharacterHeader(initial)
             }
 
-            items(patientsList) { patient ->
-                PatientItem(
-                    patient = patient,
-                    onClick = {
-                        println(it.name)
+            items(
+                patientsList,
+                key = { it.id ?: 0 }
+            ) { patient ->
+
+                SwipeToDeleteContainer(
+                    onDelete = {
+                        patient.id?.let {
+                            //viewModel.deletePatient(it)
+                        }
                     }
-                )
+                ) {
+
+                    PatientItem(
+                        patient = patient,
+                        onClick = {}
+                    )
+                }
             }
         }
     }
 }
+
+//Buscador
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchPatientBar(
@@ -147,8 +166,11 @@ fun SearchPatientBar(
     }
 }
 
+
+//Encabezado
 @Composable
 fun PatientsTopBar(
+    onUserProfile: () -> Unit,
     onBackClick: () -> Unit,
     backIconRes: Int
 ) {
@@ -161,26 +183,38 @@ fun PatientsTopBar(
                 end = 20.dp,
                 top = 50.dp,
                 bottom = 6.dp
-            )
-            .clickable { onBackClick() },
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
 
-        Image(
-            painter = painterResource(id = backIconRes),
-            contentDescription = "Volver",
-            modifier = Modifier.size(28.dp),
-            contentScale = ContentScale.Fit
-        )
+        Row( modifier = Modifier.clickable { onBackClick() },
+            verticalAlignment = Alignment.CenterVertically) {
 
-        Spacer(modifier = Modifier.width(14.dp))
+            Image(
+                painter = painterResource(id = backIconRes),
+                contentDescription = "Volver",
+                modifier = Modifier.size(28.dp),
+                contentScale = ContentScale.Fit
+            )
 
-        Text(
-            text = "Llista de Pacients",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold
+            Spacer(modifier = Modifier.width(14.dp))
+
+            Text(
+                text = "Llista de Pacients",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+        }
+
+        Spacer(modifier = Modifier.width(70.dp))
+
+        Generic_Button(
+            text = "+",
+            onClick = onUserProfile
         )
     }
+
 }
 //Encabezado por letra
 @Composable
@@ -246,4 +280,6 @@ fun PatientItem(
             }
         }
     }
+
 }
+
