@@ -6,15 +6,23 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -23,6 +31,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,16 +43,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.dynalar_frontend_v1.ui.theme.ButtonPrimary
-
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.material3.SwipeToDismissBoxValue
 
 
 
 //Boton de navegacion global
 @Composable
-fun Customisable_Button(
+fun Generic_Button(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -66,7 +78,7 @@ fun Customisable_Button(
     }
 }
 
-/*Customisable_Button(
+/*Generic_Button(
   text = "Entrar",
    onClick = {
        login
@@ -218,3 +230,118 @@ DynamicDropdownMenu(
 )
 )
  */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SwipeToDeleteContainer(
+    onDelete: () -> Unit,
+    backgroundColor: Color = Color.Red,
+    content: @Composable () -> Unit
+) {
+    val state = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            if (value == SwipeToDismissBoxValue.EndToStart) {
+                onDelete()
+                true
+            } else {
+                false
+            }
+        }
+    )
+
+    SwipeToDismissBox(
+        state = state,
+        enableDismissFromStartToEnd = false, // Solo deslizar de derecha a izquierda
+        backgroundContent = {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 22.dp, vertical = 8.dp) // Mismo padding que la Card
+                    .clip(RoundedCornerShape(12.dp)) // Mismas esquinas que la Card (ajusta según necesites)
+                    .background(backgroundColor),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Text(
+                    text = "Eliminar",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(end = 24.dp)
+                )
+            }
+        }
+    ) {
+        // El contenido (la Card) se dibuja encima del fondo
+        content()
+    }
+}
+
+//Forma de arriba de los perfiles
+@Composable
+fun GenericProfile(
+    userName: String,
+    userRole: String,
+    profileImage: @Composable () -> Unit,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFB2CBD2))
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(50.dp))
+
+            Box(
+                modifier = Modifier
+                    .size(130.dp)
+                    .clip(CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                profileImage()
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = userName,
+                style = MaterialTheme.typography.headlineSmall,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = userRole,
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.White.copy(alpha = 0.9f)
+            )
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = Color.White,
+                shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 30.dp, vertical = 40.dp)
+                        .verticalScroll(rememberScrollState()),
+                    content = content
+                )
+            }
+        }
+    }
+}
+//Ejemplo
+/*@Composable
+fun UserProfileScreen() {
+    ProfileLayout(
+        userName = user.name,
+        userRole = "Usuario",
+        profileImage = { /* imagen */ }
+    ) {
+        UserInfoContent(user)
+    }
+}*/
