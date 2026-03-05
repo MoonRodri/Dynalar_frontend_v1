@@ -2,6 +2,7 @@ package com.example.dynalar_frontend_v1.ui.components
 
 import android.R.attr.text
 import android.R.attr.title
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -50,7 +51,9 @@ import com.example.dynalar_frontend_v1.ui.theme.ButtonPrimary
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.SwipeToDismissBoxValue
-
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import com.example.dynalar_frontend_v1.R
 
 
 //Boton de navegacion global
@@ -276,22 +279,33 @@ fun SwipeToDeleteContainer(
 
 //Forma de arriba de los perfiles
 @Composable
-fun GenericProfile(
+fun BannerGenericProfile(
     userName: String,
     userRole: String,
     profileImage: @Composable () -> Unit,
-    content: @Composable ColumnScope.() -> Unit
+    content: @Composable ColumnScope.() -> Unit,
+    onBackClick: () -> Unit,
 ) {
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFB2CBD2))
     ) {
+        BackButton(
+            onClick = onBackClick,
+            iconRes = R.drawable.general_volver,
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(start = 20.dp, top = 50.dp)
+        )
+
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(50.dp))
+
+
 
             Box(
                 modifier = Modifier
@@ -345,3 +359,30 @@ fun UserProfileScreen() {
         UserInfoContent(user)
     }
 }*/
+
+@Composable
+fun BackButton(
+    onClick: () -> Unit,
+    iconRes: Int,
+    modifier: Modifier = Modifier,
+    iconSize: Dp = 28.dp
+) {
+    Box(
+        modifier = modifier
+            .size(40.dp)
+            .clip(CircleShape)
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = painterResource(id = iconRes),
+            contentDescription = "Volver",
+            modifier = Modifier.size(iconSize),
+            contentScale = ContentScale.Fit
+        )
+    }
+}
+/* BackButton(
+        onClick = onBackClick,
+        iconRes = backIconRes
+    )*/

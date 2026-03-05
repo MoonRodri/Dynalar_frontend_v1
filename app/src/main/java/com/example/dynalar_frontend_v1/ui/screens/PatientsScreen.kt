@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import com.example.dynalar_frontend_v1.R
 import androidx.compose.ui.layout.ContentScale
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.dynalar_frontend_v1.ui.components.BackButton
 import com.example.dynalar_frontend_v1.ui.components.Generic_Button
 import com.example.dynalar_frontend_v1.ui.components.SwipeToDeleteContainer
 
@@ -190,11 +191,9 @@ fun PatientsTopBar(
         Row( modifier = Modifier.clickable { onBackClick() },
             verticalAlignment = Alignment.CenterVertically) {
 
-            Image(
-                painter = painterResource(id = backIconRes),
-                contentDescription = "Volver",
-                modifier = Modifier.size(28.dp),
-                contentScale = ContentScale.Fit
+            BackButton(
+                onClick = onBackClick,
+                iconRes = backIconRes
             )
 
             Spacer(modifier = Modifier.width(14.dp))
