@@ -1,6 +1,6 @@
 package com.example.dynalar_frontend_v1.repository
 
-import User
+import com.example.dynalar_frontend_v1.model.user.User
 import com.example.dynalar_frontend_v1.network.RetrofitClient
 
 class UserRepository {

@@ -44,7 +44,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.dynalar_frontend_v1.ui.theme.ButtonPrimary
@@ -53,6 +52,7 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import com.example.dynalar_frontend_v1.R
 
 
@@ -280,9 +280,18 @@ fun SwipeToDeleteContainer(
 //Forma de arriba de los perfiles
 @Composable
 fun BannerGenericProfile(
-    userName: String,
-    userRole: String,
-    profileImage: @Composable () -> Unit,
+    userName: String = "",
+    userRole: String = "",
+    profileImage: @Composable () -> Unit = {
+        Image(
+            painter = painterResource(id = R.drawable.usuario_hombre),
+            contentDescription = "Imagen de perfil",
+            modifier = Modifier
+                .size(130.dp)
+                .clip(CircleShape),
+            contentScale = ContentScale.Crop
+        )
+    },
     content: @Composable ColumnScope.() -> Unit,
     onBackClick: () -> Unit,
 ) {
@@ -291,21 +300,11 @@ fun BannerGenericProfile(
             .fillMaxSize()
             .background(Color(0xFFB2CBD2))
     ) {
-        BackButton(
-            onClick = onBackClick,
-            iconRes = R.drawable.general_volver,
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(start = 20.dp, top = 50.dp)
-        )
-
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(50.dp))
-
-
 
             Box(
                 modifier = Modifier
@@ -324,11 +323,14 @@ fun BannerGenericProfile(
                 color = Color.White,
                 fontWeight = FontWeight.Bold
             )
-            Text(
-                text = userRole,
-                style = MaterialTheme.typography.bodyLarge,
-                color = Color.White.copy(alpha = 0.9f)
-            )
+
+            if (userRole.isNotEmpty()) {
+                Text(
+                    text = userRole,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.White.copy(alpha = 0.9f)
+                )
+            }
 
             Spacer(modifier = Modifier.height(30.dp))
 
@@ -346,6 +348,14 @@ fun BannerGenericProfile(
                 )
             }
         }
+
+        BackButton(
+            onClick = onBackClick,
+            iconRes = R.drawable.general_volver,
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(start = 20.dp, top = 50.dp)
+        )
     }
 }
 //Ejemplo

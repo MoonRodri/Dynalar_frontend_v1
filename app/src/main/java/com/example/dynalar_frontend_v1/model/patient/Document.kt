@@ -1,3 +1,5 @@
+package com.example.dynalar_frontend_v1.model.patient
+
 data class Document(
     val id: Long? = null,
     val patientId: Long? = null,

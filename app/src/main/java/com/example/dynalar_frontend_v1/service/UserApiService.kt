@@ -3,7 +3,7 @@ package com.example.dynalar_frontend_v1.service
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
-import User
+import com.example.dynalar_frontend_v1.model.user.User
 
 interface UserApiService {
     @GET("user/all")
