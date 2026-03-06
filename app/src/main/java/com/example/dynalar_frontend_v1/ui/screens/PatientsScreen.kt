@@ -1,7 +1,6 @@
 package com.example.dynalar_frontend_v1.ui.screens
 
 
-import Patient
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -42,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import com.example.dynalar_frontend_v1.R
 import androidx.compose.ui.layout.ContentScale
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.dynalar_frontend_v1.model.patient.Patient
 import com.example.dynalar_frontend_v1.ui.components.BackButton
 import com.example.dynalar_frontend_v1.ui.components.Generic_Button
 import com.example.dynalar_frontend_v1.ui.components.SwipeToDeleteContainer

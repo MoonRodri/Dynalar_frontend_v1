@@ -1,3 +1,7 @@
+package com.example.dynalar_frontend_v1.model.patient
+
+import com.example.dynalar_frontend_v1.model.Appointment
+import com.example.dynalar_frontend_v1.model.odontogram.Odontogram
 
 data class Patient(
     val id: Long? = null,

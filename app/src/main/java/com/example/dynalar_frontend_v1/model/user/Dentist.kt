@@ -1,3 +1,7 @@
+package com.example.dynalar_frontend_v1.model.user
+
+import com.example.dynalar_frontend_v1.model.Treatment
+
 data class Dentist(
     override val id: Long? = null,
     override val name: String? = null,

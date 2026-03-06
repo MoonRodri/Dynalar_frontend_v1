@@ -1,4 +1,4 @@
-import com.example.dynalar_frontend_v1.model.odontogram.Tooth
+package com.example.dynalar_frontend_v1.model.odontogram
 
 data class OdontogramEntry(
     val id: Long? = null,
