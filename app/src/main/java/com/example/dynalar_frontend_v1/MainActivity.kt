@@ -8,7 +8,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.dynalar_frontend_v1.ui.screens.HomePage
+import com.example.dynalar_frontend_v1.ui.screens.LoginPage
 import com.example.dynalar_frontend_v1.ui.screens.PatientsScreen
+import com.example.dynalar_frontend_v1.ui.screens.UserProfilePage
 import com.example.dynalar_frontend_v1.ui.theme.Dynalar_frontend_v1Theme
 
 class MainActivity : ComponentActivity() {
@@ -21,15 +23,22 @@ class MainActivity : ComponentActivity() {
 
                 NavHost(
                     navController = navController,
-                    startDestination = "homePage"
+                    startDestination = "loginPage"
                 ) {
 
-                    composable("homePage") {
-                        HomePage(
-                            onNavigatePatients = {
-                                navController.navigate("patientsScreen")
+                    composable("loginPage") {
+                        LoginPage(
+                            onLoginSuccess = {
+                                navController.navigate("homePage")
                             }
                         )
+                    }
+
+
+                    composable("userProfilePage") {
+                        UserProfilePage {
+                            navController.navigate("userProfilePage")
+                        }
                     }
 
                     composable("homePage") {
@@ -40,13 +49,14 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    composable("patientsScreen") {
-                        PatientsScreen(
-                            onBackClick = {
-                                navController.popBackStack()
-                            }
-                        )
-                    }
+
+//                    composable("patientsScreen") {
+//                        PatientsScreen(
+//                            onBackClick = {
+//                                navController.popBackStack()
+//                            }
+//                        )
+//                    }
                 }
             }
         }
