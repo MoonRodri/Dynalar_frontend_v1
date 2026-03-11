@@ -1,6 +1,5 @@
 package com.example.dynalar_frontend_v1.ui.screens
 
-import android.R.attr.shape
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -36,27 +35,28 @@ import com.example.dynalar_frontend_v1.ui.components.CustomisableRectangleButton
 
 @Composable
 fun HomePage(
-    onNavigatePatients: () -> Unit
+    onNavigateProfileUserProfile: () -> Unit,
+    onNavigateListPacient: () -> Unit,
 ){
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Header_HomePage()
+        Header_HomePage(onNavigateProfileUserProfile = onNavigateProfileUserProfile)
 
         Spacer(modifier = Modifier.height(20.dp))
         CalendarHomepage()
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Button_HomePage(
-            onGestionarPacientesClick = onNavigatePatients
+        Buttons_HomePage(
+            onNavigateListPacient = onNavigateListPacient,
         )
     }
 }
 
 @Composable
-fun Header_HomePage() {
+fun Header_HomePage(onNavigateProfileUserProfile: () -> Unit) {
     val shape = CircleShape
     Row(
         modifier = Modifier
@@ -73,7 +73,7 @@ fun Header_HomePage() {
             modifier = Modifier.size(50.dp)
                 .clip(shape)
                 .clickable(onClick = {
-
+                    onNavigateProfileUserProfile()
                 })
         )
 
@@ -124,22 +124,24 @@ fun CalendarHomepage() {
 
 //Botones HomePage par navegar
 @Composable
-fun Button_HomePage( onGestionarPacientesClick: () -> Unit){
+fun Buttons_HomePage(
+    onNavigateListPacient: () -> Unit,
+){
 
     CustomisableRectangleButton(
-        title = "Afegir Pacient",
-        subtitle = "Gestiona pacient",
+        title = "Pacients", // Título corregido
+        subtitle = "Llista de Pacients", // Subtítulo corregido
         circleColor = Color.White,
-        onClick = onGestionarPacientesClick
+        onClick = onNavigateListPacient
     )
     Spacer(modifier = Modifier.height(35.dp))
 
     CustomisableRectangleButton(
-        title = "Fixar Cita",
-        subtitle = "Horari odontolag",
+        title = "Agenda",
+        subtitle = "Gestiona Agenda",
         circleColor = Color.White,
         onClick = {
-
+            // Lógica para agenda si existiera
         }
     )
 
@@ -151,9 +153,7 @@ fun Button_HomePage( onGestionarPacientesClick: () -> Unit){
         subtitle = "Materials disponibles",
         circleColor = Color.White,
         onClick = {
-
         }
     )
 
 }
-

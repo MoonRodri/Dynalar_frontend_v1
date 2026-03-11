@@ -38,6 +38,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dynalar_frontend_v1.R
+import com.example.dynalar_frontend_v1.ui.components.Generic_Button
 import com.example.dynalar_frontend_v1.ui.theme.Dynalar_frontend_v1Theme
 
 @Composable
@@ -90,6 +91,7 @@ fun LoginPage(
         Spacer(modifier = Modifier.height(16.dp))
 
         Column(modifier = Modifier.fillMaxWidth()) {
+
             Text(
                 text = "Contrasenya",
                 style = MaterialTheme.typography.bodyLarge,
@@ -97,6 +99,7 @@ fun LoginPage(
                 fontWeight = FontWeight.Medium
             )
             Spacer(modifier = Modifier.height(8.dp))
+
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -125,23 +128,14 @@ fun LoginPage(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Button(
+        Generic_Button(
+            text = "Login",
             onClick = onLoginClick,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-            shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF537895)
-            )
-        ) {
-            Text(
-                text = "Login",
-                color = Color.White,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
+            backgroundColor = Color(0xFF537895)
+        )
 
         Spacer(modifier = Modifier.height(80.dp))
 
