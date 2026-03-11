@@ -12,6 +12,7 @@ import com.example.dynalar_frontend_v1.ui.screens.CreateProfilePage
 import com.example.dynalar_frontend_v1.ui.screens.HomePage
 import com.example.dynalar_frontend_v1.ui.screens.LoginPage
 import com.example.dynalar_frontend_v1.ui.screens.ListPatientsScreen
+import com.example.dynalar_frontend_v1.ui.screens.PatientsScreen
 import com.example.dynalar_frontend_v1.ui.screens.UserProfilePage
 import com.example.dynalar_frontend_v1.ui.theme.Dynalar_frontend_v1Theme
 
@@ -74,6 +75,40 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     }
+                    startDestination = "loginPage"
+                ) {
+
+                    composable("loginPage") {
+                        LoginPage(
+                            onLoginSuccess = {
+                                navController.navigate("homePage")
+                            }
+                        )
+                    }
+
+
+                    composable("userProfilePage") {
+                        UserProfilePage {
+                            navController.navigate("userProfilePage")
+                        }
+                    }
+
+                    composable("homePage") {
+                        HomePage(
+                            onNavigatePatients = {
+                                navController.navigate("patientsScreen")
+                            }
+                        )
+                    }
+
+
+//                    composable("patientsScreen") {
+//                        PatientsScreen(
+//                            onBackClick = {
+//                                navController.popBackStack()
+//                            }
+//                        )
+//                    }
                 }
             }
         }

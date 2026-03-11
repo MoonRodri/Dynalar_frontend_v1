@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -24,6 +25,8 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,19 +40,31 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dynalar_frontend_v1.R
 import com.example.dynalar_frontend_v1.ui.components.Generic_Button
+import com.example.dynalar_frontend_v1.model.LoginUiState
 import com.example.dynalar_frontend_v1.ui.theme.Dynalar_frontend_v1Theme
+import com.example.dynalar_frontend_v1.viewmodel.UserViewModel
 
 @Composable
 fun LoginPage(
     modifier: Modifier = Modifier,
-    onLoginClick: () -> Unit = {},
+    viewModel: UserViewModel = viewModel(),
+    onLoginSuccess: () -> Unit = {},
     onForgotPasswordClick: () -> Unit = {},
     onGoogleSignInClick: () -> Unit = {}
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+
+    val loginUiState by viewModel.loginUiState.collectAsState()
+
+    LaunchedEffect(loginUiState) {
+        if (loginUiState is LoginUiState.Success) {
+            onLoginSuccess()
+        }
+    }
 
     Column(
         modifier = modifier
@@ -116,6 +131,16 @@ fun LoginPage(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        if (loginUiState is LoginUiState.Error){
+            val errorMessage = (loginUiState as LoginUiState.Error).message
+            Text(
+                text = errorMessage,
+                color = Color.Red,
+                fontSize = 14.sp,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
             TextButton(onClick = onForgotPasswordClick) {
                 Text(
@@ -136,6 +161,31 @@ fun LoginPage(
                 .height(56.dp),
             backgroundColor = Color(0xFF537895)
         )
+        Button(
+            onClick = {viewModel.login(email, password)},
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF537895)
+            ),
+            enabled = loginUiState !is LoginUiState.Loading && email.isNotBlank() && password.isNotBlank()
+        ) {
+            if (loginUiState is LoginUiState.Loading) {
+                CircularProgressIndicator(
+                    color = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            } else {
+                Text(
+                    text = "Login",
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(80.dp))
 
