@@ -1,6 +1,7 @@
 package com.example.dynalar_frontend_v1.ui.screens
 
 
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -39,8 +40,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dynalar_frontend_v1.R
-import androidx.compose.ui.layout.ContentScale
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dynalar_frontend_v1.model.patient.Patient
 import com.example.dynalar_frontend_v1.ui.components.BackButton
 import com.example.dynalar_frontend_v1.ui.components.Generic_Button
@@ -49,9 +48,9 @@ import com.example.dynalar_frontend_v1.ui.components.SwipeToDeleteContainer
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PatientsScreen(
-    onBackClick: () -> Unit = {},
-    onUserProfile: () -> Unit
+fun ListPatientsScreen(
+    onNavigateBack: () -> Unit = {},
+    onNavigateAddPatient: () -> Unit
 ) {
     val patients = remember {
         listOf(
@@ -62,14 +61,34 @@ fun PatientsScreen(
             Patient(id = 5, name = "Carla Díaz")
         )
     }
+    PatientsListScreenForm(
+        patients = patients,
+        onNavigateBack = onNavigateBack,
+        onNavigateAddPatient = onNavigateAddPatient,
+        onNavigatePacientProfile = { patient ->
+            println("Clicked patient: ${patient.name}")
+        },
+        onDeletePatient = { patient ->
+            println("Deleted patient: ${patient.name}")
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PatientsListScreenForm(
+    patients: List<Patient>,
+    onNavigateBack: () -> Unit,
+    onNavigateAddPatient: () -> Unit,
+    onNavigatePacientProfile: (Patient) -> Unit,
+    onDeletePatient: (Patient) -> Unit
+) {
 
     val textFieldState = rememberTextFieldState()
 
     val filteredPatients = remember(textFieldState.text) {
         if (textFieldState.text.isBlank()) patients
-        else patients.filter {
-            it.name?.contains(textFieldState.text, ignoreCase = true) == true
-        }
+        else patients.filter { it.name?.contains(textFieldState.text, ignoreCase = true) == true }
     }
 
     val groupedPatients = filteredPatients
@@ -81,23 +100,24 @@ fun PatientsScreen(
         contentPadding = PaddingValues(bottom = 24.dp)
     ) {
 
+        // Top bar
         item {
             PatientsTopBar(
-                onUserProfile = onUserProfile,
-                onBackClick = onBackClick,
-                backIconRes = R.drawable.general_volver
+                onNavigateAddPatient = onNavigateAddPatient,
+                onBackClick = onNavigateBack,
+                backIconRes = R.drawable.back
             )
         }
-
-            item {
-                SearchPatientBar(textFieldState)
-            }
-
+        // Buscador
+        item {
+            SearchPatientBar(textFieldState)
+        }
 
         item {
             Spacer(modifier = Modifier.height(20.dp))
         }
 
+        // Listado de pacientes agrupados
         groupedPatients.forEach { (initial, patientsList) ->
 
             stickyHeader {
@@ -108,26 +128,18 @@ fun PatientsScreen(
                 patientsList,
                 key = { it.id ?: 0 }
             ) { patient ->
-
                 SwipeToDeleteContainer(
-                    onDelete = {
-                        patient.id?.let {
-                            //viewModel.deletePatient(it)
-                        }
-                    }
+                    onDelete = { onDeletePatient(patient) }
                 ) {
-
                     PatientItem(
                         patient = patient,
-                        onClick = {}
+                        onClick = { onNavigatePacientProfile(patient) }
                     )
                 }
             }
         }
     }
 }
-
-//Buscador
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchPatientBar(
@@ -135,43 +147,30 @@ fun SearchPatientBar(
 ) {
 
     SearchBar(
-        query = textFieldState.text.toString(),
-        onQueryChange = {
-            textFieldState.edit {
-                replace(0, length, it)
-            }
-        },
-        onSearch = {},
-        active = false,
-        onActiveChange = {},
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp), // ⭐ solo horizontal
-
-        placeholder = {
-            Text("Buscar pacientes...")
-        },
-
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = "Buscar"
+        inputField = {
+            SearchBarDefaults.InputField(
+                query = textFieldState.text.toString(),
+                onQueryChange = { textFieldState.edit { replace(0, length, it) } },
+                onSearch = {},
+                expanded = false,
+                onExpandedChange = {},
+                placeholder = { Text("Buscar pacientes…") }, // Corregido: parámetro nombrado
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) }
             )
         },
-        colors = SearchBarDefaults.colors(
-            containerColor = Color(0xFFEAF3FF) , //azul muy suave
-            dividerColor = Color(0xFFD6E4F5)
-        )
-    ) {
-        //No necesitas contenido expandido porque active = false
-    }
+        expanded = false,
+        onExpandedChange = {},
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        content = {} // Corregido: bloque de contenido obligatorio añadido
+    )
 }
-
 
 //Encabezado
 @Composable
 fun PatientsTopBar(
-    onUserProfile: () -> Unit,
+    onNavigateAddPatient: () -> Unit,
     onBackClick: () -> Unit,
     backIconRes: Int
 ) {
@@ -192,7 +191,7 @@ fun PatientsTopBar(
             verticalAlignment = Alignment.CenterVertically) {
 
             BackButton(
-                onClick = onBackClick,
+                onNavigateBack = onBackClick,
                 iconRes = backIconRes
             )
 
@@ -203,14 +202,15 @@ fun PatientsTopBar(
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold
             )
-
         }
 
         Spacer(modifier = Modifier.width(70.dp))
 
         Generic_Button(
             text = "+",
-            onClick = onUserProfile
+            onClick = onNavigateAddPatient,
+            modifier = Modifier.size(40.dp), // Tamaño pequeño
+            contentPadding = PaddingValues(0.dp),
         )
     }
 
@@ -234,6 +234,9 @@ fun CharacterHeader(initial: Char) {
         )
     }
 }
+
+
+
 @Composable
 fun PatientItem(
     patient: Patient,
