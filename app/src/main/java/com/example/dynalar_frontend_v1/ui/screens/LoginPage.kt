@@ -155,7 +155,7 @@ fun LoginPage(
 
         Generic_Button(
             text = "Login",
-            onClick = onLoginClick,
+            onClick = { viewModel.login(email, password) },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
