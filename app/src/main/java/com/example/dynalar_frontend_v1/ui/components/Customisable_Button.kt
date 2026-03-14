@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -57,25 +56,29 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import com.example.dynalar_frontend_v1.R
 
 
 //Boton de navegacion global
 @Composable
-fun Generic_Button(
+fun Navegate_Button(
     text: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 24.dp),
     backgroundColor: Color = ButtonPrimary,
     contentColor: Color = Color.White,
-    style: TextStyle = MaterialTheme.typography.bodyLarge,
-    contentPadding: PaddingValues = ButtonDefaults.ContentPadding
+    height: Dp = 56.dp,
+    fontSize: TextUnit = 18.sp,
+    fontWeight: FontWeight = FontWeight.SemiBold
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier.height(height),
         shape = RoundedCornerShape(8.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = backgroundColor,
@@ -84,12 +87,39 @@ fun Generic_Button(
     ) {
         Text(
             text = text,
-            style = style,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            fontSize = fontSize,
+            fontWeight = fontWeight,
+            textAlign = TextAlign.Center
         )
     }
 }
 
+//Boton añadir perfiles, materiales, fotos....
+@Composable
+fun AddButton(
+    onClick: () -> Unit,
+    iconRes: Int,
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = ButtonPrimary,
+    size: Dp = 45.dp,              // tamaño del cuadrado
+    iconSize: Dp = 28.dp           // tamaño del icono dentro
+) {
+    Box(
+        modifier = modifier
+            .size(size)
+            .clip(RoundedCornerShape(8.dp))
+            .background(backgroundColor)
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = painterResource(id = iconRes),
+            contentDescription = "Añadir",
+            modifier = Modifier.size(iconSize),
+            contentScale = ContentScale.Fit
+        )
+    }
+}
 
 //Circulo ( lo he utilizado para hacer el boton global
 @Composable
@@ -336,7 +366,7 @@ fun BackButton(
     onNavigateBack: () -> Unit,
     iconRes: Int,
     modifier: Modifier = Modifier,
-    iconSize: Dp = 28.dp
+    iconSize: Dp = 20.dp
 ) {
     Box(
         modifier = modifier

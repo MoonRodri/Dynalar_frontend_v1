@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dynalar_frontend_v1.R
-import com.example.dynalar_frontend_v1.ui.components.Generic_Button
+import com.example.dynalar_frontend_v1.ui.components.Navegate_Button
 import com.example.dynalar_frontend_v1.model.LoginUiState
 import com.example.dynalar_frontend_v1.ui.theme.Dynalar_frontend_v1Theme
 import com.example.dynalar_frontend_v1.viewmodel.UserViewModel
@@ -53,7 +53,7 @@ fun LoginPage(
     viewModel: UserViewModel = viewModel(),
     onLoginSuccess: () -> Unit = {},
     onForgotPasswordClick: () -> Unit = {},
-    onGoogleSignInClick: () -> Unit = {}
+    onGoogleSignInClick: () -> Unit = {},
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -153,9 +153,9 @@ fun LoginPage(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Generic_Button(
+        Navegate_Button(
             text = "Login",
-            onClick = onLoginClick,
+            onClick = onLoginSuccess,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
@@ -223,6 +223,6 @@ fun LoginPage(
 @Composable
 fun LoginPagePreview() {
     Dynalar_frontend_v1Theme {
-        LoginPage()
+//LoginPage()
     }
 }

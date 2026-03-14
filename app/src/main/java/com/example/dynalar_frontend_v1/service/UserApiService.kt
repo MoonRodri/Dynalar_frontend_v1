@@ -6,7 +6,7 @@ import retrofit2.http.POST
 import com.example.dynalar_frontend_v1.model.user.User
 
 interface UserApiService {
-    @GET("user/all")
+    @GET("patient/index")
     suspend fun getAllUsers(): List<User>
 
     @POST("user/login")

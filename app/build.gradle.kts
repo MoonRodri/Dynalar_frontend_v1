@@ -71,6 +71,8 @@ dependencies {
     // OkHttp: Gestiona las peticiones de red de forma eficiente
     implementation("com.squareup.okhttp3:okhttp:4.11.0")
     implementation(libs.androidx.tv.material)
+    implementation(libs.androidx.compose.ui.unit)
+    implementation(libs.androidx.foundation.layout)
 
     // --- Testing (Solo para pruebas) ---
     testImplementation(libs.junit)

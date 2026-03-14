@@ -19,11 +19,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.dynalar_frontend_v1.ui.components.BackButton
-import com.example.dynalar_frontend_v1.ui.components.Generic_Button
+import com.example.dynalar_frontend_v1.ui.components.Navegate_Button
 import com.example.dynalar_frontend_v1.R
 import com.example.dynalar_frontend_v1.ui.components.InputFieldEditable
-import kotlinx.coroutines.launch
 
 
 @Composable
@@ -65,7 +65,7 @@ fun CreateProfileForm(
                 selectedTab = selectedTab,
                 onTabSelected = { selectedTab = it },
                 onNavigateBack = onNavigateBack,
-                backIconRes = R.drawable.back
+                backIconRes = R.drawable.general_volver
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -96,17 +96,18 @@ fun CreateProfileForm(
                     .padding(24.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Generic_Button(
+                Navegate_Button(
                     text = "Guarda i Continua",
                     onClick = {
                         if (name.isBlank() || lastName.isBlank() || email.isBlank() || dni.isBlank() || phone.isBlank()) {
-
                             Toast.makeText(context, "Por favor, rellena todos los campos", Toast.LENGTH_SHORT).show()
                         } else {
                             onNavigateOdontogramaPage()
                         }
                     },
-                    style = MaterialTheme.typography.bodyLarge
+                    height = 56.dp,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold
                 )
 
             }

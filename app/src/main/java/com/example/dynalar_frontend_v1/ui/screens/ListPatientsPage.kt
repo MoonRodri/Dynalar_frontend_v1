@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SearchBar
@@ -30,7 +32,7 @@ import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,122 +41,136 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dynalar_frontend_v1.R
+import com.example.dynalar_frontend_v1.interfaces.InterfaceGlobal
 import com.example.dynalar_frontend_v1.model.patient.Patient
+import com.example.dynalar_frontend_v1.ui.components.AddButton
 import com.example.dynalar_frontend_v1.ui.components.BackButton
-import com.example.dynalar_frontend_v1.ui.components.Generic_Button
+import com.example.dynalar_frontend_v1.ui.components.Navegate_Button
 import com.example.dynalar_frontend_v1.ui.components.SwipeToDeleteContainer
+import com.example.dynalar_frontend_v1.viewmodel.PatientViewModel
 
+// --- Imagenes de pacientes ---
+val patientImages = listOf(
+    R.drawable.usuario1,
+    R.drawable.usuario2,
+    R.drawable.usuario3,
+    R.drawable.usuario4,
+    R.drawable.usuario5,
+    R.drawable.usuario6,
+    R.drawable.usuario7,
+    R.drawable.usuario8,
+    R.drawable.usuario9,
+    R.drawable.usuario10,
+    R.drawable.usuario11,
+    R.drawable.usuario12,
+)
 
+fun getPatientImage(patientId: Long?): Int {
+    if (patientId == null) return R.drawable.usuario1
+    val index = (patientId % patientImages.size).toInt()
+    return patientImages[index]
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListPatientsScreen(
-    onNavigateBack: () -> Unit = {},
-    onNavigateAddPatient: () -> Unit
-) {
-    val patients = remember {
-        listOf(
-            Patient(id = 1, name = "Ana López"),
-            Patient(id = 2, name = "Andrés Ruiz"),
-            Patient(id = 3, name = "Brenda Gómez"),
-            Patient(id = 4, name = "Carlos Pérez"),
-            Patient(id = 5, name = "Carla Díaz")
-        )
-    }
-    PatientsListScreenForm(
-        patients = patients,
-        onNavigateBack = onNavigateBack,
-        onNavigateAddPatient = onNavigateAddPatient,
-        onNavigatePacientProfile = { patient ->
-            println("Clicked patient: ${patient.name}")
-        },
-        onDeletePatient = { patient ->
-            println("Deleted patient: ${patient.name}")
-        }
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun PatientsListScreenForm(
-    patients: List<Patient>,
-    onNavigateBack: () -> Unit,
+    viewModel: PatientViewModel = viewModel(),
     onNavigateAddPatient: () -> Unit,
-    onNavigatePacientProfile: (Patient) -> Unit,
-    onDeletePatient: (Patient) -> Unit
-) {
+    onBackClick: () -> Unit
 
+) {
+    val uiState = viewModel.uiStatePatient
     val textFieldState = rememberTextFieldState()
 
-    val filteredPatients = remember(textFieldState.text) {
-        if (textFieldState.text.isBlank()) patients
-        else patients.filter { it.name?.contains(textFieldState.text, ignoreCase = true) == true }
+    LaunchedEffect(Unit) {
+        viewModel.getPatients() // carga inicial
     }
 
-    val groupedPatients = filteredPatients
-        .filter { !it.name.isNullOrBlank() }
-        .groupBy { it.name!!.first() }
+    Column(modifier = Modifier.fillMaxSize()){
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 24.dp)
-    ) {
+        PatientsTopBar(
+            onNavigateAddPatient = onNavigateAddPatient,
+            onBackClick = onBackClick
+        )
+        // SearchBar
+        SearchPatientBar(textFieldState = textFieldState, viewModel = viewModel)
 
-        // Top bar
-        item {
-            PatientsTopBar(
-                onNavigateAddPatient = onNavigateAddPatient,
-                onBackClick = onNavigateBack,
-                backIconRes = R.drawable.back
-            )
-        }
-        // Buscador
-        item {
-            SearchPatientBar(textFieldState)
-        }
+        Spacer(modifier = Modifier.height(16.dp))
 
-        item {
-            Spacer(modifier = Modifier.height(20.dp))
-        }
-
-        // Listado de pacientes agrupados
-        groupedPatients.forEach { (initial, patientsList) ->
-
-            stickyHeader {
-                CharacterHeader(initial)
+        // --- Contenido principal según estado ---
+        when (uiState) {
+            is InterfaceGlobal.Loading -> {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
             }
 
-            items(
-                patientsList,
-                key = { it.id ?: 0 }
-            ) { patient ->
-                SwipeToDeleteContainer(
-                    onDelete = { onDeletePatient(patient) }
+            is InterfaceGlobal.Success -> {
+                val patients = uiState.data
+                    .filter { !it.name.isNullOrBlank() } // filtra nombres vacíos
+                    .sortedBy { it.name } // orden alfabético
+                    .groupBy { it.name!!.first().uppercaseChar() } // agrupa por primera letra
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 24.dp)
                 ) {
-                    PatientItem(
-                        patient = patient,
-                        onClick = { onNavigatePacientProfile(patient) }
-                    )
+
+                    patients.forEach { (initial, patientList) ->
+
+                        stickyHeader {
+                            CharacterHeader(initial)
+                        }
+
+                        items(patientList, key = { it.id ?: 0L }) { patient ->
+                            SwipeToDeleteContainer(
+                                onDelete = { viewModel.deletePatient(patient.id ?: 0L) }
+                            ) {
+                                PatientItem(
+                                    patient = patient,
+                                    onClick = { /* navegar al perfil del paciente */ }
+                                )
+                            }
+                        }
+                    }
                 }
+            }
+
+            is InterfaceGlobal.Error -> {
+                Text("Error: ${uiState.message}", modifier = Modifier.padding(16.dp))
+            }
+
+            InterfaceGlobal.Idle -> {}
+            InterfaceGlobal.NotFound -> {
+                Text("No se encontraron pacientes", modifier = Modifier.padding(16.dp))
             }
         }
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchPatientBar(
-    textFieldState: TextFieldState
+    textFieldState: TextFieldState,
+    viewModel: PatientViewModel
+
 ) {
 
     SearchBar(
         inputField = {
             SearchBarDefaults.InputField(
                 query = textFieldState.text.toString(),
-                onQueryChange = { textFieldState.edit { replace(0, length, it) } },
+                onQueryChange = { text ->
+                    // Actualiza el TextField
+                    textFieldState.edit { replace(0, length, text) }
+                    // Llama al ViewModel para filtrar la lista
+                    viewModel.searchPatients(text)
+                },
                 onSearch = {},
                 expanded = false,
                 onExpandedChange = {},
-                placeholder = { Text("Buscar pacientes…") }, // Corregido: parámetro nombrado
+                placeholder = { Text("Buscar pacientes…") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) }
             )
         },
@@ -163,7 +179,7 @@ fun SearchPatientBar(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
-        content = {} // Corregido: bloque de contenido obligatorio añadido
+        content = {}
     )
 }
 
@@ -172,7 +188,6 @@ fun SearchPatientBar(
 fun PatientsTopBar(
     onNavigateAddPatient: () -> Unit,
     onBackClick: () -> Unit,
-    backIconRes: Int
 ) {
 
     Row(
@@ -192,7 +207,7 @@ fun PatientsTopBar(
 
             BackButton(
                 onNavigateBack = onBackClick,
-                iconRes = backIconRes
+                iconRes = R.drawable.general_volver
             )
 
             Spacer(modifier = Modifier.width(14.dp))
@@ -206,12 +221,11 @@ fun PatientsTopBar(
 
         Spacer(modifier = Modifier.width(70.dp))
 
-        Generic_Button(
-            text = "+",
+        AddButton(
             onClick = onNavigateAddPatient,
-            modifier = Modifier.size(40.dp), // Tamaño pequeño
-            contentPadding = PaddingValues(0.dp),
+            iconRes = R.drawable.person_add
         )
+
     }
 
 }
@@ -234,8 +248,6 @@ fun CharacterHeader(initial: Char) {
         )
     }
 }
-
-
 
 @Composable
 fun PatientItem(
@@ -262,7 +274,7 @@ fun PatientItem(
         ) {
 
             Image(
-                painter = painterResource(id = R.drawable.usuario_hombre),
+                painter = painterResource(id = getPatientImage(patient.id)),
                 contentDescription = "Pacient",
                 modifier = Modifier
                     .size(42.dp)
