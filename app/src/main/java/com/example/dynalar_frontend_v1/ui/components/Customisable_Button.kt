@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -50,33 +49,37 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.dynalar_frontend_v1.ui.theme.ButtonPrimary
-import com.example.dynalar_frontend_v1.ui.theme.SkyBlue
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import com.example.dynalar_frontend_v1.R
+import com.example.dynalar_frontend_v1.ui.theme.BannerBlue
 
 
 //Boton de navegacion global
 @Composable
-fun Generic_Button(
+fun Navegate_Button(
     text: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 5.dp),
     backgroundColor: Color = ButtonPrimary,
     contentColor: Color = Color.White,
-    style: TextStyle = MaterialTheme.typography.bodyLarge,
-    contentPadding: PaddingValues = ButtonDefaults.ContentPadding
+    height: Dp = 56.dp,
+    fontSize: TextUnit = 18.sp,
+    fontWeight: FontWeight = FontWeight.Light // Unificado a Bold
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier,
-        shape = RoundedCornerShape(8.dp),
+        modifier = modifier.height(height),
+        shape = RoundedCornerShape(4.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = backgroundColor,
             contentColor = contentColor
@@ -84,12 +87,37 @@ fun Generic_Button(
     ) {
         Text(
             text = text,
-            style = style,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            fontSize = fontSize,
+            fontWeight = fontWeight,
+            textAlign = TextAlign.Center
         )
     }
 }
 
+
+@Composable
+fun AddButton(
+    onClick: () -> Unit,
+    iconRes: Int,
+    modifier: Modifier = Modifier,
+    iconSize: Dp = 45.dp    // tamaño del icono
+) {
+    Surface(
+        modifier = modifier
+            .size(iconSize)
+            .clickable { onClick() },
+        shape = CircleShape,            // forma circular, opcional
+        shadowElevation = 8.dp,         // aquí aplicas la elevación
+        color = Color.Transparent        // fondo transparente
+    ) {
+        Image(
+            painter = painterResource(id = iconRes),
+            contentDescription = "Añadir",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Fit
+        )
+    }
+}
 
 //Circulo ( lo he utilizado para hacer el boton global
 @Composable
@@ -150,6 +178,7 @@ fun CustomisableRectangleButton(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Thin, // Título unificado a Bold
                     color = Color.White
                 )
 
@@ -189,12 +218,12 @@ fun <T> CustomisableDynamicDropdownMenu(
             readOnly = true,
             value = selectedItem?.let { displayText(it) } ?: "",
             onValueChange = {},
-            label = { Text(label) },
+            label = { Text(label, fontWeight = FontWeight.Bold) }, // Etiqueta unificada a Bold
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded)
             },
             modifier = Modifier
-                // Se usa ExposedDropdownMenuAnchorType en lugar de MenuAnchorType
+
                 .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable, true)
                 .fillMaxWidth()
         )
@@ -265,19 +294,26 @@ fun BannerGenericProfile(
     userRole: String,
     profileImage: @Composable () -> Unit,
     content: @Composable ColumnScope.() -> Unit,
-    onBackClick: () -> Unit,
+    onNavigateBack: () -> Unit,
+    bannerColor: Color = BannerBlue,
+    textColor: Color = Color.White
 ) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(SkyBlue)
+            .shadow(
+                elevation = 40.dp,
+                shape = RoundedCornerShape(bottomStart = 40.dp, bottomEnd = 40.dp)
+            )
+            .background(bannerColor) // Restaurado el azul celeste luminoso
+
     ) {
         BackButton(
-            onNavigateBack = onBackClick,
+            onNavigateBack = onNavigateBack,
             iconRes = R.drawable.general_volver,
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .padding(start = 20.dp, top = 50.dp)
+                .padding(start = 35.dp, top = 50.dp) // Coherencia con el margen de CustomTopBar
         )
 
         Column(
@@ -302,13 +338,14 @@ fun BannerGenericProfile(
             Text(
                 text = userName,
                 style = MaterialTheme.typography.headlineSmall,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
+                color = textColor,
+                fontWeight = FontWeight.SemiBold
             )
             Text(
                 text = userRole,
                 style = MaterialTheme.typography.bodyLarge,
-                color = Color.White.copy(alpha = 0.9f)
+                color = textColor.copy(alpha = 0.9f),
+                fontWeight = FontWeight.Light// Unificado a Bold
             )
 
             Spacer(modifier = Modifier.height(30.dp))
@@ -316,7 +353,7 @@ fun BannerGenericProfile(
             Surface(
                 modifier = Modifier.fillMaxSize(),
                 color = Color.White,
-                shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp)
+                shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
             ) {
                 Column(
                     modifier = Modifier
@@ -331,18 +368,55 @@ fun BannerGenericProfile(
 }
 
 
+//Boton para ir para atras con texto
+@Composable
+fun CustomTopBar(
+    title: String,
+    titleFontSize: TextUnit = 20.sp,
+    onNavigateBack: () -> Unit,
+    modifier: Modifier = Modifier,
+    trailingContent: (@Composable () -> Unit)? = null
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(start = 35.dp, top = 40.dp, bottom = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            modifier = Modifier.clickable { onNavigateBack() },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            BackButton(
+                onNavigateBack = onNavigateBack,
+                iconRes = R.drawable.general_volver
+            )
+
+            Spacer(modifier = Modifier.width(14.dp))
+
+            Text(
+                text = title,
+                fontSize = titleFontSize,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+    }
+}
+
 @Composable
 fun BackButton(
     onNavigateBack: () -> Unit,
     iconRes: Int,
     modifier: Modifier = Modifier,
-    iconSize: Dp = 28.dp
+    iconSize: Dp = 18.dp
 ) {
     Box(
         modifier = modifier
-            .size(40.dp)
+            .size(25.dp)
             .clip(CircleShape)
             .clickable { onNavigateBack() },
+
         contentAlignment = Alignment.Center
     ) {
 
@@ -375,6 +449,7 @@ fun InputFieldEditable(
                 text = label,
                 style = MaterialTheme.typography.bodyLarge,
                 fontSize = 16.sp,
+                fontWeight = FontWeight.Light, // Etiqueta unificada a Bold
                 color = Color.Black.copy(alpha = 0.8f)
             )
         }
@@ -385,7 +460,8 @@ fun InputFieldEditable(
                 .height(48.dp),
             shape = RoundedCornerShape(10.dp),
             colors = CardDefaults.outlinedCardColors(containerColor = Color.White),
-            border = BorderStroke(1.dp, SolidColor(Color.LightGray.copy(alpha = 0.4f)))
+            border = BorderStroke(1.dp, SolidColor(Color.LightGray.copy(alpha = 0.4f))),
+            elevation = CardDefaults.outlinedCardElevation(defaultElevation = 1.dp)
         ) {
 
             BasicTextField(
@@ -422,7 +498,11 @@ fun InputFieldEditable(
 fun InputField(
     modifier: Modifier = Modifier,
     label: String? = null,
-    value: String
+    value: String,
+    onValueChange: (String) -> Unit = {},
+    isPassword: Boolean = false
+
+
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -433,7 +513,7 @@ fun InputField(
                 text = label,
                 style = MaterialTheme.typography.bodyLarge,
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Normal,
+                fontWeight = FontWeight.SemiBold, // Etiqueta unificada a Bold
                 color = Color.Black.copy(alpha = 0.8f)
             )
         }
@@ -443,7 +523,9 @@ fun InputField(
                 .height(48.dp),
             shape = RoundedCornerShape(10.dp),
             colors = CardDefaults.outlinedCardColors(containerColor = Color.White),
-            border = BorderStroke(1.dp, SolidColor(Color.LightGray.copy(alpha = 0.4f)))
+            border = BorderStroke(1.dp, SolidColor(Color.LightGray.copy(alpha = 0.4f))),
+            elevation = CardDefaults.outlinedCardElevation(defaultElevation = 1.dp)
+
         ) {
             Box(
                 modifier = Modifier.fillMaxSize(),

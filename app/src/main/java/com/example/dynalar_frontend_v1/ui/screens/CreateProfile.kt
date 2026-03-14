@@ -19,11 +19,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.dynalar_frontend_v1.ui.components.BackButton
-import com.example.dynalar_frontend_v1.ui.components.Generic_Button
+import com.example.dynalar_frontend_v1.ui.components.Navegate_Button
 import com.example.dynalar_frontend_v1.R
+import com.example.dynalar_frontend_v1.ui.components.CustomTopBar
 import com.example.dynalar_frontend_v1.ui.components.InputFieldEditable
-import kotlinx.coroutines.launch
 
 
 @Composable
@@ -65,15 +66,14 @@ fun CreateProfileForm(
                 selectedTab = selectedTab,
                 onTabSelected = { selectedTab = it },
                 onNavigateBack = onNavigateBack,
-                backIconRes = R.drawable.back
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(70.dp))
 
-            // Contenido dinámico según la pestaña
+
             Box(modifier = Modifier
                 .weight(1f)
-                .padding(horizontal = 24.dp)) {
+                .padding(horizontal = 30.dp)) {
                 if (selectedTab == 0) {
                     InformationPersonal(
                         name = name, onNameChange = { name = it },
@@ -96,7 +96,7 @@ fun CreateProfileForm(
                     .padding(24.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Generic_Button(
+                Navegate_Button(
                     text = "Guarda i Continua",
                     onClick = {
                         if (name.isBlank() || lastName.isBlank() || email.isBlank() || dni.isBlank() || phone.isBlank()) {
@@ -106,7 +106,6 @@ fun CreateProfileForm(
                             onNavigateOdontogramaPage()
                         }
                     },
-                    style = MaterialTheme.typography.bodyLarge
                 )
 
             }
@@ -119,18 +118,16 @@ fun Header_ButtonNavigator(
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
     onNavigateBack: () -> Unit,
-    backIconRes: Int
 
 ) {
     Column{
-
-        BackButton(
-            onNavigateBack = onNavigateBack,
-            iconRes = backIconRes,
-            modifier = Modifier.padding(top = 50.dp, start = 16.dp)
+        CustomTopBar(
+            title = "Nou Pacient",
+            titleFontSize = 20.sp,
+            onNavigateBack = onNavigateBack
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(35.dp))
 
         Row(
             modifier = Modifier
@@ -182,7 +179,8 @@ fun InformationPersonal(
     phone: String, onPhoneChange: (String) -> Unit
 ) {
     
-    Column (verticalArrangement = Arrangement.spacedBy(16.dp)){
+    Column (verticalArrangement = Arrangement.spacedBy(20.dp),
+        modifier = Modifier.fillMaxWidth()){
         InputFieldEditable(label = "Nombre",
             value = name,
             onValueChange = onNameChange,
@@ -211,7 +209,8 @@ fun InformationMedical(
     allergies: String, onAllergiesChange: (String) -> Unit,
     medicalNotes: String, onMedicalNotesChange: (String) -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(20.dp),
+        modifier = Modifier.fillMaxWidth()) {
         InputFieldEditable(label = "Historial Familiar", value = allergies, onValueChange = onAllergiesChange, placeholder = "Ej: Observacions...")
         InputFieldEditable(label = "Condicions Dentals", value = allergies, onValueChange = onAllergiesChange, placeholder = "Ej: Mal de dents")
         InputFieldEditable(label = "Medicació", value = medicalNotes, onValueChange = onMedicalNotesChange, placeholder = "Paracetamol")

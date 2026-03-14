@@ -13,4 +13,8 @@ class UserRepository {
     suspend fun login(user: User): User{
         return userApiService.login(user);
     }
+    // Obtener usuario por id
+    suspend fun getUserById(userId: Long): User? {
+        return userApiService.getUserById(userId)
+    }
 }
