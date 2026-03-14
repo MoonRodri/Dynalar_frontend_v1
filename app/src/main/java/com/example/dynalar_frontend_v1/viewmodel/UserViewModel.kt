@@ -12,36 +12,59 @@ import kotlinx.coroutines.launch
 
 class UserViewModel: ViewModel() {
 
-    private val _loginUiState = MutableStateFlow<LoginUiState>(LoginUiState.Idle)
-    val loginUiState: StateFlow<LoginUiState> = _loginUiState.asStateFlow()
+    private val _userUiState = MutableStateFlow<LoginUiState>(LoginUiState.Idle)
+    val userUiState: StateFlow<LoginUiState> = _userUiState.asStateFlow()
     private val userRepository = UserRepository()
 
-
-    fun getAllUsers(): List<User>{
+    fun getAllUsers() {
         viewModelScope.launch {
-            userRepository.getAllUsers();
+            _userUiState.value = LoginUiState.Loading
+            try {
+                val users = userRepository.getAllUsers()
+                // Aquí puedes crear un estado específico si quieres listar varios usuarios
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _userUiState.value = LoginUiState.Error("Error al obtener usuarios")
+            }
         }
-        return emptyList();
+    }
+
+    // Función para obtener usuario por id
+    fun getUserById(userId: Long) {
+        viewModelScope.launch {
+            _userUiState.value = LoginUiState.Loading
+            try {
+                val user = userRepository.getUserById(userId)
+                if (user != null) {
+                    _userUiState.value = LoginUiState.Success(user)
+                } else {
+                    _userUiState.value = LoginUiState.Error("Usuario no encontrado")
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _userUiState.value = LoginUiState.Error("Error al cargar datos")
+            }
+        }
     }
 
     fun login(mail: String, pass: String){
         viewModelScope.launch {
-            _loginUiState.value = LoginUiState.Loading
+            _userUiState.value = LoginUiState.Loading
             try {
                 val userToLogin = User(email = mail, password = pass)
                 val loggedUser = userRepository.login(userToLogin)
 
                 //sessionManager.saveUser(loggedUser)
                 if (loggedUser != null) {
-                    _loginUiState.value = LoginUiState.Success(loggedUser)
+                    _userUiState.value = LoginUiState.Success(loggedUser)
                 } else {
-                    _loginUiState.value = LoginUiState.Error("Credenciales incorrectas")
+                    _userUiState.value = LoginUiState.Error("Credenciales incorrectas")
                 }
 
-                _loginUiState.value = LoginUiState.Success(loggedUser)
+                _userUiState.value = LoginUiState.Success(loggedUser)
             } catch (e: Exception) {
                 e.printStackTrace()
-                _loginUiState.value = LoginUiState.Error("Error al iniciar sesión")
+                _userUiState.value = LoginUiState.Error("Error al iniciar sesión")
             }
         }
     }

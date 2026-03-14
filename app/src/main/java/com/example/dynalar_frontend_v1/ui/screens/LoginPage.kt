@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dynalar_frontend_v1.R
-import com.example.dynalar_frontend_v1.ui.components.Generic_Button
+import com.example.dynalar_frontend_v1.ui.components.Navegate_Button
 import com.example.dynalar_frontend_v1.model.LoginUiState
 import com.example.dynalar_frontend_v1.ui.theme.Dynalar_frontend_v1Theme
 import com.example.dynalar_frontend_v1.viewmodel.UserViewModel
@@ -58,7 +58,7 @@ fun LoginPage(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    val loginUiState by viewModel.loginUiState.collectAsState()
+    val loginUiState by viewModel.userUiState.collectAsState()
 
     LaunchedEffect(loginUiState) {
         if (loginUiState is LoginUiState.Success) {
@@ -153,7 +153,7 @@ fun LoginPage(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Generic_Button(
+        Navegate_Button(
             text = "Login",
             onClick = { viewModel.login(email, password) },
             modifier = Modifier
