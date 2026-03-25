@@ -16,6 +16,7 @@ data class Patient(
     val billing: String? = null,
     val medicalRecord: MedicalRecord? = null,
     val odontogram: Odontogram? = null,
+    val creationDate: String? = null,
     val documents: List<Document>? = emptyList(),
     val appointments: List<Appointment>? = emptyList()
 )

@@ -11,6 +11,7 @@ data class Appointment(
     val patient: Patient? = null,
     val box: Box? = null,
     val odontogram: Odontogram? = null,
+    val creationDate: String? = null,
     val reason: String? = null,
     val durationMinutes: Int? = null,
     val startTime: String? = null, // Ej: "10:30:00"

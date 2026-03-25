@@ -142,16 +142,10 @@ fun ListPatientsScreen(
                 }
 
                 is InterfaceGlobal.Error -> {
-                    val friendlyMessage = if (uiState.message.isNullOrBlank() ||
-                        uiState.message.contains("Unable to create converter", ignoreCase = true)
-                    ) {
-                        "Error al connecta al servidor"
-                    } else {
-                        uiState.message
-                    }
-
+                    // Quitamos el filtro 'friendlyMessage' temporalmente
+                    // para forzar a que salga el error real en la pantalla
                     ErrorScreenWithImage(
-                        message = friendlyMessage
+                        message = "ESTO_ES_NUEVO: ${uiState.message}"
                     )
                 }
 

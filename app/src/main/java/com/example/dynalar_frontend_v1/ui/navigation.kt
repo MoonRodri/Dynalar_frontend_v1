@@ -10,4 +10,5 @@ sealed class AppRoutes(val route: String) {
 
     object UserProfile : AppRoutes("userProfile")
 
+    object PatientProfile : AppRoutes("patientProfilePage")
 }
