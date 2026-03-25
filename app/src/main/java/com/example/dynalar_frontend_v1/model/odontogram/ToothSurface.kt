@@ -4,5 +4,9 @@ enum class ToothSurface {
     DISTAL,
     OCLUSAL,
     INCISAL,
-    COMPLET
+    COMPLET,
+    MESIAL,
+    VESTIBULAR,
+    LINGUAL,
+    NONE
 }
