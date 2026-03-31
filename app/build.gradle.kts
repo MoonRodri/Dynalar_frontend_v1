@@ -73,6 +73,7 @@ dependencies {
     implementation(libs.androidx.tv.material)
     implementation(libs.androidx.runtime)
     implementation(libs.androidx.compose.ui.text)
+    implementation(libs.androidx.compose.ui.geometry)
 
     // --- Testing (Solo para pruebas) ---
     testImplementation(libs.junit)
@@ -85,5 +86,10 @@ dependencies {
 
 
     implementation("androidx.compose.material3:material3:1.2.0")
+
+    // --Calendario
+    implementation("com.kizitonwose.calendar:view:2.5.0")
+// o si usas Compose:
+    implementation("com.kizitonwose.calendar:compose:2.5.0")
 // o la versión más reciente
 }

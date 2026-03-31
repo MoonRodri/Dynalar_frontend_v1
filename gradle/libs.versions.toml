@@ -20,6 +20,7 @@ composeFoundation = "1.5.6"
 tvMaterial = "1.0.1"
 runtimeVersion = "1.10.5"
 uiText = "1.10.5"
+uiGeometry = "1.10.6"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -48,6 +49,7 @@ compose-foundation = { group = "androidx.wear.compose", name = "compose-foundati
 androidx-tv-material = { group = "androidx.tv", name = "tv-material", version.ref = "tvMaterial" }
 androidx-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtimeVersion" }
 androidx-compose-ui-text = { group = "androidx.compose.ui", name = "ui-text", version.ref = "uiText" }
+androidx-compose-ui-geometry = { group = "androidx.compose.ui", name = "ui-geometry", version.ref = "uiGeometry" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

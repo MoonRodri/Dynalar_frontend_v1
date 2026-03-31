@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,10 +40,14 @@ import com.example.dynalar_frontend_v1.ui.components.CustomisableRectangleButton
 fun HomePage(
     onNavigateProfileUserProfile: () -> Unit,
     onNavigateListPacient: () -> Unit,
+    onNavigateBoxCalendar: () -> Unit,
+
 ){
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
+
     ) {
         Header_HomePage(onNavigateProfileUserProfile = onNavigateProfileUserProfile)
 
@@ -52,6 +58,7 @@ fun HomePage(
 
         Buttons_HomePage(
             onNavigateListPacient = onNavigateListPacient,
+            onNavigateBoxCalendar= onNavigateBoxCalendar
         )
     }
 }
@@ -127,6 +134,7 @@ fun CalendarHomepage() {
 @Composable
 fun Buttons_HomePage(
     onNavigateListPacient: () -> Unit,
+    onNavigateBoxCalendar: () -> Unit
 ){
 
     CustomisableRectangleButton(
@@ -141,9 +149,7 @@ fun Buttons_HomePage(
         title = "Agenda",
         subtitle = "Gestiona Agenda",
         circleColor = Color.White,
-        onClick = {
-            // Lógica para agenda si existiera
-        }
+        onClick = onNavigateBoxCalendar
     )
 
     Spacer(modifier = Modifier.height(35.dp))
