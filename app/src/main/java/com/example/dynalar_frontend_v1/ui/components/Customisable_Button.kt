@@ -25,6 +25,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -67,34 +68,38 @@ import com.example.dynalar_frontend_v1.ui.theme.BannerBlue
 fun Navegate_Button(
     text: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 5.dp),
-    backgroundColor: Color = ButtonPrimary,
+    modifier: Modifier = Modifier.fillMaxWidth(),
+    backgroundColor: Color = Color(0xFF537895),
     contentColor: Color = Color.White,
-    height: Dp = 56.dp,
-    fontSize: TextUnit = 18.sp,
-    fontWeight: FontWeight = FontWeight.Light // Unificado a Bold
+    isLoading: Boolean = false,
+    enabled: Boolean = true
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier.height(height),
-        shape = RoundedCornerShape(4.dp),
+        modifier = modifier.height(56.dp),
+        enabled = enabled, // Importante para bloquearlo durante la carga
+        shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = backgroundColor,
-            contentColor = contentColor
+            contentColor = contentColor,
+            disabledContainerColor = backgroundColor.copy(alpha = 0.6f)
         )
     ) {
-        Text(
-            text = text,
-            fontSize = fontSize,
-            fontWeight = fontWeight,
-            textAlign = TextAlign.Center
-        )
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(24.dp),
+                color = contentColor,
+                strokeWidth = 2.dp
+            )
+        } else {
+            Text(
+                text = text,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
     }
 }
-
-
 @Composable
 fun AddButton(
     onClick: () -> Unit,

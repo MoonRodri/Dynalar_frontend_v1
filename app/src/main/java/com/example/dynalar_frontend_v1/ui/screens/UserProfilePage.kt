@@ -5,7 +5,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -48,7 +50,12 @@ fun UserProfilePage(
     }
 
     Scaffold { paddingValues ->
-        Column(modifier = Modifier.padding(paddingValues)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState()) // Scroll añadido aquí
+        ) {
 
             // Banner siempre arriba
             val bannerUserName = if (uiState is LoginUiState.Success) (uiState as LoginUiState.Success).user.name ?: "Usuario" else "Usuario"
@@ -76,7 +83,8 @@ fun UserProfilePage(
                 is LoginUiState.Loading, LoginUiState.Idle -> {
                     Box(
                         modifier = Modifier
-                            .fillMaxSize(),
+                            .fillMaxWidth()
+                            .height(300.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator()
@@ -92,7 +100,8 @@ fun UserProfilePage(
                     val message = (uiState as LoginUiState.Error).message ?: "Error desconocido"
                     Box(
                         modifier = Modifier
-                            .fillMaxSize(),
+                            .fillMaxWidth()
+                            .height(300.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -114,7 +123,9 @@ fun UserInfoContent(user: User) {
 
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 30.dp, vertical = 20.dp)
     ) {
         InputField(label = "Nombre", value = user.name ?: "")
         InputField(label = "Apellido", value = user.surname ?: "")
