@@ -12,4 +12,18 @@
     <string name="label_telefono">Telefono</string>
     <string name="back_button_desc">Back</string>
     <string name="profile_image_desc">Profile Image</string>
+    <string name="doctor_name">Dc Teresa Campos</string>
+    <string name="btn_schedule_appointment">Agendar Cita</string>
+    <string name="day_mon">Mon</string>
+    <string name="day_tue">Tue</string>
+    <string name="day_wed">Wed</string>
+    <string name="day_thu">Thu</string>
+    <string name="day_fri">Fri</string>
+    <string name="day_sat">Sat</string>
+    <string name="label_afegir_client">Afegir Client</string>
+    <string name="label_afegir_tratament">Afegir Tratament</string>
+    <string name="label_afegir_descripcio">Afegir Descripció</string>
+    <string name="sample_date_view">Vie, 20 de feb</string>
+    <string name="sample_date_start">07-03-2026</string>
+    <string name="sample_date_end">12-03-2026</string>
 </resources>
