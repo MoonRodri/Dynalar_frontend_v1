@@ -174,27 +174,29 @@ fun LoginPage(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Navegate_Button(
-            text = "Login",
+        Button(
+            onClick = {viewModel.login(email, password)},
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-            backgroundColor = Color(0xFF537895),
-            isLoading = loginUiState is LoginUiState.Loading,
-            // Dejamos enabled = true para que siempre sea clickable y pueda mostrar el aviso
-            enabled = loginUiState !is LoginUiState.Loading,
-            onClick = {
-                if (email.isBlank() || password.isBlank()) {
-                    // Si faltan datos, mostramos el Toast
-                    android.widget.Toast.makeText(
-                        context,
-                        "Tienes que poner el usuario y la contraseña",
-                        android.widget.Toast.LENGTH_SHORT
-                    ).show()
-                } else {
-                    // Si están los datos, llamamos al ViewModel
-                    viewModel.login(email, password)
-                }
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF537895)
+            ),
+            enabled = true
+        ) {
+            if (loginUiState is LoginUiState.Loading) {
+                CircularProgressIndicator(
+                    color = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            } else {
+                Text(
+                    text = "Login",
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
         )
         Spacer(modifier = Modifier.height(80.dp))
