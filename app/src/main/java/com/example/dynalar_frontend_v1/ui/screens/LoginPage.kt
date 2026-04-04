@@ -15,9 +15,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -55,8 +59,10 @@ fun LoginPage(
     onForgotPasswordClick: () -> Unit = {},
     onGoogleSignInClick: () -> Unit = {}
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
 
     val loginUiState by viewModel.userUiState.collectAsState()
 
@@ -120,7 +126,22 @@ fun LoginPage(
                 onValueChange = { password = it },
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("Value", color = Color.LightGray) },
-                visualTransformation = PasswordVisualTransformation(),
+
+                //  Lógica de transformación ---
+                visualTransformation = if (passwordVisible) androidx.compose.ui.text.input.VisualTransformation.None else PasswordVisualTransformation(),
+
+                //  Icono del ojo ---
+                trailingIcon = {
+                    val image = if (passwordVisible)
+                        androidx.compose.material.icons.Icons.Filled.Visibility
+                    else
+                        androidx.compose.material.icons.Icons.Filled.VisibilityOff
+
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(imageVector = image, contentDescription = null, tint = Color.Gray)
+                    }
+                },
+
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedBorderColor = Color.LightGray,
@@ -177,8 +198,7 @@ fun LoginPage(
                     fontWeight = FontWeight.SemiBold
                 )
             }
-        }
-
+        )
         Spacer(modifier = Modifier.height(80.dp))
 
         OutlinedButton(
@@ -197,6 +217,7 @@ fun LoginPage(
                         .background(Color.Transparent),
                     contentAlignment = Alignment.Center
                 ) {
+                    // Placeholder for Google Icon
                     // Placeholder for Google Icon
                     Text("G", fontWeight = FontWeight.Bold, color = Color.Blue)
                 }
