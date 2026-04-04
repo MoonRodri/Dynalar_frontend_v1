@@ -44,11 +44,11 @@ import com.example.dynalar_frontend_v1.model.odontogram.ToothSurface
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ToothPage(number: Int) {
+fun ToothPage(number: Int, onBack: () -> Unit) {
     var selectedSurface by remember { mutableStateOf(ToothSurface.NONE) }
     var selectedProcess by remember { mutableStateOf(ProcessType.ABSENCIA_NATURAL) }
 
-    val isTrapezoid = number in 11..13 || number in 21..23 ||
+    val isBox = number in 11..13 || number in 21..23 ||
             number in 31..33 || number in 41..43 ||
             number in 51..53 || number in 61..63 ||
             number in 71..73 || number in 81..83
@@ -64,6 +64,13 @@ fun ToothPage(number: Int) {
         Spacer(modifier = Modifier.height(36.dp))
         Text("Dent numero $number", style = MaterialTheme.typography.titleMedium)
 
+        Button(
+            onClick = {  onBack() },
+            modifier = Modifier.padding(bottom = 16.dp)
+        ) {
+            Text("Volver")
+        }
+
         Column(
             modifier = Modifier.fillMaxWidth().weight(1f),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -72,7 +79,7 @@ fun ToothPage(number: Int) {
 
             InteractiveTooth(
                 number,
-                isTrapezoid = isTrapezoid,
+                isTrapezoid = !isBox,
                 color = Color.Black,
                 selectedSurface = selectedSurface,
                 onSurfaceClick = { surface ->

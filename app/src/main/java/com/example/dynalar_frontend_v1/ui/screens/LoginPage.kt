@@ -153,14 +153,6 @@ fun LoginPage(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Navegate_Button(
-            text = "Login",
-            onClick = { viewModel.login(email, password) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            backgroundColor = Color(0xFF537895)
-        )
         Button(
             onClick = {viewModel.login(email, password)},
             modifier = Modifier
@@ -170,7 +162,7 @@ fun LoginPage(
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF537895)
             ),
-            enabled = loginUiState !is LoginUiState.Loading && email.isNotBlank() && password.isNotBlank()
+            enabled = true
         ) {
             if (loginUiState is LoginUiState.Loading) {
                 CircularProgressIndicator(
