@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -66,24 +68,50 @@ fun CreateProfileForm(
     val context = LocalContext.current
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        bottomBar = {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = Color.White,
+                shadowElevation = 8.dp // Opcional: una sombrita para que se vea sobre el scroll
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(start = 24.dp,
+                            end = 24.dp,
+                            top = 16.dp,
+                            bottom = 50.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Navegate_Button(
+                        text = "Guarda i Continua",
+                        onClick = {
+                            if (name.isBlank() || lastName.isBlank() || email.isBlank() || dni.isBlank() || phone.isBlank()) {
+                                Toast.makeText(context, "Por favor, rellena todos los campos", Toast.LENGTH_SHORT).show()
+                            } else {
+                                onNavigateOdontogramaPage()
+                            }
+                        },
+                    )
+                }
+            }
+        }
     ) { paddingValues ->
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues)) {
-
-            // Navegador de pestañas
+        // El contenido con scroll ahora termina antes de llegar al botón
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+        ) {
             Header_ButtonNavigator(
                 selectedTab = selectedTab,
                 onTabSelected = { selectedTab = it },
                 onNavigateBack = onNavigateBack,
             )
 
-            Spacer(modifier = Modifier.height(70.dp))
+            Spacer(modifier = Modifier.height(35.dp)) // Ajustado un poco más pequeño
 
-            Box(modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 30.dp)) {
+            Box(modifier = Modifier.padding(horizontal = 30.dp)) {
                 if (selectedTab == 0) {
                     InformationPersonal(
                         name = name, onNameChange = { name = it },
@@ -102,62 +130,8 @@ fun CreateProfileForm(
                 }
             }
 
-            // Botón Guardar Global
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Navegate_Button(
-                    text = "Guarda i Continua",
-                    onClick = {
-                        // 1. Comprobamos qué campos exactos faltan
-                        val missingFields = mutableListOf<String>()
-
-                        // Campos personales (Suelen ser obligatorios)
-                        if (name.trim().isEmpty()) missingFields.add("Nombre")
-                        if (lastName.trim().isEmpty()) missingFields.add("Apellidos")
-                        if (email.trim().isEmpty()) missingFields.add("Email")
-                        if (dni.trim().isEmpty()) missingFields.add("DNI")
-
-                        // Campos médicos (Si quieres que sean opcionales, puedes borrar estas 4 líneas)
-                        if (familyHistory.trim().isEmpty()) missingFields.add("Historial Familiar")
-                        if (dentalConditions.trim().isEmpty()) missingFields.add("Condiciones Dentales")
-                        if (medicalNotes.trim().isEmpty()) missingFields.add("Medicación")
-                        if (allergies.trim().isEmpty()) missingFields.add("Alergias")
-
-                        // 2. Mostramos el error exacto o guardamos
-                        if (missingFields.isNotEmpty()) {
-                            // Mostrará un mensaje estilo: "Falta rellenar: Email, Alergias"
-                            val mensaje = "Falta rellenar: ${missingFields.joinToString(", ")}"
-                            Toast.makeText(context, mensaje, Toast.LENGTH_LONG).show()
-                        } else {
-                            // Todo está relleno, creamos el paciente
-                            val newMedicalRecord = MedicalRecord(
-                                allergies = allergies,
-                                medication = medicalNotes,
-                                familyHistory = familyHistory,
-                                deceases = dentalConditions
-                            )
-
-                            val newPatient = Patient(
-                                name = name,
-                                lastName = lastName,
-                                email = email,
-                                dni = dni,
-                                phone = phone,
-                                medicalRecord = newMedicalRecord
-                            )
-
-                            patientViewModel.createPatient(newPatient)
-
-                            Toast.makeText(context, "Paciente guardado con éxito", Toast.LENGTH_SHORT).show()
-                            onNavigateBack()
-                        }
-                    },
-                )
-            }
+            // Ya no necesitas el Spacer gigante de 150.dp
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }

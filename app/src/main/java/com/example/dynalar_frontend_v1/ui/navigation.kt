@@ -10,5 +10,7 @@ sealed class AppRoutes(val route: String) {
 
     object UserProfile : AppRoutes("userProfile")
 
-    object PatientProfile : AppRoutes("patientProfilePage")
+    object CalendarPage : AppRoutes("calendarPage")
+
+    object ScheduleAppointment : AppRoutes("scheduleAppointment")
 }
