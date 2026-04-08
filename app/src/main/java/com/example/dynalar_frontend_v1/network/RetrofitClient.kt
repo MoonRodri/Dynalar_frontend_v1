@@ -5,15 +5,15 @@ import com.example.dynalar_frontend_v1.service.OdontogramApiService
 import com.example.dynalar_frontend_v1.service.PatientApiService
 import com.example.dynalar_frontend_v1.service.UserApiService
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.gson.GsonConverterFactory // <-- ESTE IMPORT ES VITAL
 
 object RetrofitClient {
 
-    private const val BASE_URL = "http://10.0.2.2:8080/"
-
+    private const val BASE_URL = "http://10.118.3.86:8080/"
     private val instance: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
+            // SI ESTA LÍNEA ESTÁ AQUÍ Y NO ESTÁ EN ROJO, ES IMPOSIBLE QUE SALGA ESE ERROR
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }

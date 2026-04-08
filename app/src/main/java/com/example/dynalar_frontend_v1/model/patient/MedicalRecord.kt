@@ -5,6 +5,6 @@ data class MedicalRecord(
     val allergies: String? = null,
     val medication: String? = null,
     val familyHistory: String? = null,
-    val infectiousDecease: String? = null,
+    val infectiousDeceases: String? = null,
     val deceases: String? = null
 )
