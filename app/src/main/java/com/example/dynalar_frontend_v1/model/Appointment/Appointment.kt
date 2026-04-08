@@ -1,5 +1,7 @@
-package com.example.dynalar_frontend_v1.model
+package com.example.dynalar_frontend_v1.model.Appointment
 
+import com.example.dynalar_frontend_v1.model.Box
+import com.example.dynalar_frontend_v1.model.Treatment
 import com.example.dynalar_frontend_v1.model.odontogram.Odontogram
 import com.example.dynalar_frontend_v1.model.patient.Patient
 import com.example.dynalar_frontend_v1.model.user.Dentist

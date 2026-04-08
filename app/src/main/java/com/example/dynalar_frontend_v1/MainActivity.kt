@@ -5,11 +5,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.dynalar_frontend_v1.interfaces.InterfaceGlobal
 import com.example.dynalar_frontend_v1.ui.AppRoutes
 import com.example.dynalar_frontend_v1.ui.screens.CalendarPage
 import com.example.dynalar_frontend_v1.ui.screens.CreateProfilePage
@@ -19,6 +22,8 @@ import com.example.dynalar_frontend_v1.ui.screens.LoginPage
 import com.example.dynalar_frontend_v1.ui.screens.ScheduleAppointmentPage
 import com.example.dynalar_frontend_v1.ui.screens.UserProfilePage
 import com.example.dynalar_frontend_v1.ui.theme.Dynalar_frontend_v1Theme
+import com.example.dynalar_frontend_v1.viewmodel.AppointmentViewModel
+import java.time.LocalDate
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -93,36 +98,67 @@ class MainActivity : ComponentActivity() {
                             onNavigateBack = { navController.popBackStack() }
                         )
                     }
-                    composable(AppRoutes.CalendarPage.route) {
-                        CalendarPage(
-                            onNavigateBack = { navController.popBackStack() },
-                            onAddAppointmentClick = { hour, minute ->
-                                //Navegacion a la pagina, ponla tu rodrigo, pon el nombre de la pagina, cambialo promero en la carpeta navigation
 
+                    // --- RUTA CALENDARIO ---
+                    composable(AppRoutes.CalendarPage.route) {
+                        val appointmentViewModel: AppointmentViewModel = viewModel()
+
+                        LaunchedEffect(Unit) {
+                            appointmentViewModel.fetchCalendar()
+                        }
+
+                        val calendarState = appointmentViewModel.uiStateCalendar
+                        val appointments = if (calendarState is InterfaceGlobal.Success) calendarState.data else emptyList()
+
+                        CalendarPage(
+                            appointments = appointments,
+                            onNavigateBack = { navController.popBackStack() },
+                            onAddAppointmentClick = { date, hour, minute ->
+                                navController.navigate("schedule/$date/$hour/$minute")
                             }
                         )
                     }
 
-                    /*composable(
-                        route = "${AppRoutes.ScheduleAppointment.route}/{hour}/{minute}",
+
+                    // Dentro de tu NavHost
+                    composable(
+                        route = "schedule/{date}/{hour}/{minute}",
                         arguments = listOf(
+                            navArgument("date") { type = NavType.StringType },
                             navArgument("hour") { type = NavType.IntType },
                             navArgument("minute") { type = NavType.IntType }
                         )
                     ) { backStackEntry ->
+                        val dateStr = backStackEntry.arguments?.getString("date") ?: LocalDate.now().toString()
                         val hour = backStackEntry.arguments?.getInt("hour") ?: 9
                         val minute = backStackEntry.arguments?.getInt("minute") ?: 0
+                        val selectedDate = LocalDate.parse(dateStr)
+
+                        // Obtenemos el ViewModel
+                        val appointmentViewModel: AppointmentViewModel = viewModel()
 
                         ScheduleAppointmentPage(
+                            initialDate = selectedDate,
                             initialHour = hour,
                             initialMinute = minute,
-                            onNavigateBack = { navController.popBackStack() },
-                            onCitaAgendada = {
-                                navController.popBackStack() // Vuelve al calendario tras agendar
+                            appointmentViewModel = appointmentViewModel,
+                            onBackClick = { navController.popBackStack() },
+                            onScheduleClick = { date, h, m, endH, endM, patient, treatment, desc ->
+                                // Esta firma coincide con tu @Composable ScheduleAppointmentPage
+                                if (patient != null && treatment != null) {
+                                    val requestedTime = "${date}T%02d:%02d:00".format(h, m)
+
+                                    appointmentViewModel.autoAssign(
+                                        patientId = patient.id!!,
+                                        treatmentId = treatment.id!!,
+                                        requestedTime = requestedTime
+                                        // Nota: si tu backend requiere la hora de fin (endH/endM),
+                                        // deberías pasarla aquí también.
+                                    )
+                                }
                             }
                         )
-
-                    }*/
+                    }
                 }
             }
         }

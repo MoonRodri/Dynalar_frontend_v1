@@ -13,4 +13,7 @@ sealed class AppRoutes(val route: String) {
     object CalendarPage : AppRoutes("calendarPage")
 
     object ScheduleAppointment : AppRoutes("scheduleAppointment")
+
+    object EditInformationProfilePage : AppRoutes("editInformationProfilePage")
+
 }

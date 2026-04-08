@@ -31,9 +31,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -53,6 +56,7 @@ import com.example.dynalar_frontend_v1.ui.theme.ButtonPrimary
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -218,39 +222,63 @@ fun <T> CustomisableDynamicDropdownMenu(
         onExpandedChange = { expanded = !expanded },
         modifier = modifier
     ) {
-
+        // Usamos OutlinedTextField con colores personalizados para imitar tu diseño
         OutlinedTextField(
             readOnly = true,
             value = selectedItem?.let { displayText(it) } ?: "",
             onValueChange = {},
-            label = { Text(label, fontWeight = FontWeight.Bold) }, // Etiqueta unificada a Bold
+            placeholder = { Text(text = label, fontSize = 16.sp, color = Color.Gray) },
+            // Icono de la flecha rotada 90 grados como en tu código original
             trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded)
+                Icon(
+                    painter = painterResource(id = R.drawable.general_flecha_delado),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(16.dp)
+                        .rotate(if (expanded) 270f else 90f), // Cambia según si está abierto
+                    tint = Color.Black
+                )
             },
             modifier = Modifier
-
-                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable, true)
+                .menuAnchor()
                 .fillMaxWidth()
+                .height(48.dp), // Altura similar a tus 44.dp + balance de padding
+            shape = RoundedCornerShape(8.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                focusedBorderColor = Color(0xFFE0E0E0),
+                unfocusedBorderColor = Color(0xFFE0E0E0),
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black
+            ),
+            textStyle = LocalTextStyle.current.copy(fontSize = 16.sp)
         )
 
         ExposedDropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.background(Color.White)
         ) {
-
-            options.forEach { item ->
+            if (options.isEmpty()) {
                 DropdownMenuItem(
-                    text = { Text(displayText(item)) },
-                    onClick = {
-                        expanded = false
-                        onItemSelected(item)
-                    }
+                    text = { Text("No hay datos disponibles", fontSize = 14.sp) },
+                    onClick = { expanded = false }
                 )
+            } else {
+                options.forEach { item ->
+                    DropdownMenuItem(
+                        text = { Text(displayText(item), fontSize = 14.sp) },
+                        onClick = {
+                            onItemSelected(item)
+                            expanded = false
+                        }
+                    )
+                }
             }
         }
     }
 }
-
 //Eliminar los objetos de las listas
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
