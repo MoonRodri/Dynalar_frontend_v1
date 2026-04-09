@@ -198,7 +198,7 @@ fun LoginPage(
                     fontWeight = FontWeight.SemiBold
                 )
             }
-        )
+
         Spacer(modifier = Modifier.height(80.dp))
 
         OutlinedButton(
@@ -231,11 +231,4 @@ fun LoginPage(
         }
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun LoginPagePreview() {
-    Dynalar_frontend_v1Theme {
-        LoginPage()
-    }
 }

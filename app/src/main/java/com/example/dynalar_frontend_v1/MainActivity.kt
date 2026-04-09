@@ -17,7 +17,7 @@ import com.example.dynalar_frontend_v1.ui.screens.CreateProfilePage
 import com.example.dynalar_frontend_v1.ui.screens.HomePage
 import com.example.dynalar_frontend_v1.ui.screens.ListPatientsScreen
 import com.example.dynalar_frontend_v1.ui.screens.LoginPage
-import com.example.dynalar_frontend_v1.ui.screens.ScheduleAppointmentPage
+import com.example.dynalar_frontend_v1.ui.screens.PatientProfilePage
 import com.example.dynalar_frontend_v1.ui.screens.UserProfilePage
 import com.example.dynalar_frontend_v1.ui.theme.Dynalar_frontend_v1Theme
 import com.example.dynalar_frontend_v1.viewmodel.PatientViewModel
@@ -65,7 +65,12 @@ class MainActivity : ComponentActivity() {
                     composable(AppRoutes.ListPatients.route) {
                         ListPatientsScreen(
                             onNavigateAddPatient = { navController.navigate(AppRoutes.CreateProfile.route) },
-                            onNavigateBack = { navController.popBackStack() }
+                            onNavigateBack = { navController.popBackStack() },
+
+                            onPatientClick = { patientId ->
+                                android.util.Log.d("CHIVATO_MAIN", "Navegando al perfil del ID: $patientId")
+                                navController.navigate("patient_profile/$patientId")
+                            }
                         )
                     }
                     composable(AppRoutes.CalendarPage.route) {

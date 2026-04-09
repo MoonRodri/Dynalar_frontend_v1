@@ -1,10 +1,6 @@
 package com.example.dynalar_frontend_v1.ui.screens
 
-
-
-
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -75,13 +71,14 @@ fun getPatientImage(patientId: Long?): Int {
     val index = (patientId % patientImages.size).toInt()
     return patientImages[index]
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListPatientsScreen(
     viewModel: PatientViewModel = viewModel(),
     onNavigateAddPatient: () -> Unit,
-    onNavigateBack: () -> Unit
-
+    onNavigateBack: () -> Unit,
+    onPatientClick: (Long) -> Unit = {}
 ) {
     val uiState = viewModel.uiStatePatient
     val textFieldState = rememberTextFieldState()
@@ -133,7 +130,16 @@ fun ListPatientsScreen(
                                 ) {
                                     PatientItem(
                                         patient = patient,
-                                        onClick = { /* navegar al perfil del paciente */ }
+                                        onClick = { selectedPatient ->
+                                            // 👇 CHIVATO AÑADIDO PARA VER QUÉ PASA EN EL LOGCAT 👇
+                                            android.util.Log.d("CHIVATO_CLIC", "Clic en: ${selectedPatient.name}, ID: ${selectedPatient.id}")
+
+                                            if (selectedPatient.id != null) {
+                                                onPatientClick(selectedPatient.id)
+                                            } else {
+                                                android.util.Log.e("CHIVATO_CLIC", "¡EL ID ES NULO! El backend no está mandando el ID.")
+                                            }
+                                        }
                                     )
                                 }
                             }
@@ -142,10 +148,8 @@ fun ListPatientsScreen(
                 }
 
                 is InterfaceGlobal.Error -> {
-                    // Quitamos el filtro 'friendlyMessage' temporalmente
-                    // para forzar a que salga el error real en la pantalla
                     ErrorScreenWithImage(
-                        message = "ESTO_ES_NUEVO: ${uiState.message}"
+                        message = "Error: ${uiState.message}"
                     )
                 }
 
@@ -174,17 +178,13 @@ fun ListPatientsScreen(
 fun SearchPatientBar(
     textFieldState: TextFieldState,
     viewModel: PatientViewModel
-
 ) {
-
     SearchBar(
         inputField = {
             SearchBarDefaults.InputField(
                 query = textFieldState.text.toString(),
                 onQueryChange = { text ->
-                    // Actualiza el TextField
                     textFieldState.edit { replace(0, length, text) }
-                    // Llama al ViewModel para filtrar la lista
                     viewModel.searchPatients(text)
                 },
                 onSearch = {},
@@ -202,6 +202,7 @@ fun SearchPatientBar(
         content = {}
     )
 }
+
 @Composable
 fun AddPatientButton(
     onClick: () -> Unit,
@@ -214,7 +215,6 @@ fun AddPatientButton(
     )
 }
 
-
 //Encabezado
 @Composable
 fun PatientsTopBar(
@@ -225,19 +225,17 @@ fun PatientsTopBar(
         modifier = Modifier
             .fillMaxWidth()
     ) {
-        // Barra izquierda: siempre respeta sus propios paddings
         CustomTopBar(
             title = "Llista de Pacients",
             onNavigateBack = onNavigateBack,
             modifier = Modifier.align(Alignment.CenterStart)
         )
 
-        // Botón Add: control total de su posición
         AddPatientButton(
             onClick = onNavigateAddPatient,
             modifier = Modifier
                 .align(Alignment.CenterEnd)
-                .padding(end = 50.dp, top = 25.dp) // margen derecho
+                .padding(end = 50.dp, top = 25.dp)
         )
     }
 }
@@ -245,13 +243,11 @@ fun PatientsTopBar(
 //Encabezado por letra
 @Composable
 fun CharacterHeader(initial: Char) {
-
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = Color(0xFFF4F6F9),
         tonalElevation = 1.dp
     ) {
-
         Text(
             text = initial.toString(),
             modifier = Modifier.padding(horizontal = 22.dp, vertical = 10.dp),
@@ -262,17 +258,18 @@ fun CharacterHeader(initial: Char) {
     }
 }
 
+// 👇 MODIFICADA LA FORMA DE DETECTAR EL CLIC EN LA CARD 👇
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PatientItem(
     patient: Patient,
     onClick: (Patient) -> Unit
 ) {
-
     Card(
+        onClick = { onClick(patient) }, // Usamos la propiedad nativa de la Card
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 22.dp, vertical = 8.dp)
-            .clickable { onClick(patient) },
+            .padding(horizontal = 22.dp, vertical = 8.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
@@ -280,12 +277,10 @@ fun PatientItem(
             defaultElevation = 1.dp
         )
     ) {
-
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             Image(
                 painter = painterResource(id = getPatientImage(patient.id)),
                 contentDescription = "Pacient",
@@ -297,15 +292,11 @@ fun PatientItem(
             Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-
-
                 Text(
                     text = patient.name ?: "",
                     fontSize = 16.sp
                 )
-
             }
         }
     }
-
 }
