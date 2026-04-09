@@ -14,6 +14,8 @@ sealed class AppRoutes(val route: String) {
 
     object ScheduleAppointment : AppRoutes("scheduleAppointment")
 
-    object PatientProfile : AppRoutes("patientProfile")
+    object PatientProfile : AppRoutes("patientProfile/{patientId}") {
+        fun createRoute(patientId: Long) = "patientProfile/$patientId"
+    }
 
 }

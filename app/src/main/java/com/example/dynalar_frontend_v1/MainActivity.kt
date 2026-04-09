@@ -4,7 +4,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -39,7 +45,6 @@ class MainActivity : ComponentActivity() {
                     startDestination = AppRoutes.Home.route
                 ) {
 
-
                     composable(AppRoutes.Login.route) {
                         LoginPage(
                             onLoginSuccess = {
@@ -64,18 +69,58 @@ class MainActivity : ComponentActivity() {
 
                     composable(AppRoutes.ListPatients.route) {
                         ListPatientsScreen(
+                            viewModel = patientViewModel,
                             onNavigateAddPatient = { navController.navigate(AppRoutes.CreateProfile.route) },
                             onNavigateBack = { navController.popBackStack() },
-
-                            onPatientClick = { patientId ->
-                                android.util.Log.d("CHIVATO_MAIN", "Navegando al perfil del ID: $patientId")
-                                navController.navigate("patient_profile/$patientId")
+                            onNavigateToPatientProfile = { patientId ->
+                                // Navega usando la ruta con el ID
+                                navController.navigate(AppRoutes.PatientProfile.createRoute(patientId))
                             }
                         )
                     }
+
+                    // --- PERFIL DEL PACIENTE (CORREGIDO) ---
+                    composable(
+                        route = AppRoutes.PatientProfile.route,
+                        arguments = listOf(
+                            navArgument("patientId") { type = NavType.LongType }
+                        )
+                    ) { backStackEntry ->
+                        // Extraemos el ID de los argumentos
+                        val patientId = backStackEntry.arguments?.getLong("patientId") ?: -1L
+
+                        // Usamos LaunchedEffect para cargar el paciente cuando entramos a esta pantalla
+                        LaunchedEffect(patientId) {
+                            if (patientId != -1L) {
+                                patientViewModel.getPatientById(patientId)
+                            }
+                        }
+
+                        val patient = patientViewModel.selectedPatient
+
+                        if (patient != null) {
+                            PatientProfilePage(
+                                patient = patient,
+                                onBackClick = { navController.popBackStack() },
+                                onOdontogramClick = {
+                                    // Aquí podrías querer pasar también el ID al odontograma en el futuro
+                                    navController.navigate(AppRoutes.OdontogramPage.route)
+                                }
+                            )
+                        } else {
+                            // Mientras carga, mostramos un indicador de progreso
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                    }
+
                     composable(AppRoutes.CalendarPage.route) {
-                        CalendarPage(                              // ← importa la de screens
-                            onNavigateBack = { navController.popBackStack() }
+                        CalendarPage(
+                            onNavigateBack = { navController.popBackStack() },
+                            onAddAppointmentClick = { hour, minute ->
+                                // Navegación para agendar cita
+                            }
                         )
                     }
 
@@ -90,20 +135,6 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    composable(AppRoutes.PatientProfile.route) {
-                        val patient = patientViewModel.selectedPatient
-
-                        if (patient != null) {
-                            PatientProfilePage(
-                                patient = patient,
-                                onBackClick = { navController.popBackStack() },
-                                onOdontogramClick = { navController.navigate(AppRoutes.OdontogramPage.route) }
-                            )
-                        } else {
-                            Text("Error: No se ha seleccionado ningún paciente.")
-                        }
-                    }
-
                     composable(
                         route = "${AppRoutes.UserProfile.route}/{userId}",
                         arguments = listOf(
@@ -116,36 +147,6 @@ class MainActivity : ComponentActivity() {
                             onNavigateBack = { navController.popBackStack() }
                         )
                     }
-                    composable(AppRoutes.CalendarPage.route) {
-                        CalendarPage(
-                            onNavigateBack = { navController.popBackStack() },
-                            onAddAppointmentClick = { hour, minute ->
-                                //Navegacion a la pagina, ponla tu rodrigo, pon el nombre de la pagina, cambialo promero en la carpeta navigation
-
-                            }
-                        )
-                    }
-
-                    /*composable(
-                        route = "${AppRoutes.ScheduleAppointment.route}/{hour}/{minute}",
-                        arguments = listOf(
-                            navArgument("hour") { type = NavType.IntType },
-                            navArgument("minute") { type = NavType.IntType }
-                        )
-                    ) { backStackEntry ->
-                        val hour = backStackEntry.arguments?.getInt("hour") ?: 9
-                        val minute = backStackEntry.arguments?.getInt("minute") ?: 0
-
-                        ScheduleAppointmentPage(
-                            initialHour = hour,
-                            initialMinute = minute,
-                            onNavigateBack = { navController.popBackStack() },
-                            onCitaAgendada = {
-                                navController.popBackStack() // Vuelve al calendario tras agendar
-                            }
-                        )
-
-                    }*/
                 }
             }
         }
