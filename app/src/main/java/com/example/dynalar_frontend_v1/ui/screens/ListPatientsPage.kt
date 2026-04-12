@@ -33,6 +33,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,6 +51,7 @@ import com.example.dynalar_frontend_v1.interfaces.InterfaceGlobal
 import com.example.dynalar_frontend_v1.model.patient.Patient
 import com.example.dynalar_frontend_v1.ui.components.AddButton
 import com.example.dynalar_frontend_v1.ui.components.CustomTopBar
+import com.example.dynalar_frontend_v1.ui.components.DeleteConfirmationDialog
 import com.example.dynalar_frontend_v1.ui.components.ErrorScreenWithImage
 import com.example.dynalar_frontend_v1.ui.components.SwipeToDeleteContainer
 import com.example.dynalar_frontend_v1.ui.components.getPatientImage
@@ -66,6 +71,9 @@ fun ListPatientsScreen(
     val uiState = viewModel.uiStatePatient
     val textFieldState = rememberTextFieldState()
 
+// Estados para controlar el pop-up de confirmación de borrado
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var patientToDelete by remember { mutableStateOf<Long?>(null) }
     LaunchedEffect(Unit) {
         viewModel.getPatients()
     }
@@ -88,7 +96,6 @@ fun ListPatientsScreen(
                         modifier = Modifier.weight(1f).fillMaxWidth(),
                         contentAlignment = Alignment.Center
                     ) {
-
                         CircularProgressIndicator(color = ButtonPrimary)
                     }
                 }
@@ -105,9 +112,14 @@ fun ListPatientsScreen(
                     ) {
                         patients.forEach { (initial, patientList) ->
                             item { CharacterHeader(initial) }
+
                             items(patientList, key = { it.id ?: 0L }) { patient ->
                                 SwipeToDeleteContainer(
-                                    onDelete = { viewModel.deletePatient(patient.id ?: 0L) }
+                                    onDelete = {
+                                        // En lugar de borrar directamente, abrimos el pop-up
+                                        patientToDelete = patient.id
+                                        showDeleteDialog = true
+                                    }
                                 ) {
                                     PatientItem(
                                         patient = patient,
@@ -134,18 +146,26 @@ fun ListPatientsScreen(
                         modifier = Modifier.weight(1f)
                     )
                 }
-
-                InterfaceGlobal.Idle -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
             }
         }
+    }
+
+    //PopUp Eliminar
+    if (showDeleteDialog) {
+        DeleteConfirmationDialog(
+            message = "¿Estàs segur que vols eliminar aquest pacient?",
+            onConfirm = {
+                // Borramos y cerramos
+                patientToDelete?.let { id -> viewModel.deletePatient(id) }
+                showDeleteDialog = false
+                patientToDelete = null
+            },
+            onDismiss = {
+                // Solo cerramos si cancela
+                showDeleteDialog = false
+                patientToDelete = null
+            }
+        )
     }
 }
 
