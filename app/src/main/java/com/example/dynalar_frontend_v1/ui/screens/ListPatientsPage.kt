@@ -2,7 +2,7 @@ package com.example.dynalar_frontend_v1.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
+
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -49,29 +49,11 @@ import com.example.dynalar_frontend_v1.ui.components.AddButton
 import com.example.dynalar_frontend_v1.ui.components.CustomTopBar
 import com.example.dynalar_frontend_v1.ui.components.ErrorScreenWithImage
 import com.example.dynalar_frontend_v1.ui.components.SwipeToDeleteContainer
+import com.example.dynalar_frontend_v1.ui.components.getPatientImage
+import com.example.dynalar_frontend_v1.ui.theme.ButtonPrimary
 import com.example.dynalar_frontend_v1.viewmodel.PatientViewModel
 
-// --- Imagenes de pacientes ---
-val patientImages = listOf(
-    R.drawable.usuario1,
-    R.drawable.usuario2,
-    R.drawable.usuario3,
-    R.drawable.usuario4,
-    R.drawable.usuario5,
-    R.drawable.usuario6,
-    R.drawable.usuario7,
-    R.drawable.usuario8,
-    R.drawable.usuario9,
-    R.drawable.usuario10,
-    R.drawable.usuario11,
-    R.drawable.usuario12,
-)
 
-fun getPatientImage(patientId: Long?): Int {
-    if (patientId == null) return R.drawable.usuario1
-    val index = (patientId % patientImages.size).toInt()
-    return patientImages[index]
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,13 +61,13 @@ fun ListPatientsScreen(
     viewModel: PatientViewModel = viewModel(),
     onNavigateAddPatient: () -> Unit,
     onNavigateBack: () -> Unit,
-    onNavigateToPatientProfile: (Long) -> Unit // Nuevo parámetro para la navegación al perfil
+    onNavigateToPatientProfile: (Long) -> Unit
 ) {
     val uiState = viewModel.uiStatePatient
     val textFieldState = rememberTextFieldState()
 
     LaunchedEffect(Unit) {
-        viewModel.getPatients() // carga inicial
+        viewModel.getPatients()
     }
 
     Scaffold { paddingValues ->
@@ -100,31 +82,29 @@ fun ListPatientsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- Contenido principal según estado ---
             when (uiState) {
-                is InterfaceGlobal.Loading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
+                is InterfaceGlobal.Loading, InterfaceGlobal.Idle -> {
+                    Box(
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+
+                        CircularProgressIndicator(color = ButtonPrimary)
+                    }
                 }
 
                 is InterfaceGlobal.Success -> {
                     val patients = uiState.data
-                        .filter { !it.name.isNullOrBlank() } // filtra nombres vacíos
-                        .sortedBy { it.name } // orden alfabético
-                        .groupBy { it.name!!.first().uppercaseChar() } // agrupa por primera letra
+                        .filter { !it.name.isNullOrBlank() }
+                        .sortedBy { it.name }
+                        .groupBy { it.name!!.first().uppercaseChar() }
 
                     LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
                         contentPadding = PaddingValues(bottom = 24.dp)
                     ) {
-
                         patients.forEach { (initial, patientList) ->
-
-                            item {
-                                CharacterHeader(initial)
-                            }
-
+                            item { CharacterHeader(initial) }
                             items(patientList, key = { it.id ?: 0L }) { patient ->
                                 SwipeToDeleteContainer(
                                     onDelete = { viewModel.deletePatient(patient.id ?: 0L) }
@@ -132,7 +112,6 @@ fun ListPatientsScreen(
                                     PatientItem(
                                         patient = patient,
                                         onClick = { selectedPatient ->
-                                            // Al hacer clic, enviamos el ID del paciente
                                             selectedPatient.id?.let { onNavigateToPatientProfile(it) }
                                         }
                                     )
@@ -144,13 +123,15 @@ fun ListPatientsScreen(
 
                 is InterfaceGlobal.Error -> {
                     ErrorScreenWithImage(
-                        message = "ESTO_ES_NUEVO: ${uiState.message}"
+                        message = uiState.message ?: "No s'han pogut carregar els pacients",
+                        modifier = Modifier.weight(1f)
                     )
                 }
 
                 InterfaceGlobal.NotFound -> {
                     ErrorScreenWithImage(
-                        message = "Dades no trobades"
+                        message = "No hi ha pacients registrats.",
+                        modifier = Modifier.weight(1f)
                     )
                 }
 
@@ -272,6 +253,7 @@ fun PatientItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
+
                 painter = painterResource(id = getPatientImage(patient.id)),
                 contentDescription = "Pacient",
                 modifier = Modifier

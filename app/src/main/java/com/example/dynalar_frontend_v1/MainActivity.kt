@@ -7,7 +7,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +28,7 @@ import com.example.dynalar_frontend_v1.ui.screens.UserProfilePage
 import com.example.dynalar_frontend_v1.ui.theme.Dynalar_frontend_v1Theme
 import com.example.dynalar_frontend_v1.viewmodel.AppointmentViewModel
 import com.example.dynalar_frontend_v1.viewmodel.PatientViewModel
+import com.example.dynalar_frontend_v1.viewmodel.UserViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,13 +43,16 @@ class MainActivity : ComponentActivity() {
                 val patientViewModel: PatientViewModel = viewModel()
                 val appointmentViewModel: AppointmentViewModel = viewModel()
 
+                val userViewModel: UserViewModel = viewModel()
+
                 NavHost(
                     navController = navController,
-                    startDestination = AppRoutes.Login.route
+                    startDestination = AppRoutes.Home.route
                 ) {
 
                     composable(AppRoutes.Login.route) {
                         LoginPage(
+                            viewModel = userViewModel,
                             onLoginSuccess = {
                                 navController.navigate(AppRoutes.Home.route)
                             },
@@ -76,23 +79,17 @@ class MainActivity : ComponentActivity() {
                             onNavigateAddPatient = { navController.navigate(AppRoutes.CreateProfile.route) },
                             onNavigateBack = { navController.popBackStack() },
                             onNavigateToPatientProfile = { patientId ->
-                              
                                 navController.navigate(AppRoutes.PatientProfile.createRoute(patientId))
                             }
                         )
                     }
 
-                    
                     composable(
                         route = AppRoutes.PatientProfile.route,
-                        arguments = listOf(
-                            navArgument("patientId") { type = NavType.LongType }
-                        )
+                        arguments = listOf(navArgument("patientId") { type = NavType.LongType })
                     ) { backStackEntry ->
-                      
                         val patientId = backStackEntry.arguments?.getLong("patientId") ?: -1L
 
-                      
                         LaunchedEffect(patientId) {
                             if (patientId != -1L) {
                                 patientViewModel.getPatientById(patientId)
@@ -100,18 +97,13 @@ class MainActivity : ComponentActivity() {
                         }
 
                         val patient = patientViewModel.selectedPatient
-
                         if (patient != null) {
                             PatientProfilePage(
                                 patient = patient,
                                 onBackClick = { navController.popBackStack() },
-                                onOdontogramClick = {
-                                 
-                                    navController.navigate(AppRoutes.OdontogramPage.route)
-                                }
+                                onOdontogramClick = { navController.navigate(AppRoutes.OdontogramPage.route) }
                             )
                         } else {
-                           
                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 CircularProgressIndicator()
                             }
@@ -120,24 +112,35 @@ class MainActivity : ComponentActivity() {
 
                     composable(AppRoutes.UserProfile.route) {
                         UserProfilePage(
-                            userId = 1L,
+                            viewModel = userViewModel,
                             onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable(AppRoutes.CreateProfile.route) {
+                        CreateProfilePage(
+                            onNavigateOdontogramaPage = {
+                                navController.navigate(AppRoutes.OdontogramPage.route)
+                            },
+                            onNavigateBack = {
+                                navController.popBackStack()
+                            },
+                            patientViewModel = patientViewModel
                         )
                     }
 
                     composable(AppRoutes.CalendarPage.route) {
                         CalendarPage(
-                            viewModel = appointmentViewModel, 
+                            viewModel = appointmentViewModel,
                             onNavigateBack = { navController.popBackStack() },
                             onAddAppointmentClick = { date, hour, minute ->
-                               
                                 navController.navigate(AppRoutes.ScheduleAppointment.createRoute(date.toString(), hour, minute))
                             },
-                            onAppointmentClick = { appointment ->
-                              
-                            }
+                            onAppointmentClick = { appointment -> }
                         )
                     }
+
+
                     composable(
                         route = AppRoutes.ScheduleAppointment.route,
                         arguments = listOf(
@@ -155,7 +158,7 @@ class MainActivity : ComponentActivity() {
                             initialHour = hour,
                             initialMinute = minute,
                             patientViewModel = patientViewModel,
-                            appointmentViewModel = appointmentViewModel, 
+                            appointmentViewModel = appointmentViewModel,
                             onBackClick = { navController.popBackStack() }
                         )
                     }

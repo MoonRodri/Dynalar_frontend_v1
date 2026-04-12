@@ -22,48 +22,42 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.dynalar_frontend_v1.R
 import com.example.dynalar_frontend_v1.model.patient.Patient
+import com.example.dynalar_frontend_v1.ui.components.CustomTopBar
+import com.example.dynalar_frontend_v1.ui.components.getPatientImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PatientProfilePage(
-    patient: Patient, // Recibimos el paciente dinámico
+    patient: Patient,
     onBackClick: () -> Unit,
     onOdontogramClick: () -> Unit,
-    // onCalendarClick: () -> Unit, // Puedes añadir más callbacks de navegación aquí
 ) {
     Scaffold(
+        containerColor = Color(0xFFF5F7FA),
         topBar = {
-            TopAppBar(
-                title = { },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color(0xFF0D47A1))
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { /* TODO: Opciones (editar, eliminar) */ }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "Opciones", tint = Color(0xFF0D47A1))
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFF5F7FA))
-            )
-        },
-        containerColor = Color(0xFFF5F7FA)
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Spacer(modifier = Modifier.height(27.dp))
+                CustomTopBar(
+                    title = "Perfil del Pacient",
+                    onNavigateBack = onBackClick
+                )
+            }
+        }
     ) { paddingValues ->
-        // Usamos una única LazyColumn para evitar anidamiento de componentes con scroll
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 30.dp) // Este margen aplica a la lista, no al TopBar
         ) {
             item {
+                Spacer(modifier = Modifier.height(40.dp))
                 PatientHeaderSection(patient = patient)
                 Spacer(modifier = Modifier.height(24.dp))
             }
-            
+
             item {
                 ActionGridSection(patient = patient, onOdontogramClick = onOdontogramClick)
                 Spacer(modifier = Modifier.height(24.dp))
@@ -79,7 +73,6 @@ fun PatientProfilePage(
                 )
             }
 
-            // Obtenemos las citas del paciente
             val appointments = patient.appointments ?: emptyList()
 
             if (appointments.isEmpty()) {
@@ -89,8 +82,8 @@ fun PatientProfilePage(
             } else {
                 items(appointments) { appointment ->
                     TreatmentItemRow(
-                        title = appointment.toString(), // Cambia esto por algo como appointment.reason
-                        date = "Fecha programada"       // Cambia esto por appointment.date
+                        title = appointment.toString(),
+                        date = "Fecha programada"
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
@@ -107,24 +100,26 @@ fun PatientHeaderSection(patient: Patient) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
-            painter = painterResource(id = R.drawable.usuario1), // Idealmente aquí usarías Coil si tuvieras URL de foto
+            painter = painterResource(id = getPatientImage(patient.id)),
             contentDescription = "Foto del paciente",
             contentScale = ContentScale.Crop,
             modifier = Modifier
-                .size(70.dp)
+                .size(80.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .background(Color.White)
         )
-        Spacer(modifier = Modifier.width(16.dp))
-        Column {
+
+        Spacer(modifier = Modifier.width(20.dp))
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             Text(
                 text = "${patient.name ?: ""} ${patient.lastName ?: ""}",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF1E293B)
             )
-            // Nota: En tu modelo Patient no hay campo 'edad',
-            // así que pongo el DNI u otro dato relevante de tu modelo.
             Text(
                 text = "DNI: ${patient.dni ?: "No registrado"}",
                 fontSize = 14.sp,
@@ -139,7 +134,7 @@ fun PatientHeaderSection(patient: Patient) {
     }
 }
 
-// --- 2. Grid de Acciones (Con Notificaciones Dinámicas) ---
+// --- 2. Grid de Acciones ---
 @Composable
 fun ActionGridSection(patient: Patient, onOdontogramClick: () -> Unit) {
     Column {
@@ -156,7 +151,7 @@ fun ActionGridSection(patient: Patient, onOdontogramClick: () -> Unit) {
             ActionCard(
                 title = "Calendario",
                 icon = Icons.Default.DateRange,
-                badgeCount = patient.appointments?.size ?: 0, // Notificación = Nº de citas
+                badgeCount = patient.appointments?.size ?: 0,
                 modifier = Modifier.weight(1f),
                 onClick = { /* TODO */ }
             )
@@ -169,7 +164,7 @@ fun ActionGridSection(patient: Patient, onOdontogramClick: () -> Unit) {
             ActionCard(
                 title = "Archivos",
                 icon = Icons.Default.Folder,
-                badgeCount = patient.documents?.size ?: 0, // Notificación = Nº de documentos del paciente
+                badgeCount = patient.documents?.size ?: 0,
                 modifier = Modifier.weight(1f),
                 onClick = { /* TODO */ }
             )
