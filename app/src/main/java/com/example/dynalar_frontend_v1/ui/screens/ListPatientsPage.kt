@@ -1,8 +1,5 @@
 package com.example.dynalar_frontend_v1.ui.screens
 
-
-
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -75,13 +72,14 @@ fun getPatientImage(patientId: Long?): Int {
     val index = (patientId % patientImages.size).toInt()
     return patientImages[index]
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListPatientsScreen(
     viewModel: PatientViewModel = viewModel(),
     onNavigateAddPatient: () -> Unit,
-    onNavigateBack: () -> Unit
-
+    onNavigateBack: () -> Unit,
+    onNavigateToPatientProfile: (Long) -> Unit // Nuevo parámetro para la navegación al perfil
 ) {
     val uiState = viewModel.uiStatePatient
     val textFieldState = rememberTextFieldState()
@@ -91,7 +89,7 @@ fun ListPatientsScreen(
     }
 
     Scaffold { paddingValues ->
-        Column(modifier = Modifier.padding(paddingValues)){
+        Column(modifier = Modifier.padding(paddingValues)) {
 
             PatientsTopBar(
                 onNavigateAddPatient = onNavigateAddPatient,
@@ -133,7 +131,10 @@ fun ListPatientsScreen(
                                 ) {
                                     PatientItem(
                                         patient = patient,
-                                        onClick = { /* navegar al perfil del paciente */ }
+                                        onClick = { selectedPatient ->
+                                            // Al hacer clic, enviamos el ID del paciente
+                                            selectedPatient.id?.let { onNavigateToPatientProfile(it) }
+                                        }
                                     )
                                 }
                             }
@@ -142,8 +143,6 @@ fun ListPatientsScreen(
                 }
 
                 is InterfaceGlobal.Error -> {
-                    // Quitamos el filtro 'friendlyMessage' temporalmente
-                    // para forzar a que salga el error real en la pantalla
                     ErrorScreenWithImage(
                         message = "ESTO_ES_NUEVO: ${uiState.message}"
                     )
@@ -174,17 +173,13 @@ fun ListPatientsScreen(
 fun SearchPatientBar(
     textFieldState: TextFieldState,
     viewModel: PatientViewModel
-
 ) {
-
     SearchBar(
         inputField = {
             SearchBarDefaults.InputField(
                 query = textFieldState.text.toString(),
                 onQueryChange = { text ->
-                    // Actualiza el TextField
                     textFieldState.edit { replace(0, length, text) }
-                    // Llama al ViewModel para filtrar la lista
                     viewModel.searchPatients(text)
                 },
                 onSearch = {},
@@ -202,6 +197,7 @@ fun SearchPatientBar(
         content = {}
     )
 }
+
 @Composable
 fun AddPatientButton(
     onClick: () -> Unit,
@@ -214,44 +210,36 @@ fun AddPatientButton(
     )
 }
 
-
-//Encabezado
 @Composable
 fun PatientsTopBar(
     onNavigateBack: () -> Unit,
     onNavigateAddPatient: () -> Unit
 ) {
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = Modifier.fillMaxWidth()
     ) {
-        // Barra izquierda: siempre respeta sus propios paddings
         CustomTopBar(
             title = "Llista de Pacients",
             onNavigateBack = onNavigateBack,
             modifier = Modifier.align(Alignment.CenterStart)
         )
 
-        // Botón Add: control total de su posición
         AddPatientButton(
             onClick = onNavigateAddPatient,
             modifier = Modifier
                 .align(Alignment.CenterEnd)
-                .padding(end = 50.dp, top = 25.dp) // margen derecho
+                .padding(end = 50.dp, top = 25.dp)
         )
     }
 }
 
-//Encabezado por letra
 @Composable
 fun CharacterHeader(initial: Char) {
-
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = Color(0xFFF4F6F9),
         tonalElevation = 1.dp
     ) {
-
         Text(
             text = initial.toString(),
             modifier = Modifier.padding(horizontal = 22.dp, vertical = 10.dp),
@@ -267,12 +255,11 @@ fun PatientItem(
     patient: Patient,
     onClick: (Patient) -> Unit
 ) {
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 22.dp, vertical = 8.dp)
-            .clickable { onClick(patient) },
+            .clickable { onClick(patient) }, // Detecta el clic y ejecuta la acción
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
@@ -280,12 +267,10 @@ fun PatientItem(
             defaultElevation = 1.dp
         )
     ) {
-
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             Image(
                 painter = painterResource(id = getPatientImage(patient.id)),
                 contentDescription = "Pacient",
@@ -297,15 +282,11 @@ fun PatientItem(
             Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-
-
                 Text(
                     text = patient.name ?: "",
                     fontSize = 16.sp
                 )
-
             }
         }
     }
-
 }

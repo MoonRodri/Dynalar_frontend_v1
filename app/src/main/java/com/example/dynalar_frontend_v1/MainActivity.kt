@@ -4,7 +4,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -42,7 +48,6 @@ class MainActivity : ComponentActivity() {
                     startDestination = AppRoutes.Login.route
                 ) {
 
-
                     composable(AppRoutes.Login.route) {
                         LoginPage(
                             onLoginSuccess = {
@@ -67,38 +72,49 @@ class MainActivity : ComponentActivity() {
 
                     composable(AppRoutes.ListPatients.route) {
                         ListPatientsScreen(
+                            viewModel = patientViewModel,
                             onNavigateAddPatient = { navController.navigate(AppRoutes.CreateProfile.route) },
-                            onNavigateBack = { navController.popBackStack() }
-                        )
-                    }
-                    composable(AppRoutes.CalendarPage.route) {
-                        CalendarPage(                              // ← importa la de screens
-                            onNavigateBack = { navController.popBackStack() }
-                        )
-                    }
-
-                    composable(AppRoutes.CreateProfile.route) {
-                        CreateProfilePage(
-                            onNavigateOdontogramaPage = {
-                                navController.navigate(AppRoutes.ListPatients.route)
-                            },
-                            onNavigateBack = {
-                                navController.popBackStack()
+                            onNavigateBack = { navController.popBackStack() },
+                            onNavigateToPatientProfile = { patientId ->
+                              
+                                navController.navigate(AppRoutes.PatientProfile.createRoute(patientId))
                             }
                         )
                     }
 
-                    composable(AppRoutes.PatientProfile.route) {
+                    
+                    composable(
+                        route = AppRoutes.PatientProfile.route,
+                        arguments = listOf(
+                            navArgument("patientId") { type = NavType.LongType }
+                        )
+                    ) { backStackEntry ->
+                      
+                        val patientId = backStackEntry.arguments?.getLong("patientId") ?: -1L
+
+                      
+                        LaunchedEffect(patientId) {
+                            if (patientId != -1L) {
+                                patientViewModel.getPatientById(patientId)
+                            }
+                        }
+
                         val patient = patientViewModel.selectedPatient
 
                         if (patient != null) {
                             PatientProfilePage(
                                 patient = patient,
                                 onBackClick = { navController.popBackStack() },
-                                onOdontogramClick = { navController.navigate(AppRoutes.OdontogramPage.route) }
+                                onOdontogramClick = {
+                                 
+                                    navController.navigate(AppRoutes.OdontogramPage.route)
+                                }
                             )
                         } else {
-                            Text("Error: No se ha seleccionado ningún paciente.")
+                           
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator()
+                            }
                         }
                     }
 
@@ -111,14 +127,14 @@ class MainActivity : ComponentActivity() {
 
                     composable(AppRoutes.CalendarPage.route) {
                         CalendarPage(
-                            viewModel = appointmentViewModel, // <-- 2. SE LO PASAS AL CALENDARIO
+                            viewModel = appointmentViewModel, 
                             onNavigateBack = { navController.popBackStack() },
                             onAddAppointmentClick = { date, hour, minute ->
-                                // Usamos tu función createRoute impecable
+                               
                                 navController.navigate(AppRoutes.ScheduleAppointment.createRoute(date.toString(), hour, minute))
                             },
                             onAppointmentClick = { appointment ->
-                                // Detalle de la cita
+                              
                             }
                         )
                     }
@@ -139,7 +155,7 @@ class MainActivity : ComponentActivity() {
                             initialHour = hour,
                             initialMinute = minute,
                             patientViewModel = patientViewModel,
-                            appointmentViewModel = appointmentViewModel, // <-- 3. Y SE LO PASAS A LA CREACIÓN DE CITAS
+                            appointmentViewModel = appointmentViewModel, 
                             onBackClick = { navController.popBackStack() }
                         )
                     }

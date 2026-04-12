@@ -17,7 +17,7 @@ sealed class AppRoutes(val route: String) {
     object PatientProfile : AppRoutes("patientProfile")
 
     object ScheduleAppointment : AppRoutes("scheduleAppointment/{date}/{hour}/{minute}") {
-        // ESTA ES LA FUNCIÓN QUE TE FALTA Y CAUSA EL ERROR
+
         fun createRoute(date: String, hour: Int, minute: Int): String {
             return "scheduleAppointment/$date/$hour/$minute"
         }

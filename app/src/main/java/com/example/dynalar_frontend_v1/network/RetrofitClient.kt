@@ -6,7 +6,7 @@ import com.example.dynalar_frontend_v1.service.PatientApiService
 import com.example.dynalar_frontend_v1.service.TreatmentApiService
 import com.example.dynalar_frontend_v1.service.UserApiService
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory // <-- ESTE IMPORT ES VITAL
+import retrofit2.converter.gson.GsonConverterFactory 
 
 object RetrofitClient {
 
@@ -14,7 +14,6 @@ object RetrofitClient {
     private val instance: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
-            // SI ESTA LÍNEA ESTÁ AQUÍ Y NO ESTÁ EN ROJO, ES IMPOSIBLE QUE SALGA ESE ERROR
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
