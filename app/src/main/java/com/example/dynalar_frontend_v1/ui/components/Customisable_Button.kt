@@ -54,14 +54,14 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.colorspace.WhitePoint
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import com.example.dynalar_frontend_v1.R
-import com.example.dynalar_frontend_v1.ui.theme.BannerBlue
+import com.example.dynalar_frontend_v1.ui.theme.TextoPrincipal
+import com.example.dynalar_frontend_v1.ui.theme.TextoSecundario
+
 
 
 //Boton de navegacion global
@@ -106,15 +106,13 @@ fun AddButton(
     onClick: () -> Unit,
     iconRes: Int,
     modifier: Modifier = Modifier,
-    iconSize: Dp = 45.dp    // tamaño del icono
+    iconSize: Dp = 35.dp
 ) {
     Surface(
         modifier = modifier
             .size(iconSize)
             .clickable { onClick() },
-        shape = CircleShape,            // forma circular, opcional
-        shadowElevation = 8.dp,         // aquí aplicas la elevación
-        color = Color.Transparent        // fondo transparente
+        color = Color.Transparent
     ) {
         Image(
             painter = painterResource(id = iconRes),
@@ -301,77 +299,67 @@ fun BannerGenericProfile(
     profileImage: @Composable () -> Unit,
     content: @Composable ColumnScope.() -> Unit,
     onNavigateBack: () -> Unit,
-    bannerColor: Color =Color.White,
-    textColor: Color = Color.White
+    bannerColor: Color = Color.White,
+    textColor: Color = TextoPrincipal
 ) {
-    Box(
+    Column(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .shadow(
-                elevation = 40.dp,
-                shape = RoundedCornerShape(bottomStart = 40.dp, bottomEnd = 40.dp)
+                elevation = 6.dp,
+                shape = RoundedCornerShape(bottomStart = 36.dp, bottomEnd = 36.dp),
+                clip = false,
+                ambientColor = Color(0xFFBCAF9F),
+                spotColor = Color(0xFFBCAF9F)
             )
-            .background(bannerColor) // Restaurado el azul celeste luminoso
-
+            .background(
+                color = bannerColor,
+                shape = RoundedCornerShape(bottomStart = 36.dp, bottomEnd = 36.dp)
+            )
     ) {
         CustomTopBar(
             title = "Perfil del Usuari",
-            onNavigateBack = onNavigateBack,
-            modifier = Modifier.align(Alignment.CenterStart)
+            onNavigateBack = onNavigateBack
         )
 
-        Column(
+        Spacer(modifier = Modifier.height(30.dp))
+
+        Box(
             modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            contentAlignment = Alignment.Center
         ) {
-            Spacer(modifier = Modifier.height(50.dp))
-
-
-
             Box(
                 modifier = Modifier
-                    .size(130.dp)
-                    .clip(CircleShape),
-                contentAlignment = Alignment.Center
+                    .size(110.dp)
+                    .clip(CircleShape)
             ) {
                 profileImage()
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = userName,
-                style = MaterialTheme.typography.headlineSmall,
-                color = textColor,
-                fontWeight = FontWeight.SemiBold
-            )
-            Text(
-                text = userRole,
-                style = MaterialTheme.typography.bodyLarge,
-                color = textColor.copy(alpha = 0.9f),
-                fontWeight = FontWeight.Light// Unificado a Bold
-            )
-
-            Spacer(modifier = Modifier.height(30.dp))
-
-            Surface(
-                modifier = Modifier.fillMaxSize(),
-                color = Color.White,
-                shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 30.dp, vertical = 40.dp)
-                        .verticalScroll(rememberScrollState()),
-                    content = content
-                )
-            }
         }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        Text(
+            text = userName,
+            style = MaterialTheme.typography.headlineSmall,
+            color = textColor,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = userRole,
+            style = MaterialTheme.typography.bodyMedium,
+            color = TextoSecundario,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
+
+        Spacer(modifier = Modifier.height(28.dp))
     }
 }
-
-
 //Boton para ir para atras con texto
 @Composable
 fun CustomTopBar(

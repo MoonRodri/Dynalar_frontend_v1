@@ -27,16 +27,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dynalar_frontend_v1.interfaces.InterfaceGlobal
 import com.example.dynalar_frontend_v1.model.Appointment
 import com.example.dynalar_frontend_v1.ui.components.CustomTopBar
+import com.example.dynalar_frontend_v1.ui.theme.TreatmentColors
 import com.example.dynalar_frontend_v1.viewmodel.AppointmentViewModel
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
 
-// --- CONSTANTES Y COLORES ---
-val TreatmentColors = listOf(
-    Color(0xFF4DB6AC), Color(0xFF64B5F6), Color(0xFF81C784), Color(0xFFFFB74D),
-    Color(0xFFBA68C8), Color(0xFFFF8A65), Color(0xFFF06292), Color(0xFF4DD0E1),
-)
 
 private const val SLOT_HEIGHT_DP = 80
 private const val DAY_START_HOUR = 8
@@ -99,7 +95,7 @@ fun CalendarPage(
                 )
             }
 
-            // El scroll comienza aquí, y no hay elementos superpuestos con opacidad
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -176,7 +172,7 @@ fun AppointmentsColumn(
     ) {
         val columnMaxWidth = maxWidth // Guardamos el ancho disponible
 
-        // 1. DIBUJAMOS EL FONDO Y LAS LÍNEAS HORARIAS
+
         Column(modifier = Modifier.height(totalHeightDp.dp).fillMaxWidth()) {
             (0 until TOTAL_HOURS).forEach { hourOffset ->
                 val hour = DAY_START_HOUR + hourOffset
@@ -200,7 +196,7 @@ fun AppointmentsColumn(
             }
         }
 
-        // 2. DIBUJAMOS LAS CITAS (CALCULANDO LOS SOLAPAMIENTOS)
+
         appointments.forEach { appointment ->
             val startMinutes = parseTimeToMinutes(appointment.startTime)
             val duration = appointment.treatment?.durationMinutes ?: 30
@@ -213,17 +209,17 @@ fun AppointmentsColumn(
                 val overlappingApps = appointments.filter { other ->
                     val oStart = parseTimeToMinutes(other.startTime) ?: 0
                     val oEnd = oStart + (other.treatment?.durationMinutes ?: 30)
-                    // Condición matemática: Inicio1 < Fin2 y Fin1 > Inicio2
+
                     startMinutes < oEnd && endMinutes > oStart
-                }.sortedBy { it.id ?: 0L } // Ordenamos para que siempre salgan en el mismo orden
+                }.sortedBy { it.id ?: 0L }
 
                 val totalColumns = overlappingApps.size
                 val columnIndex = overlappingApps.indexOf(appointment).coerceAtLeast(0)
 
-                // Dividimos el ancho de la pantalla entre el número de citas que chocan
+
                 val cardWidth = columnMaxWidth / totalColumns
                 val offsetX = cardWidth * columnIndex
-                // --------------------------------------
+
 
                 val topOffsetMinutes = startMinutes - (DAY_START_HOUR * 60)
                 if (topOffsetMinutes >= 0) {
@@ -234,10 +230,10 @@ fun AppointmentsColumn(
                         appointment = appointment,
                         color = colorForTreatment(appointment.treatment?.id),
                         modifier = Modifier
-                            .width(cardWidth) // <-- Ya no es fillMaxWidth, es el ancho calculado
-                            .offset(x = offsetX, y = topDp.dp) // <-- La desplazamos a su "columna"
+                            .width(cardWidth)
+                            .offset(x = offsetX, y = topDp.dp)
                             .height(heightDp.dp)
-                            .padding(end = 2.dp), // Un pequeñísimo margen para que no se peguen
+                            .padding(end = 2.dp),
                         onClick = { onAppointmentClick(appointment) }
                     )
                 }

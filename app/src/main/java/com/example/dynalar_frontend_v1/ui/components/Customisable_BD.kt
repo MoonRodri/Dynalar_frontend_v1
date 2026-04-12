@@ -32,10 +32,10 @@ fun ErrorScreenWithImage(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Título arriba más pequeño
+
         Text(
             text = "Error Page",
-            fontSize = 20.sp, // más pequeño
+            fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Red
         )
@@ -51,7 +51,7 @@ fun ErrorScreenWithImage(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Mensaje dinámico
+
         Text(
             text = message,
             fontSize = 16.sp,
