@@ -337,7 +337,6 @@ fun CalendarHomepage(
     //Calendario para cambiar dia manualmente
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
-            // Usamos la ruta completa java.time... para evitar conflictos
             initialSelectedDateMillis = currentMonth.atDay(1)
                 .atStartOfDay(java.time.ZoneId.of("UTC")).toInstant().toEpochMilli()
         )
@@ -379,7 +378,7 @@ fun Buttons_HomePage(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp),
+            .padding(horizontal = 30.dp),
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
         CustomisableRectangleButton(

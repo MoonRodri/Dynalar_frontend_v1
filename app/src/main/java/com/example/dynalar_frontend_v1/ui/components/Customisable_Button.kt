@@ -106,7 +106,7 @@ fun AddButton(
     onClick: () -> Unit,
     iconRes: Int,
     modifier: Modifier = Modifier,
-    iconSize: Dp = 35.dp
+    iconSize: Dp = 30.dp
 ) {
     Surface(
         modifier = modifier
@@ -378,118 +378,6 @@ fun BackButton(
             modifier = Modifier.size(iconSize),
             contentScale = ContentScale.Fit
         )
-    }
-}
-
-//Input editable
-@Composable
-fun InputFieldEditable(
-    modifier: Modifier = Modifier,
-    label: String? = null,
-    value: String,
-    placeholder: String = "",
-    onValueChange: (String) -> Unit
-) {
-
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-
-        if (label != null) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyLarge,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Light, // Etiqueta unificada a Bold
-                color = Color.Black.copy(alpha = 0.8f)
-            )
-        }
-
-        OutlinedCard(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            shape = RoundedCornerShape(10.dp),
-            colors = CardDefaults.outlinedCardColors(containerColor = Color.White),
-            border = BorderStroke(1.dp, SolidColor(Color.LightGray.copy(alpha = 0.4f))),
-            elevation = CardDefaults.outlinedCardElevation(defaultElevation = 1.dp)
-        ) {
-
-            BasicTextField(
-                value = value,
-                onValueChange = onValueChange,
-                singleLine = true,
-                textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                decorationBox = { innerTextField ->
-
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-
-                        if (value.isEmpty()) {
-                            Text(
-                                text = placeholder,
-                                color = Color.LightGray
-                            )
-                        }
-
-                        innerTextField()
-                    }
-                }
-            )
-        }
-    }
-}
-//Input Lectura
-@Composable
-fun InputField(
-    modifier: Modifier = Modifier,
-    label: String? = null,
-    value: String,
-    onValueChange: (String) -> Unit = {},
-    isPassword: Boolean = false
-
-
-) {
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        if (label != null) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyLarge,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold, // Etiqueta unificada a Bold
-                color = Color.Black.copy(alpha = 0.8f)
-            )
-        }
-        OutlinedCard(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            shape = RoundedCornerShape(10.dp),
-            colors = CardDefaults.outlinedCardColors(containerColor = Color.White),
-            border = BorderStroke(1.dp, SolidColor(Color.LightGray.copy(alpha = 0.4f))),
-            elevation = CardDefaults.outlinedCardElevation(defaultElevation = 1.dp)
-
-        ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                Text(
-                    text = value,
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp)
-                )
-            }
-        }
     }
 }
 

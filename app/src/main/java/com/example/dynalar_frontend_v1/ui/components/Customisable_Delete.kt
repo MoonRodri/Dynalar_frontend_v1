@@ -71,7 +71,6 @@ fun SwipeToDeleteContainer(
     backgroundColor: Color = Color.Red,
     content: @Composable () -> Unit
 ) {
-    // Usamos confirmValueChange para reaccionar al instante y controlar el rebote
     val state = androidx.compose.material3.rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
             if (value == SwipeToDismissBoxValue.EndToStart) {
