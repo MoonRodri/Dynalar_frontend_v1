@@ -54,6 +54,7 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.colorspace.WhitePoint
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -300,7 +301,7 @@ fun BannerGenericProfile(
     profileImage: @Composable () -> Unit,
     content: @Composable ColumnScope.() -> Unit,
     onNavigateBack: () -> Unit,
-    bannerColor: Color = BannerBlue,
+    bannerColor: Color =Color.White,
     textColor: Color = Color.White
 ) {
     Box(
@@ -313,12 +314,10 @@ fun BannerGenericProfile(
             .background(bannerColor) // Restaurado el azul celeste luminoso
 
     ) {
-        BackButton(
+        CustomTopBar(
+            title = "Perfil del Usuari",
             onNavigateBack = onNavigateBack,
-            iconRes = R.drawable.general_volver,
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(start = 35.dp, top = 50.dp) // Coherencia con el margen de CustomTopBar
+            modifier = Modifier.align(Alignment.CenterStart)
         )
 
         Column(

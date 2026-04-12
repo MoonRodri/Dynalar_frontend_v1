@@ -24,8 +24,10 @@ import com.example.dynalar_frontend_v1.ui.screens.HomePage
 import com.example.dynalar_frontend_v1.ui.screens.ListPatientsScreen
 import com.example.dynalar_frontend_v1.ui.screens.LoginPage
 import com.example.dynalar_frontend_v1.ui.screens.PatientProfilePage
+import com.example.dynalar_frontend_v1.ui.screens.ScheduleAppointmentPage
 import com.example.dynalar_frontend_v1.ui.screens.UserProfilePage
 import com.example.dynalar_frontend_v1.ui.theme.Dynalar_frontend_v1Theme
+import com.example.dynalar_frontend_v1.viewmodel.AppointmentViewModel
 import com.example.dynalar_frontend_v1.viewmodel.PatientViewModel
 
 class MainActivity : ComponentActivity() {
@@ -39,10 +41,11 @@ class MainActivity : ComponentActivity() {
 
                 val navController = rememberNavController()
                 val patientViewModel: PatientViewModel = viewModel()
+                val appointmentViewModel: AppointmentViewModel = viewModel()
 
                 NavHost(
                     navController = navController,
-                    startDestination = AppRoutes.Home.route
+                    startDestination = AppRoutes.Login.route
                 ) {
 
                     composable(AppRoutes.Login.route) {
@@ -73,23 +76,23 @@ class MainActivity : ComponentActivity() {
                             onNavigateAddPatient = { navController.navigate(AppRoutes.CreateProfile.route) },
                             onNavigateBack = { navController.popBackStack() },
                             onNavigateToPatientProfile = { patientId ->
-                                // Navega usando la ruta con el ID
+                              
                                 navController.navigate(AppRoutes.PatientProfile.createRoute(patientId))
                             }
                         )
                     }
 
-                    // --- PERFIL DEL PACIENTE (CORREGIDO) ---
+                    
                     composable(
                         route = AppRoutes.PatientProfile.route,
                         arguments = listOf(
                             navArgument("patientId") { type = NavType.LongType }
                         )
                     ) { backStackEntry ->
-                        // Extraemos el ID de los argumentos
+                      
                         val patientId = backStackEntry.arguments?.getLong("patientId") ?: -1L
 
-                        // Usamos LaunchedEffect para cargar el paciente cuando entramos a esta pantalla
+                      
                         LaunchedEffect(patientId) {
                             if (patientId != -1L) {
                                 patientViewModel.getPatientById(patientId)
@@ -103,48 +106,57 @@ class MainActivity : ComponentActivity() {
                                 patient = patient,
                                 onBackClick = { navController.popBackStack() },
                                 onOdontogramClick = {
-                                    // Aquí podrías querer pasar también el ID al odontograma en el futuro
+                                 
                                     navController.navigate(AppRoutes.OdontogramPage.route)
                                 }
                             )
                         } else {
-                            // Mientras carga, mostramos un indicador de progreso
+                           
                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 CircularProgressIndicator()
                             }
                         }
                     }
 
+                    composable(AppRoutes.UserProfile.route) {
+                        UserProfilePage(
+                            userId = 1L,
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+
                     composable(AppRoutes.CalendarPage.route) {
                         CalendarPage(
+                            viewModel = appointmentViewModel, 
                             onNavigateBack = { navController.popBackStack() },
-                            onAddAppointmentClick = { hour, minute ->
-                                // Navegación para agendar cita
-                            }
-                        )
-                    }
-
-                    composable(AppRoutes.CreateProfile.route) {
-                        CreateProfilePage(
-                            onNavigateOdontogramaPage = {
-                                navController.navigate(AppRoutes.ListPatients.route)
+                            onAddAppointmentClick = { date, hour, minute ->
+                               
+                                navController.navigate(AppRoutes.ScheduleAppointment.createRoute(date.toString(), hour, minute))
                             },
-                            onNavigateBack = {
-                                navController.popBackStack()
+                            onAppointmentClick = { appointment ->
+                              
                             }
                         )
                     }
-
                     composable(
-                        route = "${AppRoutes.UserProfile.route}/{userId}",
+                        route = AppRoutes.ScheduleAppointment.route,
                         arguments = listOf(
-                            navArgument("userId") { type = NavType.LongType }
+                            navArgument("date") { type = NavType.StringType },
+                            navArgument("hour") { type = NavType.IntType },
+                            navArgument("minute") { type = NavType.IntType }
                         )
                     ) { backStackEntry ->
-                        val userId = backStackEntry.arguments?.getLong("userId") ?: 0L
-                        UserProfilePage(
-                            userId = userId,
-                            onNavigateBack = { navController.popBackStack() }
+                        val dateStr = backStackEntry.arguments?.getString("date") ?: ""
+                        val hour = backStackEntry.arguments?.getInt("hour") ?: 9
+                        val minute = backStackEntry.arguments?.getInt("minute") ?: 0
+
+                        ScheduleAppointmentPage(
+                            initialDate = java.time.LocalDate.parse(dateStr),
+                            initialHour = hour,
+                            initialMinute = minute,
+                            patientViewModel = patientViewModel,
+                            appointmentViewModel = appointmentViewModel, 
+                            onBackClick = { navController.popBackStack() }
                         )
                     }
                 }
