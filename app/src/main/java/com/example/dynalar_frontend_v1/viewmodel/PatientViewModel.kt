@@ -29,7 +29,14 @@ class PatientViewModel: ViewModel() {
         viewModelScope.launch {
             uiStatePatient = InterfaceGlobal.Loading
             try {
-                allPatients = patientRepository.getAllPatients()
+                //Descargamos los pacientes
+                val rawPatients = patientRepository.getAllPatients()
+
+                //Ordenamos toda la lista ignorando mayúsculas/minúsculas
+                allPatients = rawPatients.sortedBy {
+                    it.name?.lowercase() ?: ""
+                }
+
                 filteredPatients = allPatients
                 loadedPatients = 0
                 loadMorePatients()
@@ -42,17 +49,14 @@ class PatientViewModel: ViewModel() {
 
     fun getPatientById(id: Long) {
         viewModelScope.launch {
-            // Si ya tenemos la lista cargada, lo buscamos en local para ir más rápido
+
             val patient = allPatients.find { it.id == id }
             if (patient != null) {
                 selectedPatient = patient
             } else {
-                // Si no está en la lista (por ejemplo, entramos directo por link), lo pedimos al servidor
-                try {
-                    // Nota: Asegúrate de tener getPatientById en tu PatientRepository
-                    // selectedPatient = patientRepository.getPatientById(id)
 
-                    // Como parche si no tienes esa función en el repo:
+                try {
+
                     allPatients = patientRepository.getAllPatients()
                     selectedPatient = allPatients.find { it.id == id }
                 } catch (e: Exception) {

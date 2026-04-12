@@ -101,7 +101,6 @@ fun ScheduleAppointmentPage(
         if (appointmentViewModel.uiStateAutoAssign is InterfaceGlobal.Success) {
             appointmentViewModel.resetAutoAssignState()
 
-            // --- AÑADE ESTA LÍNEA ---
             appointmentViewModel.fetchCalendar()
 
             onBackClick()

@@ -74,6 +74,7 @@ dependencies {
     implementation(libs.androidx.runtime)
     implementation(libs.androidx.compose.ui.text)
     implementation(libs.androidx.compose.ui.geometry)
+    implementation(libs.androidx.foundation)
 
     // --- Testing (Solo para pruebas) ---
     testImplementation(libs.junit)

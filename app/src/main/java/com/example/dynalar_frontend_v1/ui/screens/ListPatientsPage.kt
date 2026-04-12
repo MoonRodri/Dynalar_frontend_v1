@@ -41,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -103,7 +104,6 @@ fun ListPatientsScreen(
                 is InterfaceGlobal.Success -> {
                     val patients = uiState.data
                         .filter { !it.name.isNullOrBlank() }
-                        .sortedBy { it.name }
                         .groupBy { it.name!!.first().uppercaseChar() }
 
                     LazyColumn(
@@ -246,7 +246,7 @@ fun CharacterHeader(initial: Char) {
             modifier = Modifier.padding(horizontal = 22.dp, vertical = 10.dp),
             fontWeight = FontWeight.Bold,
             fontSize = 18.sp,
-            color = Color(0xFF6F7A8A)
+            color = ButtonPrimary
         )
     }
 }
@@ -277,8 +277,9 @@ fun PatientItem(
                 painter = painterResource(id = getPatientImage(patient.id)),
                 contentDescription = "Pacient",
                 modifier = Modifier
-                    .size(42.dp)
-                    .clip(CircleShape)
+                    .size(65.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
             )
 
             Spacer(modifier = Modifier.width(16.dp))
