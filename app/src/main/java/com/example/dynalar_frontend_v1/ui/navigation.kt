@@ -8,9 +8,18 @@ sealed class AppRoutes(val route: String) {
     object CreateProfile : AppRoutes("createProfile")
     object  OdontogramPage : AppRoutes("odontogramPage")
 
-    object UserProfile : AppRoutes("userProfile")
+
+    object UserProfile : AppRoutes("userProfile/{userId}") {
+        fun createRoute(userId: Long) = "userProfile/$userId"
+    }
 
     object CalendarPage : AppRoutes("calendarPage")
+    object PatientProfile : AppRoutes("patientProfile")
 
-    object ScheduleAppointment : AppRoutes("scheduleAppointment")
+    object ScheduleAppointment : AppRoutes("scheduleAppointment/{date}/{hour}/{minute}") {
+        // ESTA ES LA FUNCIÓN QUE TE FALTA Y CAUSA EL ERROR
+        fun createRoute(date: String, hour: Int, minute: Int): String {
+            return "scheduleAppointment/$date/$hour/$minute"
+        }
+    }
 }

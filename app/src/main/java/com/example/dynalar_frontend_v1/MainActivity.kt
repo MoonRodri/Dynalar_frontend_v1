@@ -17,9 +17,11 @@ import com.example.dynalar_frontend_v1.ui.screens.CreateProfilePage
 import com.example.dynalar_frontend_v1.ui.screens.HomePage
 import com.example.dynalar_frontend_v1.ui.screens.ListPatientsScreen
 import com.example.dynalar_frontend_v1.ui.screens.LoginPage
+import com.example.dynalar_frontend_v1.ui.screens.PatientProfilePage
 import com.example.dynalar_frontend_v1.ui.screens.ScheduleAppointmentPage
 import com.example.dynalar_frontend_v1.ui.screens.UserProfilePage
 import com.example.dynalar_frontend_v1.ui.theme.Dynalar_frontend_v1Theme
+import com.example.dynalar_frontend_v1.viewmodel.AppointmentViewModel
 import com.example.dynalar_frontend_v1.viewmodel.PatientViewModel
 
 class MainActivity : ComponentActivity() {
@@ -33,10 +35,11 @@ class MainActivity : ComponentActivity() {
 
                 val navController = rememberNavController()
                 val patientViewModel: PatientViewModel = viewModel()
+                val appointmentViewModel: AppointmentViewModel = viewModel()
 
                 NavHost(
                     navController = navController,
-                    startDestination = AppRoutes.Home.route
+                    startDestination = AppRoutes.Login.route
                 ) {
 
 
@@ -99,48 +102,47 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    composable(
-                        route = "${AppRoutes.UserProfile.route}/{userId}",
-                        arguments = listOf(
-                            navArgument("userId") { type = NavType.LongType }
-                        )
-                    ) { backStackEntry ->
-                        val userId = backStackEntry.arguments?.getLong("userId") ?: 0L
+                    composable(AppRoutes.UserProfile.route) {
                         UserProfilePage(
-                            userId = userId,
+                            userId = 1L,
                             onNavigateBack = { navController.popBackStack() }
                         )
                     }
+
                     composable(AppRoutes.CalendarPage.route) {
                         CalendarPage(
+                            viewModel = appointmentViewModel, // <-- 2. SE LO PASAS AL CALENDARIO
                             onNavigateBack = { navController.popBackStack() },
-                            onAddAppointmentClick = { hour, minute ->
-                                //Navegacion a la pagina, ponla tu rodrigo, pon el nombre de la pagina, cambialo promero en la carpeta navigation
-
+                            onAddAppointmentClick = { date, hour, minute ->
+                                // Usamos tu función createRoute impecable
+                                navController.navigate(AppRoutes.ScheduleAppointment.createRoute(date.toString(), hour, minute))
+                            },
+                            onAppointmentClick = { appointment ->
+                                // Detalle de la cita
                             }
                         )
                     }
-
-                    /*composable(
-                        route = "${AppRoutes.ScheduleAppointment.route}/{hour}/{minute}",
+                    composable(
+                        route = AppRoutes.ScheduleAppointment.route,
                         arguments = listOf(
+                            navArgument("date") { type = NavType.StringType },
                             navArgument("hour") { type = NavType.IntType },
                             navArgument("minute") { type = NavType.IntType }
                         )
                     ) { backStackEntry ->
+                        val dateStr = backStackEntry.arguments?.getString("date") ?: ""
                         val hour = backStackEntry.arguments?.getInt("hour") ?: 9
                         val minute = backStackEntry.arguments?.getInt("minute") ?: 0
 
                         ScheduleAppointmentPage(
+                            initialDate = java.time.LocalDate.parse(dateStr),
                             initialHour = hour,
                             initialMinute = minute,
-                            onNavigateBack = { navController.popBackStack() },
-                            onCitaAgendada = {
-                                navController.popBackStack() // Vuelve al calendario tras agendar
-                            }
+                            patientViewModel = patientViewModel,
+                            appointmentViewModel = appointmentViewModel, // <-- 3. Y SE LO PASAS A LA CREACIÓN DE CITAS
+                            onBackClick = { navController.popBackStack() }
                         )
-
-                    }*/
+                    }
                 }
             }
         }

@@ -52,17 +52,49 @@ fun PatientProfilePage(
         },
         containerColor = Color(0xFFF5F7FA)
     ) { paddingValues ->
-        Column(
+        // Usamos una única LazyColumn para evitar anidamiento de componentes con scroll
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp)
         ) {
-            PatientHeaderSection(patient = patient)
-            Spacer(modifier = Modifier.height(24.dp))
-            ActionGridSection(patient = patient, onOdontogramClick = onOdontogramClick)
-            Spacer(modifier = Modifier.height(24.dp))
-            TreatmentsSection(patient = patient)
+            item {
+                PatientHeaderSection(patient = patient)
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+            
+            item {
+                ActionGridSection(patient = patient, onOdontogramClick = onOdontogramClick)
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+
+            item {
+                Text(
+                    text = "Citas / Tratamientos",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1E293B),
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+            }
+
+            // Obtenemos las citas del paciente
+            val appointments = patient.appointments ?: emptyList()
+
+            if (appointments.isEmpty()) {
+                item {
+                    Text(text = "No hay citas registradas", color = Color.Gray, modifier = Modifier.padding(8.dp))
+                }
+            } else {
+                items(appointments) { appointment ->
+                    TreatmentItemRow(
+                        title = appointment.toString(), // Cambia esto por algo como appointment.reason
+                        date = "Fecha programada"       // Cambia esto por appointment.date
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+            }
         }
     }
 }
@@ -193,35 +225,6 @@ fun ActionCard(
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color(0xFF1E293B)
-                )
-            }
-        }
-    }
-}
-
-// --- 3. Lista de Tratamientos (Conectada a Appointments/Tratamientos) ---
-@Composable
-fun TreatmentsSection(patient: Patient) {
-    Text(
-        text = "Citas / Tratamientos",
-        fontSize = 18.sp,
-        fontWeight = FontWeight.Bold,
-        color = Color(0xFF1E293B),
-        modifier = Modifier.padding(bottom = 12.dp)
-    )
-
-    // Obtenemos las citas del paciente
-    val appointments = patient.appointments ?: emptyList()
-
-    if (appointments.isEmpty()) {
-        Text(text = "No hay citas registradas", color = Color.Gray, modifier = Modifier.padding(8.dp))
-    } else {
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            // Suponiendo que tu modelo Appointment tiene campos como 'reason' y 'date' (ajusta según tus campos reales)
-            items(appointments) { appointment ->
-                TreatmentItemRow(
-                    title = appointment.toString(), // Cambia esto por algo como appointment.reason
-                    date = "Fecha programada"       // Cambia esto por appointment.date
                 )
             }
         }

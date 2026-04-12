@@ -1,13 +1,9 @@
 package com.example.dynalar_frontend_v1.ui.screens
 
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,7 +31,6 @@ import com.example.dynalar_frontend_v1.model.LoginUiState
 import com.example.dynalar_frontend_v1.model.user.User
 import com.example.dynalar_frontend_v1.viewmodel.UserViewModel
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserProfilePage(
@@ -50,20 +45,16 @@ fun UserProfilePage(
     }
 
     Scaffold { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .verticalScroll(rememberScrollState()) // Scroll añadido aquí
         ) {
-
-            // Banner siempre arriba
-            val bannerUserName = if (uiState is LoginUiState.Success) (uiState as LoginUiState.Success).user.name ?: "Usuario" else "Usuario"
-            val bannerUserRole = if (uiState is LoginUiState.Success) (uiState as LoginUiState.Success).user.role ?: "Usuario" else "Usuario"
+            val user = (uiState as? LoginUiState.Success)?.user
 
             BannerGenericProfile(
-                userName = bannerUserName,
-                userRole = bannerUserRole,
+                userName = user?.name ?: "Usuario",
+                userRole = user?.role ?: "...",
                 profileImage = {
                     Image(
                         painter = painterResource(R.drawable.avatar_color),
@@ -73,59 +64,70 @@ fun UserProfilePage(
                     )
                 },
                 onNavigateBack = onNavigateBack,
-                content = {} // contenido principal se manejará más abajo
+                content = {
+
+                    when (uiState) {
+                        is LoginUiState.Loading, LoginUiState.Idle -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
+
+                        is LoginUiState.Success -> {
+                            UserInfoContent(user!!)
+                        }
+
+                        is LoginUiState.Error -> {
+                            val message = (uiState as LoginUiState.Error).message ?: "Error desconocido"
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 40.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.error), // O un icono de error
+                                    contentDescription = null,
+                                    modifier = Modifier.size(80.dp),
+                                    tint = Color.Gray
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = message,
+                                    color = Color.Red,
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center
+                                )
+                                Button(
+                                    onClick = { viewModel.getUserById(userId) },
+                                    modifier = Modifier.padding(top = 16.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = ButtonPrimary)
+                                ) {
+                                    Text("Reintentar")
+                                }
+                            }
+                        }
+                    }
+                }
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // --- Contenido principal según estado ---
-            when (uiState) {
-                is LoginUiState.Loading, LoginUiState.Idle -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(300.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-
-                is LoginUiState.Success -> {
-                    val user = (uiState as LoginUiState.Success).user
-                    UserInfoContent(user)
-                }
-
-                is LoginUiState.Error -> {
-                    val message = (uiState as LoginUiState.Error).message ?: "Error desconocido"
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(300.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = message,
-                            color = Color.Red,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            }
         }
     }
 }
+
 @Composable
 fun UserInfoContent(user: User) {
     var countryCode by remember { mutableStateOf("+34") }
-
 
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 30.dp, vertical = 20.dp)
+            .padding(vertical = 20.dp)
     ) {
         InputField(label = "Nombre", value = user.name ?: "")
         InputField(label = "Apellido", value = user.surname ?: "")
@@ -147,12 +149,6 @@ fun UserInfoContent(user: User) {
                     fontWeight = FontWeight.Bold
                 )
             }
-
-           /* InputField(
-                label = "Teléfono",
-                value = phoneNumber
-            )*/
-
         }
     }
 }
