@@ -250,46 +250,6 @@ fun <T> CustomisableDynamicDropdownMenu(
     }
 }
 
-//Eliminar los objetos de las listas
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SwipeToDeleteContainer(
-    onDelete: () -> Unit,
-    backgroundColor: Color = Color.Red,
-    content: @Composable () -> Unit
-) {
-    val state = androidx.compose.material3.rememberSwipeToDismissBoxState()
-
-    // Nueva forma de manejar la acción de borrado sin usar confirmValueChange
-    LaunchedEffect(state.currentValue) {
-        if (state.currentValue == SwipeToDismissBoxValue.EndToStart) {
-            onDelete()
-        }
-    }
-    SwipeToDismissBox(
-        state = state,
-        enableDismissFromStartToEnd = false,
-        backgroundContent = {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 22.dp, vertical = 8.dp) // Mismo padding que la Card
-                    .clip(RoundedCornerShape(12.dp)) // Mismas esquinas que la Card (ajusta según necesites)
-                    .background(backgroundColor),
-                contentAlignment = Alignment.CenterEnd
-            ) {
-                Text(
-                    text = "Eliminar",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(end = 24.dp)
-                )
-            }
-        }
-    ) {
-        content()
-    }
-}
 
 //Forma de arriba de los perfiles
 @Composable
@@ -532,3 +492,4 @@ fun InputField(
         }
     }
 }
+

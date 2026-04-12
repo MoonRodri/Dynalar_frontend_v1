@@ -70,6 +70,7 @@ fun CalendarPage(
         topBar = {
             // Ponemos la TopBar y la cabecera en un fondo blanco sólido para que nada se vea debajo al hacer scroll
             Column(modifier = Modifier.background(Color.White)) {
+                Spacer(modifier = Modifier.height(25.dp))
                 CustomTopBar(title = "Calendari", onNavigateBack = onNavigateBack)
 
                 CalendarHeader(

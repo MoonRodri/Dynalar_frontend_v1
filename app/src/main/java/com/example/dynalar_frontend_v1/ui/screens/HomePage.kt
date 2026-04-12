@@ -6,7 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
-// Hemos eliminado el import de rememberScrollState y verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -27,7 +26,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dynalar_frontend_v1.R
 import com.example.dynalar_frontend_v1.interfaces.InterfaceGlobal
+import com.example.dynalar_frontend_v1.model.Appointment
 import com.example.dynalar_frontend_v1.ui.components.CustomisableRectangleButton
+import com.example.dynalar_frontend_v1.ui.components.DayAppointmentsDialog
 import com.example.dynalar_frontend_v1.ui.theme.ButtonPrimary
 import com.example.dynalar_frontend_v1.ui.theme.FondoPagina
 import com.example.dynalar_frontend_v1.viewmodel.AppointmentViewModel
@@ -46,6 +47,9 @@ fun HomePage(
     onNavigateListPacient: () -> Unit,
     onNavigateBoxCalendar: () -> Unit,
 ) {
+    //Pop up
+    var selectedDateForDialog by remember { mutableStateOf<LocalDate?>(null) }
+    var appointmentsForDialog by remember { mutableStateOf<List<Appointment>>(emptyList()) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -53,13 +57,22 @@ fun HomePage(
             .padding(bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.height(10.dp))
+
         Header_HomePage(onNavigateProfileUserProfile = onNavigateProfileUserProfile)
 
-        // Un espacio moderado y fijo debajo del header
         Spacer(modifier = Modifier.height(50.dp))
 
-        CalendarHomepage(viewModel = viewModel)
-
+        CalendarHomepage(
+            viewModel = viewModel,
+            // Pasamos una función para manejar el clic en un día
+            onDayClick = { date, appointments ->
+                if (appointments.isNotEmpty()) {
+                    selectedDateForDialog = date
+                    appointmentsForDialog = appointments
+                }
+            }
+        )
 
 
         Buttons_HomePage(
@@ -68,7 +81,18 @@ fun HomePage(
             onNavigateBoxCalendar = onNavigateBoxCalendar
         )
     }
+    if (selectedDateForDialog != null) {
+        DayAppointmentsDialog(
+            date = selectedDateForDialog!!,
+            appointments = appointmentsForDialog,
+            onDismiss = {
+                selectedDateForDialog = null
+                appointmentsForDialog = emptyList()
+            }
+        )
+    }
 }
+
 
 @Composable
 fun Header_HomePage(onNavigateProfileUserProfile: () -> Unit) {
@@ -96,34 +120,44 @@ fun Header_HomePage(onNavigateProfileUserProfile: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CalendarHomepage(viewModel: AppointmentViewModel) {
+fun CalendarHomepage(
+    viewModel: AppointmentViewModel,
+    onDayClick: (LocalDate, List<Appointment>) -> Unit
+) {
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
     val today = LocalDate.now()
 
-    // --- LÓGICA DE CITAS ---
+    // --- ESTADO PARA EL SELECTOR DE FECHA MANUAL ---
+    var showDatePicker by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         viewModel.fetchCalendar()
     }
 
-    // Extraemos las fechas únicas que tienen citas usando InterfaceGlobal
     val uiState = viewModel.uiStateCalendar
-    val datesWithAppointments = remember(uiState) {
+
+    // Mapeamos las citas por fecha para acceso rápido
+    val appointmentsByDate = remember(uiState) {
         if (uiState is InterfaceGlobal.Success) {
-            uiState.data.mapNotNull { appointment ->
-                // Cortamos por la "T" que manda Spring Boot
+            val map = mutableMapOf<LocalDate, MutableList<Appointment>>()
+            uiState.data.forEach { appointment ->
                 val dateStr = appointment.startTime?.split("T", " ")?.firstOrNull()
                 try {
-                    if (dateStr != null) LocalDate.parse(dateStr) else null
+                    if (dateStr != null) {
+                        val date = LocalDate.parse(dateStr)
+                        map.getOrPut(date) { mutableListOf() }.add(appointment)
+                    }
                 } catch (e: Exception) {
-                    null
+                    // Ignorar error de parseo
                 }
-            }.toSet()
+            }
+            map
         } else {
-            emptySet()
+            emptyMap()
         }
     }
-    // -----------------------
 
     val weekDays = listOf(
         DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY,
@@ -135,7 +169,7 @@ fun CalendarHomepage(viewModel: AppointmentViewModel) {
     val daysInMonth = currentMonth.lengthOfMonth()
 
     val monthName = currentMonth.month
-        .getDisplayName(TextStyle.FULL, Locale("ca")) // Catalán para coincidir
+        .getDisplayName(TextStyle.FULL, Locale("ca"))
         .take(3)
         .replaceFirstChar { it.uppercase() }
 
@@ -179,7 +213,14 @@ fun CalendarHomepage(viewModel: AppointmentViewModel) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                // --- CABECERA CLICKABLE ---
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .clickable { showDatePicker = true } // Abre el calendario manual
+                        .padding(horizontal = 6.dp, vertical = 4.dp)
+                ) {
                     Text(
                         text = headerText,
                         fontSize = 14.sp,
@@ -187,7 +228,7 @@ fun CalendarHomepage(viewModel: AppointmentViewModel) {
                         color = Color(0xFF2C2C2C)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "▾", fontSize = 10.sp, color = Color(0xFF888888))
+                    Text(text = "▾", fontSize = 12.sp, color = Color(0xFF888888))
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -195,14 +236,22 @@ fun CalendarHomepage(viewModel: AppointmentViewModel) {
                         onClick = { currentMonth = currentMonth.minusMonths(1) },
                         modifier = Modifier.size(36.dp)
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, "Mes anterior", tint = Color(0xFF555555))
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                            "Mes anterior",
+                            tint = Color(0xFF555555)
+                        )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     IconButton(
                         onClick = { currentMonth = currentMonth.plusMonths(1) },
                         modifier = Modifier.size(36.dp)
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Mes siguiente", tint = Color(0xFF555555))
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            "Mes siguiente",
+                            tint = Color(0xFF555555)
+                        )
                     }
                 }
             }
@@ -240,21 +289,25 @@ fun CalendarHomepage(viewModel: AppointmentViewModel) {
                             if (day in 1..daysInMonth) {
                                 val cellDate = currentMonth.atDay(day)
                                 val isToday = cellDate == today
-                                val hasAppointment = datesWithAppointments.contains(cellDate)
+
+                                val dayAppointments = appointmentsByDate[cellDate] ?: emptyList()
+                                val hasAppointment = dayAppointments.isNotEmpty()
 
                                 Box(
-                                    modifier = Modifier.size(30.dp),
+                                    modifier = Modifier
+                                        .size(30.dp)
+                                        .clickable(enabled = hasAppointment) {
+                                            onDayClick(cellDate, dayAppointments)
+                                        },
                                     contentAlignment = Alignment.Center
                                 ) {
                                     if (hasAppointment) {
-                                        // Usa el color ButtonPrimary de tu tema
                                         Surface(
                                             shape = CircleShape,
                                             color = ButtonPrimary,
                                             modifier = Modifier.fillMaxSize()
                                         ) {}
                                     } else if (isToday) {
-                                        // Día de hoy sin citas = borde oscuro
                                         Surface(
                                             shape = CircleShape,
                                             color = Color.Transparent,
@@ -266,7 +319,9 @@ fun CalendarHomepage(viewModel: AppointmentViewModel) {
                                     Text(
                                         text = day.toString(),
                                         fontSize = dayFontSize,
-                                        color = if (hasAppointment) Color.White else Color(0xFF2C2C2C),
+                                        color = if (hasAppointment) Color.White else Color(
+                                            0xFF2C2C2C
+                                        ),
                                         fontWeight = if (hasAppointment || isToday) FontWeight.Bold else FontWeight.Normal,
                                         textAlign = TextAlign.Center
                                     )
@@ -278,22 +333,53 @@ fun CalendarHomepage(viewModel: AppointmentViewModel) {
             }
         }
     }
+
+    //Calendario para cambiar dia manualmente
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            // Usamos la ruta completa java.time... para evitar conflictos
+            initialSelectedDateMillis = currentMonth.atDay(1)
+                .atStartOfDay(java.time.ZoneId.of("UTC")).toInstant().toEpochMilli()
+        )
+
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        // Usamos la ruta completa java.time... para evitar conflictos
+                        val selectedDate = java.time.Instant.ofEpochMilli(millis)
+                            .atZone(java.time.ZoneId.of("UTC")).toLocalDate()
+                        currentMonth = YearMonth.from(selectedDate)
+                    }
+                    showDatePicker = false
+                }) {
+                    Text("Acceptar", color = ButtonPrimary)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancel·lar", color = ButtonPrimary)
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
 }
 
-// 3. Modificamos esta función para que acepte un Modifier y distribuya el espacio dinámicamente
+
+
 @Composable
 fun Buttons_HomePage(
-    modifier: Modifier = Modifier, // Añadimos el parámetro modifier
+    modifier: Modifier = Modifier,
     onNavigateListPacient: () -> Unit,
     onNavigateBoxCalendar: () -> Unit
 ) {
     Column(
-        // Le pasamos el modifier que viene desde HomePage (que trae el weight(1f))
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp),
-        // Cambiamos 'spacedBy' por 'SpaceEvenly'.
-        // Esto separa los botones automáticamente aprovechando todo el espacio disponible.
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
         CustomisableRectangleButton(
