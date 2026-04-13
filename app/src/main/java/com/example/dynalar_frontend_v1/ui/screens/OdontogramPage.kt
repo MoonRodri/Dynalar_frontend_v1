@@ -31,6 +31,7 @@ import com.example.dynalar_frontend_v1.model.odontogram.OdontogramEntry
 import com.example.dynalar_frontend_v1.model.odontogram.OdontogramUiState
 import com.example.dynalar_frontend_v1.model.odontogram.ProcessStatus
 import com.example.dynalar_frontend_v1.model.odontogram.ToothSurface
+import com.example.dynalar_frontend_v1.ui.components.CustomTopBar
 import com.example.dynalar_frontend_v1.ui.components.SwipeToDeleteContainer
 import com.example.dynalar_frontend_v1.viewmodel.OdontogramViewModel
 import kotlinx.coroutines.launch
@@ -64,7 +65,8 @@ fun getTemporalTeethForQuadrant(quadrantId: Int): List<Int> {
 fun OdontogramPage(
     onToothSelected: (Int) -> Unit,
     odontogramId: Long,
-    viewModel: OdontogramViewModel = viewModel()
+    viewModel: OdontogramViewModel = viewModel(),
+    onBack: () -> Unit
 ) {
     var currentState by remember { mutableStateOf(OdontogramState.FULL) }
     var selectedQuadrant by remember { mutableStateOf<Int?>(null) }
@@ -86,10 +88,10 @@ fun OdontogramPage(
     val filteredEntries = entries.sortedBy { it.tooth?.number }
 
     when (selectedQuadrant) {
-        1 -> quadrantName = "Superior Derecho"
-        2 -> quadrantName = "Superior Izquierdo"
-        3 -> quadrantName = "Inferior Derecho"
-        4 -> quadrantName = "Inferior Izquierdo"
+        1 -> quadrantName = "Superior Dret"
+        2 -> quadrantName = "Superior Esquerra"
+        3 -> quadrantName = "Inferior Dret"
+        4 -> quadrantName = "Inferior Esquerra"
     }
 
     if (showEntries) {
@@ -124,23 +126,25 @@ fun OdontogramPage(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(36.dp))
 
-        AnimatedContent(
-            targetState = currentState,
-            transitionSpec = { fadeIn() togetherWith fadeOut() },
-            label = "title"
-        ) { state ->
-            Text(
-                text = when (state) {
-                    OdontogramState.FULL     -> "Odontograma"
-                    OdontogramState.VERTICAL -> "Odontograma"
-                    OdontogramState.QUADRANT -> "Cuadrante $quadrantName"
-                },
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
+        val dynamicTitle = when (currentState) {
+            OdontogramState.FULL     -> "Odontograma"
+            OdontogramState.VERTICAL -> "Odontograma"
+            OdontogramState.QUADRANT -> "Quadrant $quadrantName"
         }
+
+        CustomTopBar(
+            title = dynamicTitle,
+            onNavigateBack = {
+                if (currentState == OdontogramState.QUADRANT || currentState == OdontogramState.VERTICAL) {
+                    currentState = OdontogramState.FULL
+                    selectedQuadrant = null
+                } else {
+                    onBack()
+                }
+            },
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -221,13 +225,13 @@ fun OdontogramPage(
                     onClick = { currentState = OdontogramState.VERTICAL },
                     modifier = Modifier.padding(bottom = 16.dp)
                 ) {
-                    Text("Ver Verticalmente")
+                    Text("Ver Verticalment")
                 }
                 Button(
                     onClick = { showEntries = true },
                     modifier = Modifier.padding(bottom = 16.dp)
                 ) {
-                    Text("Ver Registros")
+                    Text("Ver Registres")
                 }
             }
         }
@@ -242,13 +246,13 @@ fun OdontogramPage(
                     onClick = { currentState = OdontogramState.FULL },
                     modifier = Modifier.padding(bottom = 16.dp)
                 ) {
-                    Text("Ver completo")
+                    Text("Ver complet")
                 }
                 Button(
                     onClick = { showEntries = true },
                     modifier = Modifier.padding(bottom = 16.dp)
                 ) {
-                    Text("Ver Registros")
+                    Text("Ver Registres")
                 }
             }
         }
@@ -280,7 +284,7 @@ fun OdontogramEntries(
             .padding(bottom = 32.dp)
     ) {
         Text(
-            text = "Registros",
+            text = "Registres",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 16.dp)
@@ -288,7 +292,7 @@ fun OdontogramEntries(
 
         if (entries.isEmpty()) {
             Text(
-                text = "No hay registros guardados",
+                text = "No hi ha registres guardats",
                 color = Color.Gray,
                 modifier = Modifier
                     .padding(vertical = 16.dp)
@@ -432,7 +436,7 @@ fun OdontogramVerticalView(
                 .padding(vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Superior Derecho", fontSize = 14.sp, color = Color.DarkGray, fontWeight = FontWeight.Bold)
+            Text("Superior Dret", fontSize = 14.sp, color = Color.DarkGray, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(12.dp))
             QuadrantTeethBlock(
                 permanentTeeth = getTeethForQuadrant(1),
@@ -455,7 +459,7 @@ fun OdontogramVerticalView(
                 .padding(vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Superior Izquierdo", fontSize = 14.sp, color = Color.DarkGray, fontWeight = FontWeight.Bold)
+            Text("Superior Esquerra", fontSize = 14.sp, color = Color.DarkGray, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(12.dp))
             QuadrantTeethBlock(
                 permanentTeeth = getTeethForQuadrant(2),
@@ -477,7 +481,7 @@ fun OdontogramVerticalView(
                 .padding(vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Inferior Derecho", fontSize = 14.sp, color = Color.DarkGray, fontWeight = FontWeight.Bold)
+            Text("Inferior Dret", fontSize = 14.sp, color = Color.DarkGray, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(12.dp))
             QuadrantTeethBlock(
                 permanentTeeth = getTeethForQuadrant(4),
@@ -500,7 +504,7 @@ fun OdontogramVerticalView(
                 .padding(vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Inferior Izquierdo", fontSize = 14.sp, color = Color.DarkGray, fontWeight = FontWeight.Bold)
+            Text("Inferior Esquerra", fontSize = 14.sp, color = Color.DarkGray, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(12.dp))
             QuadrantTeethBlock(
                 permanentTeeth = getTeethForQuadrant(3),
@@ -550,7 +554,7 @@ fun OdontogramGeneralView(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text("Superior Derecho", fontSize = 10.sp, color = Color.DarkGray, fontWeight = FontWeight.SemiBold)
+                Text("Superior Dret", fontSize = 10.sp, color = Color.DarkGray, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.height(4.dp))
                 QuadrantTeethBlock(
                     permanentTeeth = getTeethForQuadrant(1),
@@ -570,7 +574,7 @@ fun OdontogramGeneralView(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text("Superior Izquierdo", fontSize = 10.sp, color = Color.DarkGray, fontWeight = FontWeight.SemiBold)
+                Text("Superior Esquerra", fontSize = 10.sp, color = Color.DarkGray, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.height(4.dp))
                 QuadrantTeethBlock(
                     permanentTeeth = getTeethForQuadrant(2),
@@ -606,7 +610,7 @@ fun OdontogramGeneralView(
                     onClick = { onQuadrantClick(4) }
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text("Inferior Derecho", fontSize = 10.sp, color = Color.DarkGray, fontWeight = FontWeight.SemiBold)
+                Text("Inferior Dret", fontSize = 10.sp, color = Color.DarkGray, fontWeight = FontWeight.SemiBold)
             }
 
             Column(
@@ -626,7 +630,7 @@ fun OdontogramGeneralView(
                     onClick = { onQuadrantClick(3) }
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text("Inferior Izquierdo", fontSize = 10.sp, color = Color.DarkGray, fontWeight = FontWeight.SemiBold)
+                Text("Inferior Esquerra", fontSize = 10.sp, color = Color.DarkGray, fontWeight = FontWeight.SemiBold)
             }
         }
     }
@@ -819,7 +823,7 @@ fun QuadrantDetailView(
         modifier = Modifier.fillMaxWidth()
     ) {
         Text(
-            "Selecciona un diente",
+            "Selecciona un dent",
             color = Color.Gray,
             fontSize = 13.sp,
             modifier = Modifier.padding(bottom = 16.dp)
