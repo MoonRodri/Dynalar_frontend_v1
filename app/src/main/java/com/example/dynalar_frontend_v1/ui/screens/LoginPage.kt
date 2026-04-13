@@ -127,10 +127,10 @@ fun LoginPage(
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("Value", color = Color.LightGray) },
 
-                //  Lógica de transformación ---
+                
                 visualTransformation = if (passwordVisible) androidx.compose.ui.text.input.VisualTransformation.None else PasswordVisualTransformation(),
 
-                //  Icono del ojo ---
+                //  Icono del ojo
                 trailingIcon = {
                     val image = if (passwordVisible)
                         androidx.compose.material.icons.Icons.Filled.Visibility
@@ -218,8 +218,7 @@ fun LoginPage(
                         .background(Color.Transparent),
                     contentAlignment = Alignment.Center
                 ) {
-                    // Placeholder for Google Icon
-                    // Placeholder for Google Icon
+                   
                     Text("G", fontWeight = FontWeight.Bold, color = Color.Blue)
                 }
                 Spacer(modifier = Modifier.width(8.dp))
@@ -230,13 +229,5 @@ fun LoginPage(
                 )
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun LoginPagePreview() {
-    Dynalar_frontend_v1Theme {
-        LoginPage()
     }
 }

@@ -1,11 +1,8 @@
 package com.example.dynalar_frontend_v1.ui.screens
 
-
-
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
+
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -36,10 +33,15 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -50,48 +52,35 @@ import com.example.dynalar_frontend_v1.interfaces.InterfaceGlobal
 import com.example.dynalar_frontend_v1.model.patient.Patient
 import com.example.dynalar_frontend_v1.ui.components.AddButton
 import com.example.dynalar_frontend_v1.ui.components.CustomTopBar
+import com.example.dynalar_frontend_v1.ui.components.DeleteConfirmationDialog
 import com.example.dynalar_frontend_v1.ui.components.ErrorScreenWithImage
 import com.example.dynalar_frontend_v1.ui.components.SwipeToDeleteContainer
+import com.example.dynalar_frontend_v1.ui.components.getPatientImage
+import com.example.dynalar_frontend_v1.ui.theme.ButtonPrimary
 import com.example.dynalar_frontend_v1.viewmodel.PatientViewModel
 
-// --- Imagenes de pacientes ---
-val patientImages = listOf(
-    R.drawable.usuario1,
-    R.drawable.usuario2,
-    R.drawable.usuario3,
-    R.drawable.usuario4,
-    R.drawable.usuario5,
-    R.drawable.usuario6,
-    R.drawable.usuario7,
-    R.drawable.usuario8,
-    R.drawable.usuario9,
-    R.drawable.usuario10,
-    R.drawable.usuario11,
-    R.drawable.usuario12,
-)
 
-fun getPatientImage(patientId: Long?): Int {
-    if (patientId == null) return R.drawable.usuario1
-    val index = (patientId % patientImages.size).toInt()
-    return patientImages[index]
-}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListPatientsScreen(
     viewModel: PatientViewModel = viewModel(),
     onNavigateAddPatient: () -> Unit,
-    onNavigateBack: () -> Unit
-
+    onNavigateBack: () -> Unit,
+    onNavigateToPatientProfile: (Long) -> Unit
 ) {
     val uiState = viewModel.uiStatePatient
     val textFieldState = rememberTextFieldState()
 
+// Estados para controlar el pop-up de confirmación de borrado
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var patientToDelete by remember { mutableStateOf<Long?>(null) }
     LaunchedEffect(Unit) {
-        viewModel.getPatients() // carga inicial
+        viewModel.getPatients()
     }
 
     Scaffold { paddingValues ->
-        Column(modifier = Modifier.padding(paddingValues)){
+        Column(modifier = Modifier.padding(paddingValues)) {
 
             PatientsTopBar(
                 onNavigateAddPatient = onNavigateAddPatient,
@@ -102,38 +91,41 @@ fun ListPatientsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- Contenido principal según estado ---
             when (uiState) {
-                is InterfaceGlobal.Loading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
+                is InterfaceGlobal.Loading, InterfaceGlobal.Idle -> {
+                    Box(
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = ButtonPrimary)
+                    }
                 }
 
                 is InterfaceGlobal.Success -> {
                     val patients = uiState.data
-                        .filter { !it.name.isNullOrBlank() } // filtra nombres vacíos
-                        .sortedBy { it.name } // orden alfabético
-                        .groupBy { it.name!!.first().uppercaseChar() } // agrupa por primera letra
+                        .filter { !it.name.isNullOrBlank() }
+                        .groupBy { it.name!!.first().uppercaseChar() }
 
                     LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
                         contentPadding = PaddingValues(bottom = 24.dp)
                     ) {
-
                         patients.forEach { (initial, patientList) ->
-
-                            item {
-                                CharacterHeader(initial)
-                            }
+                            item { CharacterHeader(initial) }
 
                             items(patientList, key = { it.id ?: 0L }) { patient ->
                                 SwipeToDeleteContainer(
-                                    onDelete = { viewModel.deletePatient(patient.id ?: 0L) }
+                                    onDelete = {
+                                        // En lugar de borrar directamente, abrimos el pop-up
+                                        patientToDelete = patient.id
+                                        showDeleteDialog = true
+                                    }
                                 ) {
                                     PatientItem(
                                         patient = patient,
-                                        onClick = { /* navegar al perfil del paciente */ }
+                                        onClick = { selectedPatient ->
+                                            selectedPatient.id?.let { onNavigateToPatientProfile(it) }
+                                        }
                                     )
                                 }
                             }
@@ -142,36 +134,38 @@ fun ListPatientsScreen(
                 }
 
                 is InterfaceGlobal.Error -> {
-                    val friendlyMessage = if (uiState.message.isNullOrBlank() ||
-                        uiState.message.contains("Unable to create converter", ignoreCase = true)
-                    ) {
-                        "Error al connecta al servidor"
-                    } else {
-                        uiState.message
-                    }
-
                     ErrorScreenWithImage(
-                        message = friendlyMessage
+                        message = uiState.message ?: "No s'han pogut carregar els pacients",
+                        modifier = Modifier.weight(1f)
                     )
                 }
 
                 InterfaceGlobal.NotFound -> {
                     ErrorScreenWithImage(
-                        message = "Dades no trobades"
+                        message = "No hi ha pacients registrats.",
+                        modifier = Modifier.weight(1f)
                     )
-                }
-
-                InterfaceGlobal.Idle -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
                 }
             }
         }
+    }
+
+    //PopUp Eliminar
+    if (showDeleteDialog) {
+        DeleteConfirmationDialog(
+            message = "¿Estàs segur que vols eliminar aquest pacient?",
+            onConfirm = {
+                // Borramos y cerramos
+                patientToDelete?.let { id -> viewModel.deletePatient(id) }
+                showDeleteDialog = false
+                patientToDelete = null
+            },
+            onDismiss = {
+                // Solo cerramos si cancela
+                showDeleteDialog = false
+                patientToDelete = null
+            }
+        )
     }
 }
 
@@ -180,17 +174,13 @@ fun ListPatientsScreen(
 fun SearchPatientBar(
     textFieldState: TextFieldState,
     viewModel: PatientViewModel
-
 ) {
-
     SearchBar(
         inputField = {
             SearchBarDefaults.InputField(
                 query = textFieldState.text.toString(),
                 onQueryChange = { text ->
-                    // Actualiza el TextField
                     textFieldState.edit { replace(0, length, text) }
-                    // Llama al ViewModel para filtrar la lista
                     viewModel.searchPatients(text)
                 },
                 onSearch = {},
@@ -208,6 +198,7 @@ fun SearchPatientBar(
         content = {}
     )
 }
+
 @Composable
 fun AddPatientButton(
     onClick: () -> Unit,
@@ -220,50 +211,42 @@ fun AddPatientButton(
     )
 }
 
-
-//Encabezado
 @Composable
 fun PatientsTopBar(
     onNavigateBack: () -> Unit,
     onNavigateAddPatient: () -> Unit
 ) {
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = Modifier.fillMaxWidth()
     ) {
-        // Barra izquierda: siempre respeta sus propios paddings
         CustomTopBar(
             title = "Llista de Pacients",
             onNavigateBack = onNavigateBack,
             modifier = Modifier.align(Alignment.CenterStart)
         )
 
-        // Botón Add: control total de su posición
         AddPatientButton(
             onClick = onNavigateAddPatient,
             modifier = Modifier
                 .align(Alignment.CenterEnd)
-                .padding(end = 50.dp, top = 25.dp) // margen derecho
+                .padding(end = 50.dp, top = 25.dp)
         )
     }
 }
 
-//Encabezado por letra
 @Composable
 fun CharacterHeader(initial: Char) {
-
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = Color(0xFFF4F6F9),
         tonalElevation = 1.dp
     ) {
-
         Text(
             text = initial.toString(),
             modifier = Modifier.padding(horizontal = 22.dp, vertical = 10.dp),
             fontWeight = FontWeight.Bold,
             fontSize = 18.sp,
-            color = Color(0xFF6F7A8A)
+            color = ButtonPrimary
         )
     }
 }
@@ -273,12 +256,11 @@ fun PatientItem(
     patient: Patient,
     onClick: (Patient) -> Unit
 ) {
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 22.dp, vertical = 8.dp)
-            .clickable { onClick(patient) },
+            .clickable { onClick(patient) }, // Detecta el clic y ejecuta la acción
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
@@ -286,32 +268,28 @@ fun PatientItem(
             defaultElevation = 1.dp
         )
     ) {
-
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             Image(
+
                 painter = painterResource(id = getPatientImage(patient.id)),
                 contentDescription = "Pacient",
                 modifier = Modifier
-                    .size(42.dp)
-                    .clip(CircleShape)
+                    .size(65.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
             )
 
             Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-
-
                 Text(
                     text = patient.name ?: "",
                     fontSize = 16.sp
                 )
-
             }
         }
     }
-
 }

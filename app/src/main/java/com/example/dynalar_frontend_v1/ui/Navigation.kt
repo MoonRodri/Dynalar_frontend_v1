@@ -8,9 +8,17 @@ sealed class AppRoutes(val route: String) {
     object CreateProfile : AppRoutes("createProfile")
     object  OdontogramPage : AppRoutes("odontogramPage")
 
+
     object UserProfile : AppRoutes("userProfile")
-
     object CalendarPage : AppRoutes("calendarPage")
+    object PatientProfile : AppRoutes("patientProfile/{patientId}") {
+        fun createRoute(patientId: Long) = "patientProfile/$patientId"
+    }
 
-    object ScheduleAppointment : AppRoutes("scheduleAppointment")
+    object ScheduleAppointment : AppRoutes("scheduleAppointment/{date}/{hour}/{minute}") {
+
+        fun createRoute(date: String, hour: Int, minute: Int): String {
+            return "scheduleAppointment/$date/$hour/$minute"
+        }
+    }
 }

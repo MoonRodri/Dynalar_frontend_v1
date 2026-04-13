@@ -1,6 +1,5 @@
 package com.example.dynalar_frontend_v1.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -16,48 +15,29 @@ import androidx.compose.ui.text.font.FontWeight
 import com.example.dynalar_frontend_v1.R
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
+    primary   = Purple80,
     secondary = PurpleGrey80,
-    tertiary = Pink80
+    tertiary  = Pink80
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
+    primary   = ButtonPrimary,
     secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    tertiary  = Pink40,
+    background = FondoPagina,      // fondo global coherente con la app
+    surface    = BannerWhite
 )
 
-
-// Tipografías personalizadas
-val AbyssinicaSIL = FontFamily(
-    Font(R.font.abyssinicasil_regular, FontWeight.Normal)
-)
-val AGBookRounded = FontFamily(
-    Font(R.font.ag_book_rounded_regular, FontWeight.Normal)
-)
-val RegularFont = FontFamily(
-    Font(R.font.regular, FontWeight.Normal)
-)
-val SFCompactDisplayBold = FontFamily(
-    Font(R.font.sf_compact_display_bold, FontWeight.Bold)
-)
-
+val AbyssinicaSIL = FontFamily(Font(R.font.abyssinicasil_regular, FontWeight.Normal))
+val AGBookRounded = FontFamily(Font(R.font.ag_book_rounded_regular, FontWeight.Normal))
+val RegularFont   = FontFamily(Font(R.font.regular, FontWeight.Normal))
+val SFCompactDisplayBold = FontFamily(Font(R.font.sf_compact_display_bold, FontWeight.Bold))
 
 @Composable
 fun Dynalar_frontend_v1Theme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    // FALSE — con true Android 12+ ignora todos tus colores y usa los del sistema
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -65,14 +45,13 @@ fun Dynalar_frontend_v1Theme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-
         darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        else      -> LightColorScheme
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
-        content = content
+        typography  = Typography,
+        content     = content
     )
 }

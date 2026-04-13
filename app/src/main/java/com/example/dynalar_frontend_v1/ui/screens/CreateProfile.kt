@@ -22,70 +22,113 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.dynalar_frontend_v1.ui.components.BackButton
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.dynalar_frontend_v1.model.patient.MedicalRecord
+import com.example.dynalar_frontend_v1.model.patient.Patient
 import com.example.dynalar_frontend_v1.ui.components.Navegate_Button
-import com.example.dynalar_frontend_v1.R
 import com.example.dynalar_frontend_v1.ui.components.CustomTopBar
 import com.example.dynalar_frontend_v1.ui.components.InputFieldEditable
+import com.example.dynalar_frontend_v1.ui.components.PhoneInputField
+import com.example.dynalar_frontend_v1.viewmodel.PatientViewModel
+
 
 
 @Composable
 fun CreateProfilePage(
     onNavigateOdontogramaPage: () -> Unit,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    patientViewModel: PatientViewModel = viewModel()
 ) {
     CreateProfileForm(
         onNavigateOdontogramaPage = onNavigateOdontogramaPage,
-        onNavigateBack = onNavigateBack
+        onNavigateBack = onNavigateBack,
+        patientViewModel = patientViewModel
     )
 }
 
 @Composable
 fun CreateProfileForm(
     onNavigateOdontogramaPage: () -> Unit,
-    onNavigateBack: () -> Unit
-)
-{
+    onNavigateBack: () -> Unit,
+    patientViewModel: PatientViewModel
+) {
     var selectedTab by remember { mutableStateOf(0) }
+
+    // Información Personal
     var name by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var dni by remember { mutableStateOf("") }
+
+    // Teléfono
+    var countryCode by remember { mutableStateOf("+34") }
     var phone by remember { mutableStateOf("") }
-    var allergies by remember { mutableStateOf("") }
+
+    // Historial Clínico
+    var familyHistory by remember { mutableStateOf("") }
+    var dentalConditions by remember { mutableStateOf("") }
     var medicalNotes by remember { mutableStateOf("") }
-    val snackbarHostState = remember { SnackbarHostState() }
+    var allergies by remember { mutableStateOf("") }
+
     val context = LocalContext.current
+
     Scaffold(
         bottomBar = {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 color = Color.White,
-                shadowElevation = 8.dp // Opcional: una sombrita para que se vea sobre el scroll
+                shadowElevation = 8.dp
             ) {
                 Box(
                     modifier = Modifier
-                        .padding(start = 24.dp,
-                            end = 24.dp,
-                            top = 16.dp,
-                            bottom = 50.dp),
+                        .padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 50.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Navegate_Button(
                         text = "Guarda i Continua",
                         onClick = {
+                            // 1. Validaciones que ya tenías...
                             if (name.isBlank() || lastName.isBlank() || email.isBlank() || dni.isBlank() || phone.isBlank()) {
-                                Toast.makeText(context, "Por favor, rellena todos los campos", Toast.LENGTH_SHORT).show()
-                            } else {
-                                onNavigateOdontogramaPage()
+                                Toast.makeText(context, "Per favor, emplena tots els camps", Toast.LENGTH_SHORT).show()
+                                return@Navegate_Button
                             }
+
+                            val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-zA-Z]{2,}\$".toRegex()
+                            if (!email.matches(emailRegex)) {
+                                Toast.makeText(context, "Correu electrònic invàlid", Toast.LENGTH_SHORT).show()
+                                return@Navegate_Button
+                            }
+
+                            // 2. CREAR EL OBJETO PACIENTE CON TUS VARIABLES
+                            // Aquí "empaquetamos" toda la información de los campos
+                            val newPatient = Patient(
+                                name = name,
+                                lastName = lastName,
+                                email = email,
+                                dni = dni,
+                                phone = "$countryCode $phone",
+                                medicalRecord = MedicalRecord(
+                                    familyHistory = familyHistory,   // Este coincide
+                                    allergies = allergies,           // Este coincide
+
+                                    // MAPEADO DE TUS VARIABLES A TU MODELO:
+                                    medication = medicalNotes,       // Guardamos tus notas médicas en 'medication'
+                                    deceases = dentalConditions,     // Guardamos las condiciones dentales en 'deceases'
+                                    infectiousDeceases = ""          // Lo dejamos vacío de momento o añade otro campo si quieres
+                                )
+                            )
+
+
+                            patientViewModel.createPatient(newPatient)
+
+                            Toast.makeText(context, "Pacient creat correctament", Toast.LENGTH_SHORT).show()
+                            onNavigateBack() //Aqui se pondra el odontograma
                         },
                     )
                 }
             }
         }
     ) { paddingValues ->
-        // El contenido con scroll ahora termina antes de llegar al botón
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -98,26 +141,29 @@ fun CreateProfileForm(
                 onNavigateBack = onNavigateBack,
             )
 
-            Spacer(modifier = Modifier.height(35.dp)) // Ajustado un poco más pequeño
+            Spacer(modifier = Modifier.height(35.dp))
 
             Box(modifier = Modifier.padding(horizontal = 30.dp)) {
                 if (selectedTab == 0) {
+                    // LLamada actualizada con los nuevos parámetros
                     InformationPersonal(
                         name = name, onNameChange = { name = it },
                         lastName = lastName, onLastNameChange = { lastName = it },
                         email = email, onEmailChange = { email = it },
                         dni = dni, onDniChange = { dni = it },
+                        countryCode = countryCode, onCountryCodeChange = { countryCode = it },
                         phone = phone, onPhoneChange = { phone = it }
                     )
                 } else {
                     InformationMedical(
-                        allergies = allergies, onAllergiesChange = { allergies = it },
-                        medicalNotes = medicalNotes, onMedicalNotesChange = { medicalNotes = it }
+                        familyHistory = familyHistory, onFamilyHistoryChange = { familyHistory = it },
+                        dentalConditions = dentalConditions, onDentalConditionsChange = { dentalConditions = it },
+                        medicalNotes = medicalNotes, onMedicalNotesChange = { medicalNotes = it },
+                        allergies = allergies, onAllergiesChange = { allergies = it }
                     )
                 }
             }
 
-            // Ya no necesitas el Spacer gigante de 150.dp
             Spacer(modifier = Modifier.height(32.dp))
         }
     }
@@ -128,7 +174,6 @@ fun Header_ButtonNavigator(
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
     onNavigateBack: () -> Unit,
-
 ) {
     Column{
         CustomTopBar(
@@ -157,12 +202,12 @@ fun Header_ButtonNavigator(
                 onClick = { onTabSelected(1) },
                 modifier = Modifier.weight(1f)
             )
-    } }
+        }
+    }
 }
 
 @Composable
 fun TabButton(text: String, isSelected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
-
     Button(
         onClick = onClick,
         modifier = modifier.height(45.dp),
@@ -186,45 +231,81 @@ fun InformationPersonal(
     lastName: String, onLastNameChange: (String) -> Unit,
     email: String, onEmailChange: (String) -> Unit,
     dni: String, onDniChange: (String) -> Unit,
+    countryCode: String, onCountryCodeChange: (String) -> Unit,
     phone: String, onPhoneChange: (String) -> Unit
 ) {
-    
-    Column (verticalArrangement = Arrangement.spacedBy(20.dp),
-        modifier = Modifier.fillMaxWidth()){
-        InputFieldEditable(label = "Nombre",
-            value = name,
-            onValueChange = onNameChange,
-            placeholder = "Nombre")
-        InputFieldEditable(label = "Apellidos",
-            value = lastName,
-            onValueChange = onLastNameChange,
-            placeholder = "Apellidos")
-        InputFieldEditable(label = "Email",
-            value = email,
-            onValueChange = onEmailChange,
-            placeholder = "correo@ejemplo.com")
-        InputFieldEditable(label = "DNI",
+    Column (verticalArrangement = Arrangement.spacedBy(20.dp), modifier = Modifier.fillMaxWidth()){
+        InputFieldEditable(label = "Nom", value = name, onValueChange = onNameChange, placeholder = "Nom")
+        InputFieldEditable(label = "Cognoms", value = lastName, onValueChange = onLastNameChange, placeholder = "Cognoms")
+        InputFieldEditable(label = "Email", value = email, onValueChange = onEmailChange, placeholder = "correu@exemple.com")
+
+        // --- FILTRO EN TIEMPO REAL PARA EL DNI ---
+        InputFieldEditable(
+            label = "DNI",
             value = dni,
-            onValueChange = onDniChange,
-            placeholder = "12345678X")
-        InputFieldEditable(label = "Teléfono",
-            value = phone,
-            onValueChange = onPhoneChange,
-            placeholder = "600000000")
+            onValueChange = { newValue ->
+                // Forzamos mayúscula y máximo 9 caracteres
+                var filtered = newValue.uppercase().take(9)
+                // Permitimos solo números en los 8 primeros y solo letras en el último
+                filtered = filtered.filterIndexed { index, char ->
+                    if (index < 8) char.isDigit() else char.isLetter()
+                }
+                onDniChange(filtered)
+            },
+            placeholder = "12345678X"
+        )
+
+        // --- COMPONENTE DE TELÉFONO REUTILIZABLE ---
+        PhoneInputField(
+            label = "Telèfon",
+            countryCode = countryCode,
+            onCountryCodeChange = onCountryCodeChange,
+            phoneNumber = phone,
+            onPhoneNumberChange = { newValue ->
+                // Filtramos para que solo sean números y máximo 9 dígitos
+                val filteredPhone = newValue.filter { it.isDigit() }.take(9)
+                onPhoneChange(filteredPhone)
+            }
+        )
     }
 }
 
 @Composable
 fun InformationMedical(
-    allergies: String, onAllergiesChange: (String) -> Unit,
-    medicalNotes: String, onMedicalNotesChange: (String) -> Unit
+    familyHistory: String, onFamilyHistoryChange: (String) -> Unit,
+    dentalConditions: String, onDentalConditionsChange: (String) -> Unit,
+    medicalNotes: String, onMedicalNotesChange: (String) -> Unit,
+    allergies: String, onAllergiesChange: (String) -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(20.dp),
-        modifier = Modifier.fillMaxWidth()) {
-        InputFieldEditable(label = "Historial Familiar", value = allergies, onValueChange = onAllergiesChange, placeholder = "Ej: Observacions...")
-        InputFieldEditable(label = "Condicions Dentals", value = allergies, onValueChange = onAllergiesChange, placeholder = "Ej: Mal de dents")
-        InputFieldEditable(label = "Medicació", value = medicalNotes, onValueChange = onMedicalNotesChange, placeholder = "Paracetamol")
-        InputFieldEditable(label = "Alergias", value = allergies, onValueChange = onAllergiesChange, placeholder = "Ej: Penicilina")
-
+    Column(
+        verticalArrangement = Arrangement.spacedBy(20.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        InputFieldEditable(
+            label = "Historial Familiar",
+            value = familyHistory,
+            onValueChange = onFamilyHistoryChange,
+            placeholder = "Ej: Observacions..."
+        )
+        InputFieldEditable(
+            label = "Condicions Dentals",
+            value = dentalConditions,
+            onValueChange = onDentalConditionsChange,
+            placeholder = "Ej: Mal de dents"
+        )
+        InputFieldEditable(
+            label = "Medicació",
+            value = medicalNotes,
+            onValueChange = onMedicalNotesChange,
+            placeholder = "Paracetamol"
+        )
+        InputFieldEditable(
+            label = "Al·lèrgies",
+            value = allergies,
+            onValueChange = onAllergiesChange,
+            placeholder = "Ej: Penicilina"
+        )
     }
 }
+
+

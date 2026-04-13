@@ -8,7 +8,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.*
@@ -24,92 +23,91 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.dynalar_frontend_v1.interfaces.InterfaceGlobal
 import com.example.dynalar_frontend_v1.model.Appointment
 import com.example.dynalar_frontend_v1.ui.components.CustomTopBar
+import com.example.dynalar_frontend_v1.ui.theme.TreatmentColors
+import com.example.dynalar_frontend_v1.viewmodel.AppointmentViewModel
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
 
-val TreatmentColors = listOf(
-    Color(0xFF4DB6AC),
-    Color(0xFF64B5F6),
-    Color(0xFF81C784),
-    Color(0xFFFFB74D),
-    Color(0xFFBA68C8),
-    Color(0xFFFF8A65),
-    Color(0xFFF06292),
-    Color(0xFF4DD0E1),
-)
 
 private const val SLOT_HEIGHT_DP = 80
 private const val DAY_START_HOUR = 8
 private const val TOTAL_HOURS = 14
-private const val TOP_MARGIN_DP = 16 // margen antes del 08:00
+private const val TOP_MARGIN_DP = 16
 
-fun colorForTreatment(treatmentId: Long?): Color {
-    if (treatmentId == null) return Color(0xFF4DB6AC)
-    return TreatmentColors[(treatmentId % TreatmentColors.size).toInt()]
-}
-
-fun appointmentHeightDp(appointment: Appointment): Float {
-    val durationMinutes = appointment.treatment?.durationMinutes
-        ?: run {
-            val start = parseTimeToMinutes(appointment.startTime)
-            val end = parseTimeToMinutes(appointment.endTime)
-            if (start != null && end != null) end - start else 30
-        }
-    return (durationMinutes * SLOT_HEIGHT_DP / 60f).coerceAtLeast(40f)
-}
-
-// CalendarPage
 @Composable
 fun CalendarPage(
-    appointments: List<Appointment> = emptyList(),
+    viewModel: AppointmentViewModel = viewModel(),
     onAppointmentClick: (Appointment) -> Unit = {},
-    onAddAppointmentClick: (hour: Int, minute: Int) -> Unit = { _, _ -> },
+    onAddAppointmentClick: (LocalDate, Int, Int) -> Unit = { _, _, _ -> },
     onNavigateBack: () -> Unit = {}
 ) {
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     val sharedScrollState = rememberScrollState()
 
-    Scaffold(
-        floatingActionButton = {
+    // Cargar citas al entrar
+    LaunchedEffect(Unit) {
+        viewModel.fetchCalendar()
+    }
 
+    val uiState = viewModel.uiStateCalendar
+    val appointmentsForDay = remember(uiState, selectedDate) {
+        if (uiState is InterfaceGlobal.Success) {
+            uiState.data.filter { appointment ->
+                appointment.startTime?.startsWith(selectedDate.toString()) == true
+            }
+        } else {
+            emptyList()
+        }
+    }
+
+    Scaffold(
+        containerColor = Color.White,
+        topBar = {
+            // Ponemos la TopBar y la cabecera en un fondo blanco sólido para que nada se vea debajo al hacer scroll
+            Column(modifier = Modifier.background(Color.White)) {
+                Spacer(modifier = Modifier.height(25.dp))
+                CustomTopBar(title = "Calendari", onNavigateBack = onNavigateBack)
+
+                CalendarHeader(
+                    selectedDate = selectedDate,
+                    onPrevDay = { selectedDate = selectedDate.minusDays(1) },
+                    onNextDay = { selectedDate = selectedDate.plusDays(1) },
+                    onTodayClick = { selectedDate = LocalDate.now() }
+                )
+                Divider(color = Color(0xFFEEEEEE))
+            }
         }
     ) { padding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .background(Color.White)
         ) {
-            CustomTopBar(
-                title = "Calendari",
-                onNavigateBack = onNavigateBack
-            )
+            if (uiState is InterfaceGlobal.Loading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = Color(0xFF537895)
+                )
+            }
 
-            CalendarHeader(
-                selectedDate = selectedDate,
-                onPrevDay = { selectedDate = selectedDate.minusDays(1) },
-                onNextDay = { selectedDate = selectedDate.plusDays(1) },
-                onTodayClick = { selectedDate = LocalDate.now() }
-            )
-
-            Divider(color = Color(0xFFEEEEEE))
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .wrapContentHeight()
                     .verticalScroll(sharedScrollState)
             ) {
                 HoursColumn()
                 AppointmentsColumn(
-                    appointments = appointments,
+                    appointments = appointmentsForDay,
                     onAppointmentClick = onAppointmentClick,
                     onSlotClick = { hour, minute ->
-                        // Al clicar en una celda vacía, llamamos a la navegación
-                        onAddAppointmentClick(hour, minute)
+                        onAddAppointmentClick(selectedDate, hour, minute)
                     }
                 )
             }
@@ -117,93 +115,49 @@ fun CalendarPage(
     }
 }
 
-//CalendarHeader
-
 @Composable
 fun CalendarHeader(
-    selectedDate: LocalDate = LocalDate.now(),
-    onPrevDay: () -> Unit = {},
-    onNextDay: () -> Unit = {},
-    onTodayClick: () -> Unit = {}
+    selectedDate: LocalDate,
+    onPrevDay: () -> Unit,
+    onNextDay: () -> Unit,
+    onTodayClick: () -> Unit
 ) {
-    val dayName = selectedDate.dayOfWeek
-        .getDisplayName(TextStyle.SHORT, Locale("es"))
-        .replaceFirstChar { it.uppercase() }
+    val dayName = selectedDate.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale("es")).replaceFirstChar { it.uppercase() }
     val dayNum = selectedDate.dayOfMonth
-    val monthName = selectedDate.month
-        .getDisplayName(TextStyle.SHORT, Locale("es"))
-        .replaceFirstChar { it.uppercase() }
+    val monthName = selectedDate.month.getDisplayName(TextStyle.SHORT, Locale("es")).replaceFirstChar { it.uppercase() }
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 10.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedButton(
             onClick = onTodayClick,
-            shape = RoundedCornerShape(10.dp), // Esquinas ligeramente más redondeadas
-            contentPadding = PaddingValues(horizontal = 40.dp, vertical = 10.dp), // Más grande internamente
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = Color(0xFF537895) // Color coherente con tu FAB
-            ),
+            shape = RoundedCornerShape(10.dp),
+            contentPadding = PaddingValues(horizontal = 40.dp, vertical = 10.dp),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF537895)),
             modifier = Modifier.padding(start = 10.dp)
         ) {
-            Text(
-                text = "Hoy",
-                fontSize = 15.sp, // Fuente más grande
-                fontWeight = FontWeight.Medium
-            )
+            Text(text = "Hoy", fontSize = 15.sp, fontWeight = FontWeight.Medium)
         }
-
         Spacer(modifier = Modifier.width(8.dp))
-
-        IconButton(onClick = onPrevDay) {
-            Icon(Icons.Default.ChevronLeft, contentDescription = "Día anterior")
-        }
-        IconButton(onClick = onNextDay) {
-            Icon(Icons.Default.ChevronRight, contentDescription = "Día siguiente")
-        }
-
+        IconButton(onClick = onPrevDay) { Icon(Icons.Default.ChevronLeft, "Atrás") }
+        IconButton(onClick = onNextDay) { Icon(Icons.Default.ChevronRight, "Siguiente") }
         Spacer(modifier = Modifier.weight(1f))
-
-        Text(
-            text = "$dayName $dayNum de $monthName",
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 16.sp,
-            color = Color.DarkGray
-        )
+        Text(text = "$dayName $dayNum de $monthName", fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = Color.DarkGray)
     }
 }
-
-//HoursColumn
 
 @Composable
 fun HoursColumn() {
     Column(modifier = Modifier.width(58.dp)) {
-
-        // Margen vacío antes del 08:00 — sin líneas
         Spacer(modifier = Modifier.height(TOP_MARGIN_DP.dp))
-
         (DAY_START_HOUR until DAY_START_HOUR + TOTAL_HOURS).forEach { hour ->
-            Box(
-                modifier = Modifier
-                    .height(SLOT_HEIGHT_DP.dp)
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.TopEnd
-            ) {
-                Text(
-                    text = "%02d:00".format(hour),
-                    fontSize = 11.sp,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(end = 8.dp, top = 3.dp)
-                )
+            Box(modifier = Modifier.height(SLOT_HEIGHT_DP.dp).fillMaxWidth(), contentAlignment = Alignment.TopEnd) {
+                Text(text = "%02d:00".format(hour), fontSize = 11.sp, color = Color.Gray, modifier = Modifier.padding(end = 8.dp, top = 3.dp))
             }
         }
     }
 }
-
-// AppointmentsColumn
 
 @Composable
 fun AppointmentsColumn(
@@ -213,19 +167,14 @@ fun AppointmentsColumn(
 ) {
     val totalHeightDp = TOTAL_HOURS * SLOT_HEIGHT_DP
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            // margen vacío antes de las líneas
-            .padding(top = TOP_MARGIN_DP.dp)
-            .height(totalHeightDp.dp)
+    // USAMOS BoxWithConstraints PARA SABER EL ANCHO DE LA PANTALLA
+    BoxWithConstraints(
+        modifier = Modifier.fillMaxWidth().padding(top = TOP_MARGIN_DP.dp).height(totalHeightDp.dp)
     ) {
-        //Fondo con líneas — UN Box por hora
-        Column(
-            modifier = Modifier
-                .height(totalHeightDp.dp)
-                .fillMaxWidth()
-        ) {
+        val columnMaxWidth = maxWidth // Guardamos el ancho disponible
+
+
+        Column(modifier = Modifier.height(totalHeightDp.dp).fillMaxWidth()) {
             (0 until TOTAL_HOURS).forEach { hourOffset ->
                 val hour = DAY_START_HOUR + hourOffset
                 Box(
@@ -234,51 +183,58 @@ fun AppointmentsColumn(
                         .fillMaxWidth()
                         .clickable { onSlotClick(hour, 0) }
                         .drawBehind {
-                            // Línea sólida arriba → marca la hora entera
-                            drawLine(
-                                color = Color(0xFFDDDDDD),
-                                start = Offset(0f, 0f),
-                                end = Offset(size.width, 0f),
-                                strokeWidth = 1.dp.toPx()
-                            )
-                            // Línea punteada en el medio → marca :30
+                            drawLine(color = Color(0xFFDDDDDD), start = Offset(0f, 0f), end = Offset(size.width, 0f), strokeWidth = 1.dp.toPx())
                             val midY = size.height / 2f
                             val nativePaint = android.graphics.Paint().apply {
                                 isAntiAlias = true
                                 color = android.graphics.Color.parseColor("#E8E8E8")
                                 strokeWidth = 1.dp.toPx()
-                                pathEffect = android.graphics.DashPathEffect(
-                                    floatArrayOf(6.dp.toPx(), 4.dp.toPx()), 0f
-                                )
+                                pathEffect = android.graphics.DashPathEffect(floatArrayOf(6.dp.toPx(), 4.dp.toPx()), 0f)
                             }
-                            drawContext.canvas.nativeCanvas.drawLine(
-                                0f, midY, size.width, midY, nativePaint
-                            )
+                            drawContext.canvas.nativeCanvas.drawLine(0f, midY, size.width, midY, nativePaint)
                         }
                 )
             }
         }
 
-        //Cajitas de citas encima
+
         appointments.forEach { appointment ->
             val startMinutes = parseTimeToMinutes(appointment.startTime)
+            val duration = appointment.treatment?.durationMinutes ?: 30
 
             if (startMinutes != null) {
-                val topOffsetMinutes = startMinutes - (DAY_START_HOUR * 60)
+                val endMinutes = startMinutes + duration
 
+                // --- LÓGICA MÁGICA DE SOLAPAMIENTO ---
+                // Buscamos qué otras citas chocan con esta en el tiempo
+                val overlappingApps = appointments.filter { other ->
+                    val oStart = parseTimeToMinutes(other.startTime) ?: 0
+                    val oEnd = oStart + (other.treatment?.durationMinutes ?: 30)
+
+                    startMinutes < oEnd && endMinutes > oStart
+                }.sortedBy { it.id ?: 0L }
+
+                val totalColumns = overlappingApps.size
+                val columnIndex = overlappingApps.indexOf(appointment).coerceAtLeast(0)
+
+
+                val cardWidth = columnMaxWidth / totalColumns
+                val offsetX = cardWidth * columnIndex
+
+
+                val topOffsetMinutes = startMinutes - (DAY_START_HOUR * 60)
                 if (topOffsetMinutes >= 0) {
                     val topDp = topOffsetMinutes * SLOT_HEIGHT_DP / 60f
                     val heightDp = appointmentHeightDp(appointment)
-                    val color = colorForTreatment(appointment.treatment?.id)
 
                     AppointmentCard(
                         appointment = appointment,
-                        color = color,
+                        color = colorForTreatment(appointment.treatment?.id),
                         modifier = Modifier
-                            .padding(start = 4.dp, end = 8.dp)
-                            .offset(y = topDp.dp)
+                            .width(cardWidth)
+                            .offset(x = offsetX, y = topDp.dp)
                             .height(heightDp.dp)
-                            .fillMaxWidth(),
+                            .padding(end = 2.dp),
                         onClick = { onAppointmentClick(appointment) }
                     )
                 }
@@ -286,9 +242,6 @@ fun AppointmentsColumn(
         }
     }
 }
-
-//AppointmentCard
-
 @Composable
 fun AppointmentCard(
     appointment: Appointment,
@@ -296,6 +249,7 @@ fun AppointmentCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    // Cálculo de la hora
     val startLabel = formatTime(appointment.startTime)
     val endLabel = run {
         val startMin = parseTimeToMinutes(appointment.startTime)
@@ -308,49 +262,59 @@ fun AppointmentCard(
         }
     }
 
-    val doctorName = appointment.dentist?.name ?: "Doctor"
-    val doctorSurname = appointment.dentist?.surname ?: ""
+    // Datos a mostrar
+    val patientName = "${appointment.patient?.name ?: ""} ${appointment.patient?.lastName ?: ""}".trim()
+    val doctorName = "Dr/a. ${appointment.dentist?.surname ?: ""}".trim()
     val treatmentName = appointment.treatment?.name ?: ""
-    val durationLabel = appointment.treatment?.durationMinutes?.let {
-        when {
-            it < 60 -> "${it}min"
-            it % 60 == 0 -> "${it / 60}h"
-            else -> "${it / 60}h ${it % 60}min"
-        }
-    } ?: ""
+
+    // Extraer alergias del historial médico (MedicalRecord)
+    val allergies = appointment.patient?.medicalRecord?.allergies
+    val hasAllergies = !allergies.isNullOrBlank()
 
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(6.dp))
             .background(color.copy(alpha = 0.15f))
-            .border(
-                width = 3.dp,
-                color = color,
-                shape = RoundedCornerShape(topStart = 6.dp, bottomStart = 6.dp)
-            )
+            .border(width = 3.dp, color = color, shape = RoundedCornerShape(topStart = 6.dp, bottomStart = 6.dp))
             .clickable { onClick() }
             .padding(start = 8.dp, top = 4.dp, end = 4.dp, bottom = 4.dp)
     ) {
         Column {
+            // 1. Hora
             Text(
                 text = "$startLabel - $endLabel",
                 fontSize = 11.sp,
                 color = color,
                 fontWeight = FontWeight.SemiBold
             )
+
+            // 2. Nombre del Paciente (Destacado)
             Text(
-                text = "Dr/a. $doctorName $doctorSurname",
+                text = patientName.ifEmpty { "Pacient Desconegut" },
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.DarkGray,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+
+            // 3. Alertas Médicas (Alergias en Rojo)
+            if (hasAllergies) {
+                Text(
+                    text = "Al·lèrgies: $allergies",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color(0xFFD32F2F), // Color rojo alerta
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            // 4. Tratamiento y Doctor asignado
             if (treatmentName.isNotBlank()) {
                 Text(
-                    text = if (durationLabel.isNotBlank()) "$treatmentName · $durationLabel"
-                    else treatmentName,
-                    fontSize = 11.sp,
+                    text = "$treatmentName | $doctorName",
+                    fontSize = 10.sp,
                     color = Color.Gray,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -360,19 +324,41 @@ fun AppointmentCard(
     }
 }
 
+// --- UTILS ---
+fun colorForTreatment(treatmentId: Long?): Color {
+    if (treatmentId == null) return Color(0xFF4DB6AC)
+    return TreatmentColors[(treatmentId % TreatmentColors.size).toInt()]
+}
+
+
 //Utils
+fun appointmentHeightDp(appointment: Appointment): Float {
+    val durationMinutes = appointment.treatment?.durationMinutes ?: 30
+    return (durationMinutes * SLOT_HEIGHT_DP / 60f).coerceAtLeast(40f)
+}
+
+// ESTA FUNCIÓN ES LA CLAVE PARA QUE NO EXPLOTE CON LA "T" DE SPRING BOOT
+fun extractTimeOnly(dateTimeString: String?): String? {
+    if (dateTimeString == null) return null
+    return if (dateTimeString.contains("T")) {
+        dateTimeString.split("T").lastOrNull()
+    } else {
+        dateTimeString.split(" ").lastOrNull()
+    }
+}
+
 fun parseTimeToMinutes(time: String?): Int? {
-    if (time == null) return null
+    val cleanTime = extractTimeOnly(time) ?: return null
     return try {
-        val parts = time.split(":")
+        val parts = cleanTime.split(":")
         parts[0].toInt() * 60 + parts[1].toInt()
     } catch (e: Exception) { null }
 }
 
 fun formatTime(time: String?): String {
-    if (time == null) return ""
+    val cleanTime = extractTimeOnly(time) ?: return ""
     return try {
-        val parts = time.split(":")
+        val parts = cleanTime.split(":")
         "%02d:%02d".format(parts[0].toInt(), parts[1].toInt())
-    } catch (e: Exception) { time }
+    } catch (e: Exception) { cleanTime }
 }
