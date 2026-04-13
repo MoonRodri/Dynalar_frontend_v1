@@ -198,7 +198,8 @@ fun LoginPage(
                     fontWeight = FontWeight.SemiBold
                 )
             }
-        )
+        }
+
         Spacer(modifier = Modifier.height(80.dp))
 
         OutlinedButton(

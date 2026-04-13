@@ -5,7 +5,7 @@ import retrofit2.Response
 import retrofit2.http.*
 
 interface PatientApiService {
-    @GET("patient/index")
+    @GET("patient/all")
     suspend fun getAllPatients(): List<Patient>  // Lista de pacientes
 
     @GET("patient/{id}")

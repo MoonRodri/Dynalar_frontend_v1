@@ -265,6 +265,7 @@ fun SwipeToDeleteContainer(
     LaunchedEffect(state.currentValue) {
         if (state.currentValue == SwipeToDismissBoxValue.EndToStart) {
             onDelete()
+            state.reset()
         }
     }
     SwipeToDismissBox(
@@ -280,7 +281,7 @@ fun SwipeToDeleteContainer(
                 contentAlignment = Alignment.CenterEnd
             ) {
                 Text(
-                    text = "Eliminar",
+                    text = "Esborrar",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(end = 24.dp)
