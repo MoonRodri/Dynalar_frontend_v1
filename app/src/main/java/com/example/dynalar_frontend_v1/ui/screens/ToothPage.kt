@@ -239,7 +239,7 @@ fun ToothPage(number: Int, odontogramId: Long, viewModel: OdontogramViewModel = 
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "Registrar Tratament",
+                            text = "Registrar Prucès",
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.titleLarge
                         )
@@ -309,7 +309,7 @@ fun ToothPage(number: Int, odontogramId: Long, viewModel: OdontogramViewModel = 
                                       },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Desar Tractament")
+                            Text("Desar Prucès")
                         }
                     }
                 }
@@ -319,7 +319,7 @@ fun ToothPage(number: Int, odontogramId: Long, viewModel: OdontogramViewModel = 
             onClick = { showEntries = true },
             modifier = Modifier.padding(bottom = 48.dp)
         ) {
-            Text("Ver Registros")
+            Text("Ver Registres")
         }
         }
     }

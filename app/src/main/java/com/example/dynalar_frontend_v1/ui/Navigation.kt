@@ -6,8 +6,13 @@ sealed class AppRoutes(val route: String) {
 
     object ListPatients : AppRoutes("patientsScreen")
     object CreateProfile : AppRoutes("createProfile")
-    object  OdontogramPage : AppRoutes("odontogramPage")
+    object OdontogramPage : AppRoutes("odontogramPage/{odontogramId}") {
+        fun createRoute(odontogramId: Long) = "odontogramPage/$odontogramId"
+    }
 
+    object ToothPage: AppRoutes("toothPage/{odontogramId}/{number}") {
+        fun createRoute(odontogramId: Long, number: Int) = "toothPage/$odontogramId/$number"
+    }
 
     object UserProfile : AppRoutes("userProfile")
     object CalendarPage : AppRoutes("calendarPage")

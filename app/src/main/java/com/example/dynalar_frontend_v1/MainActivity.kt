@@ -22,11 +22,14 @@ import com.example.dynalar_frontend_v1.ui.screens.CreateProfilePage
 import com.example.dynalar_frontend_v1.ui.screens.HomePage
 import com.example.dynalar_frontend_v1.ui.screens.ListPatientsScreen
 import com.example.dynalar_frontend_v1.ui.screens.LoginPage
+import com.example.dynalar_frontend_v1.ui.screens.OdontogramPage
 import com.example.dynalar_frontend_v1.ui.screens.PatientProfilePage
 import com.example.dynalar_frontend_v1.ui.screens.ScheduleAppointmentPage
+import com.example.dynalar_frontend_v1.ui.screens.ToothPage
 import com.example.dynalar_frontend_v1.ui.screens.UserProfilePage
 import com.example.dynalar_frontend_v1.ui.theme.Dynalar_frontend_v1Theme
 import com.example.dynalar_frontend_v1.viewmodel.AppointmentViewModel
+import com.example.dynalar_frontend_v1.viewmodel.OdontogramViewModel
 import com.example.dynalar_frontend_v1.viewmodel.PatientViewModel
 import com.example.dynalar_frontend_v1.viewmodel.UserViewModel
 
@@ -42,7 +45,7 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val patientViewModel: PatientViewModel = viewModel()
                 val appointmentViewModel: AppointmentViewModel = viewModel()
-
+                val odontogramViewModel: OdontogramViewModel = viewModel()
                 val userViewModel: UserViewModel = viewModel()
 
                 NavHost(
@@ -101,7 +104,12 @@ class MainActivity : ComponentActivity() {
                             PatientProfilePage(
                                 patient = patient,
                                 onBackClick = { navController.popBackStack() },
-                                onOdontogramClick = { navController.navigate(AppRoutes.OdontogramPage.route) }
+                                onOdontogramClick = {
+                                        val odontogramId = patient.odontogram?.id
+                                    if (odontogramId != null) {
+                                        navController.navigate(AppRoutes.OdontogramPage.createRoute(odontogramId))
+                                    }
+                                }
                             )
                         } else {
                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -109,6 +117,44 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
+
+
+                    composable(
+                        route = AppRoutes.OdontogramPage.route,
+                        arguments = listOf(
+                            navArgument("odontogramId") { type = NavType.LongType }
+                        )
+                    ) { backStackEntry ->
+                        val odontogramId = backStackEntry.arguments?.getLong("odontogramId") ?: 0L
+
+                        OdontogramPage(
+                            odontogramId = odontogramId,
+                            viewModel = odontogramViewModel,
+                            onBack = { navController.popBackStack() },
+                            onToothSelected = { toothNumber ->
+                                navController.navigate(AppRoutes.ToothPage.createRoute(odontogramId, toothNumber))
+                            }
+                        )
+                    }
+
+                    composable(
+                        route = AppRoutes.ToothPage.route,
+                        arguments = listOf(
+                            navArgument("odontogramId") { type = NavType.LongType },
+                            navArgument("number") { type = NavType.IntType }
+                        )
+                    ) { backStackEntry ->
+                        val odontogramId = backStackEntry.arguments?.getLong("odontogramId") ?: 0L
+                        val number = backStackEntry.arguments?.getInt("number") ?: 0
+
+                        ToothPage(
+                            number = number,
+                            odontogramId = odontogramId,
+                            viewModel = odontogramViewModel,
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+
 
                     composable(AppRoutes.UserProfile.route) {
                         UserProfilePage(
