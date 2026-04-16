@@ -2,7 +2,6 @@ package com.example.dynalar_frontend_v1.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -59,8 +58,6 @@ import com.example.dynalar_frontend_v1.ui.components.getPatientImage
 import com.example.dynalar_frontend_v1.ui.theme.ButtonPrimary
 import com.example.dynalar_frontend_v1.viewmodel.PatientViewModel
 
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListPatientsScreen(
@@ -72,9 +69,10 @@ fun ListPatientsScreen(
     val uiState = viewModel.uiStatePatient
     val textFieldState = rememberTextFieldState()
 
-// Estados para controlar el pop-up de confirmación de borrado
+    // Estados para controlar el pop-up de confirmación de borrado
     var showDeleteDialog by remember { mutableStateOf(false) }
     var patientToDelete by remember { mutableStateOf<Long?>(null) }
+
     LaunchedEffect(Unit) {
         viewModel.getPatients()
     }
@@ -86,6 +84,7 @@ fun ListPatientsScreen(
                 onNavigateAddPatient = onNavigateAddPatient,
                 onNavigateBack = onNavigateBack
             )
+
             // SearchBar
             SearchPatientBar(textFieldState = textFieldState, viewModel = viewModel)
 
@@ -116,7 +115,6 @@ fun ListPatientsScreen(
                             items(patientList, key = { it.id ?: 0L }) { patient ->
                                 SwipeToDeleteContainer(
                                     onDelete = {
-                                        // En lugar de borrar directamente, abrimos el pop-up
                                         patientToDelete = patient.id
                                         showDeleteDialog = true
                                     }
@@ -150,18 +148,16 @@ fun ListPatientsScreen(
         }
     }
 
-    //PopUp Eliminar
+    // PopUp Eliminar
     if (showDeleteDialog) {
         DeleteConfirmationDialog(
             message = "¿Estàs segur que vols eliminar aquest pacient?",
             onConfirm = {
-                // Borramos y cerramos
                 patientToDelete?.let { id -> viewModel.deletePatient(id) }
                 showDeleteDialog = false
                 patientToDelete = null
             },
             onDismiss = {
-                // Solo cerramos si cancela
                 showDeleteDialog = false
                 patientToDelete = null
             }
@@ -260,7 +256,7 @@ fun PatientItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 22.dp, vertical = 8.dp)
-            .clickable { onClick(patient) }, // Detecta el clic y ejecuta la acción
+            .clickable { onClick(patient) },
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
@@ -273,8 +269,8 @@ fun PatientItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-
-                painter = painterResource(id = getPatientImage(patient.id)),
+                // CAMBIO AQUÍ: Pasamos patient.id y patient.sex
+                painter = painterResource(id = getPatientImage(patient.id, patient.sex)),
                 contentDescription = "Pacient",
                 modifier = Modifier
                     .size(65.dp)
@@ -286,8 +282,9 @@ fun PatientItem(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = patient.name ?: "",
-                    fontSize = 16.sp
+                    text = "${patient.name ?: ""} ${patient.lastName ?: ""}",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
                 )
             }
         }

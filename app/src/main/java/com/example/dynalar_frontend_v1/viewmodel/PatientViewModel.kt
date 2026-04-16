@@ -21,47 +21,62 @@ class PatientViewModel: ViewModel() {
     private val pageSize = 10
     private var loadedPatients = 0
 
+    // Paciente actualmente seleccionado para ver o editar
     var selectedPatient by mutableStateOf<Patient?>(null)
         private set
 
-    // Obtener Pacientes
+    // 1. Obtener todos los pacientes (usando la lógica de logs de tu repositorio)
     fun getPatients() {
         viewModelScope.launch {
             uiStatePatient = InterfaceGlobal.Loading
             try {
-                //Descargamos los pacientes
-                val rawPatients = patientRepository.getAllPatients()
-
-                //Ordenamos toda la lista ignorando mayúsculas/minúsculas
-                allPatients = rawPatients.sortedBy {
-                    it.name?.lowercase() ?: ""
-                }
-
+                // getAllPatients ya maneja la extracción del cuerpo y errores
+                allPatients = patientRepository.getAllPatients()
                 filteredPatients = allPatients
                 loadedPatients = 0
                 loadMorePatients()
             } catch (e: Exception) {
-                val errorCompleto = e.toString()
-                uiStatePatient = InterfaceGlobal.Error("CHIVATO: $errorCompleto")
+                uiStatePatient = InterfaceGlobal.Error("Error al cargar pacientes: ${e.message}")
             }
         }
     }
 
+    // 2. Cargar paciente por ID (para refrescar datos antes de editar)
     fun getPatientById(id: Long) {
         viewModelScope.launch {
-
-            val patient = allPatients.find { it.id == id }
-            if (patient != null) {
-                selectedPatient = patient
-            } else {
-
-                try {
-
-                    allPatients = patientRepository.getAllPatients()
-                    selectedPatient = allPatients.find { it.id == id }
-                } catch (e: Exception) {
-                    Log.e("PatientViewModel", "Error cargando paciente individual: ${e.message}")
+            try {
+                val response = patientRepository.getIdPatient(id)
+                if (response.isSuccessful) {
+                    selectedPatient = response.body()
+                } else {
+                    Log.e("PatientViewModel", "Error al obtener paciente: ${response.code()}")
                 }
+            } catch (e: Exception) {
+                Log.e("PatientViewModel", "Excepción al obtener paciente: ${e.message}")
+            }
+        }
+    }
+
+    // 3. ACTUALIZAR PACIENTE (Lógica central de la Issue #59)
+    fun updatePatient(patient: Patient) {
+        viewModelScope.launch {
+            try {
+                val response = patientRepository.updatePatient(patient)
+
+                if (response.isSuccessful) {
+                    val updatedPatient = response.body()
+                    // Actualizamos el paciente seleccionado en memoria para refrescar el Perfil
+                    selectedPatient = updatedPatient
+                    // Refrescamos la lista general
+                    getPatients()
+                    Log.d("PatientViewModel", "Paciente actualizado correctamente")
+                } else {
+                    Log.e("PatientViewModel", "Error API al actualizar: ${response.code()}")
+                    uiStatePatient = InterfaceGlobal.Error("No se pudo actualizar el paciente")
+                }
+            } catch (e: Exception) {
+                Log.e("PatientViewModel", "Excepción al actualizar: ${e.message}")
+                uiStatePatient = InterfaceGlobal.Error("Error de red al actualizar")
             }
         }
     }
@@ -77,22 +92,12 @@ class PatientViewModel: ViewModel() {
     fun deletePatient(id: Long) {
         viewModelScope.launch {
             try {
-                patientRepository.deletePatient(id)
-                getPatients()
+                val response = patientRepository.deletePatient(id)
+                if (response.isSuccessful) {
+                    getPatients()
+                }
             } catch (e: Exception) {
-                Log.e("PatientViewModel", "ERROR en deletePatient: ${e.message}")
-                uiStatePatient = InterfaceGlobal.Error(e.message)
-            }
-        }
-    }
-
-    fun updatePatient(patient: Patient) {
-        viewModelScope.launch {
-            try {
-                patientRepository.updatePatient(patient)
-                getPatients()
-            } catch (e: Exception) {
-                uiStatePatient = InterfaceGlobal.Error(e.message)
+                Log.e("PatientViewModel", "Error eliminando: ${e.message}")
             }
         }
     }
@@ -100,8 +105,10 @@ class PatientViewModel: ViewModel() {
     fun createPatient(patient: Patient) {
         viewModelScope.launch {
             try {
-                patientRepository.createPatient(patient)
-                getPatients()
+                val response = patientRepository.createPatient(patient)
+                if (response.isSuccessful) {
+                    getPatients()
+                }
             } catch (e: Exception) {
                 uiStatePatient = InterfaceGlobal.Error(e.message)
             }

@@ -19,6 +19,7 @@ import androidx.navigation.navArgument
 import com.example.dynalar_frontend_v1.ui.AppRoutes
 import com.example.dynalar_frontend_v1.ui.screens.CalendarPage
 import com.example.dynalar_frontend_v1.ui.screens.CreateProfilePage
+import com.example.dynalar_frontend_v1.ui.screens.EditPatientPage
 import com.example.dynalar_frontend_v1.ui.screens.HomePage
 import com.example.dynalar_frontend_v1.ui.screens.ListPatientsScreen
 import com.example.dynalar_frontend_v1.ui.screens.LoginPage
@@ -43,6 +44,8 @@ class MainActivity : ComponentActivity() {
             Dynalar_frontend_v1Theme {
 
                 val navController = rememberNavController()
+
+                // Inicialización de todos los ViewModels necesarios
                 val patientViewModel: PatientViewModel = viewModel()
                 val appointmentViewModel: AppointmentViewModel = viewModel()
                 val odontogramViewModel: OdontogramViewModel = viewModel()
@@ -53,6 +56,7 @@ class MainActivity : ComponentActivity() {
                     startDestination = AppRoutes.Home.route
                 ) {
 
+                    // PANTALLA DE LOGIN
                     composable(AppRoutes.Login.route) {
                         LoginPage(
                             viewModel = userViewModel,
@@ -62,6 +66,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
+                    // PANTALLA PRINCIPAL (HOME)
                     composable(AppRoutes.Home.route) {
                         HomePage(
                             onNavigateListPacient = {
@@ -76,6 +81,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
+                    // LISTADO DE PACIENTES
                     composable(AppRoutes.ListPatients.route) {
                         ListPatientsScreen(
                             viewModel = patientViewModel,
@@ -87,6 +93,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
+                    // PERFIL DEL PACIENTE
                     composable(
                         route = AppRoutes.PatientProfile.route,
                         arguments = listOf(navArgument("patientId") { type = NavType.LongType })
@@ -105,10 +112,14 @@ class MainActivity : ComponentActivity() {
                                 patient = patient,
                                 onBackClick = { navController.popBackStack() },
                                 onOdontogramClick = {
-                                        val odontogramId = patient.odontogram?.id
+                                    val odontogramId = patient.odontogram?.id
                                     if (odontogramId != null) {
                                         navController.navigate(AppRoutes.OdontogramPage.createRoute(odontogramId))
                                     }
+                                },
+                                // Callback para navegar a la edición del paciente
+                                onEditClick = { id ->
+                                    navController.navigate(AppRoutes.EditPatient.createRoute(id))
                                 }
                             )
                         } else {
@@ -118,7 +129,34 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
+                    // NUEVA RUTA: EDICIÓN DE PACIENTE
+                    composable(
+                        route = AppRoutes.EditPatient.route,
+                        arguments = listOf(navArgument("patientId") { type = NavType.LongType })
+                    ) { backStackEntry ->
+                        val patientId = backStackEntry.arguments?.getLong("patientId") ?: -1L
 
+                        LaunchedEffect(patientId) {
+                            if (patientViewModel.selectedPatient?.id != patientId) {
+                                patientViewModel.getPatientById(patientId)
+                            }
+                        }
+
+                        val patient = patientViewModel.selectedPatient
+                        if (patient != null) {
+                            EditPatientPage(
+                                patient = patient,
+                                patientViewModel = patientViewModel,
+                                onNavigateBack = { navController.popBackStack() }
+                            )
+                        } else {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                    }
+
+                    // PANTALLA DEL ODONTOGRAMA
                     composable(
                         route = AppRoutes.OdontogramPage.route,
                         arguments = listOf(
@@ -137,6 +175,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
+                    // PANTALLA DE DIENTE INDIVIDUAL
                     composable(
                         route = AppRoutes.ToothPage.route,
                         arguments = listOf(
@@ -155,7 +194,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-
+                    // PERFIL DE USUARIO (DENTISTA)
                     composable(AppRoutes.UserProfile.route) {
                         UserProfilePage(
                             viewModel = userViewModel,
@@ -163,6 +202,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
+                    // CREAR NUEVO PACIENTE
                     composable(AppRoutes.CreateProfile.route) {
                         CreateProfilePage(
                             onNavigateOdontogramaPage = {
@@ -175,6 +215,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
+                    // CALENDARIO DE CITAS
                     composable(AppRoutes.CalendarPage.route) {
                         CalendarPage(
                             viewModel = appointmentViewModel,
@@ -182,11 +223,11 @@ class MainActivity : ComponentActivity() {
                             onAddAppointmentClick = { date, hour, minute ->
                                 navController.navigate(AppRoutes.ScheduleAppointment.createRoute(date.toString(), hour, minute))
                             },
-                            onAppointmentClick = { appointment -> }
+                            onAppointmentClick = { /* No implementado */ }
                         )
                     }
 
-
+                    // AGENDAR CITA
                     composable(
                         route = AppRoutes.ScheduleAppointment.route,
                         arguments = listOf(

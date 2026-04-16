@@ -3,7 +3,6 @@ package com.example.dynalar_frontend_v1.ui.screens
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -37,16 +36,35 @@ fun PatientProfilePage(
     patient: Patient,
     onBackClick: () -> Unit,
     onOdontogramClick: () -> Unit,
+    onEditClick: (Long) -> Unit // Callback para navegar a la edición
 ) {
     Scaffold(
         containerColor = Color(0xFFF5F7FA),
         topBar = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Spacer(modifier = Modifier.height(27.dp))
-                CustomTopBar(
-                    title = "Perfil del Pacient",
-                    onNavigateBack = onBackClick
-                )
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    CustomTopBar(
+                        title = "Perfil del Pacient",
+                        onNavigateBack = onBackClick
+                    )
+
+                    // BOTÓN DE EDITAR (Icono de Lápiz)
+                    IconButton(
+                        onClick = {
+                            patient.id?.let { onEditClick(it) }
+                        },
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd)
+                            .padding(end = 16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Editar Pacient",
+                            tint = Color(0xFF0D47A1)
+                        )
+                    }
+                }
             }
         }
     ) { paddingValues ->
@@ -55,7 +73,7 @@ fun PatientProfilePage(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 30.dp) // Este margen aplica a la lista, no al TopBar
+                .padding(horizontal = 30.dp)
         ) {
             item {
                 Spacer(modifier = Modifier.height(40.dp))
@@ -89,7 +107,7 @@ fun PatientProfilePage(
                         shape = RoundedCornerShape(16.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.White),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                        border = BorderStroke(1.dp, Color(0xFFF0F0F0)) // Borde suave como el de la foto
+                        border = BorderStroke(1.dp, Color(0xFFF0F0F0))
                     ) {
                         Box(
                             modifier = Modifier
@@ -128,62 +146,50 @@ fun PatientProfilePage(
     }
 }
 
-// --- 1. Cabecera Dinámica ---
 @Composable
 fun PatientHeaderSection(patient: Patient) {
-    // --- 1. CARD PRINCIPAL DEL PACIENTE (AHORA BLANCA) ---
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        shape = RoundedCornerShape(24.dp), // Bordes suaves para la card
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White // <--- FONDO BLANCO PURO
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp // Una sombra muy sutil para la card entera
-        )
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp), // Padding interno de la tarjeta
+                .padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
-            // --- 2. CONTENEDOR DE LA FOTO CON SOMBRA Y BORDE BLANCO ---
-            // Usamos Surface para manejar la sombra y el fondo blanco interno
             Surface(
                 modifier = Modifier
-                    .size(90.dp) // Tamaño total del contenedor
-                    // APLICAMOS LA SOMBRA AQUÍ PARA QUE RESALTE EL BORDE
+                    .size(90.dp)
                     .shadow(
-                        elevation = 8.dp, // Sombra pronunciada pero suave
+                        elevation = 8.dp,
                         shape = RoundedCornerShape(20.dp),
                         clip = false,
-                        ambientColor = ButtonPrimary.copy(alpha = 0.2f), // Sombra coloreada sutil
+                        ambientColor = ButtonPrimary.copy(alpha = 0.2f),
                         spotColor = ButtonPrimary.copy(alpha = 0.3f)
                     ),
                 shape = RoundedCornerShape(20.dp),
-                color = Color.White, // <--- FONDO BLANCO INTERNO DEL BORDE
-                // Opcional: un borde exterior muy fino para definirlo más
+                color = Color.White,
                 border = BorderStroke(1.dp, Color(0xFFF0F0F0))
             ) {
-                // La imagen va dentro, con un pequeño padding para crear el efecto de borde blanco
+                // CAMBIO: Ahora pasamos ID y SEXO para la imagen dinámica
                 Image(
-                    painter = painterResource(id = getPatientImage(patient.id)),
+                    painter = painterResource(id = getPatientImage(patient.id, patient.sex)),
                     contentDescription = "Foto del paciente",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(6.dp) // <--- ESTE PADDING CREA EL "BORDE BLANCO" INTERNO
-                        .clip(RoundedCornerShape(16.dp)) // Esquinas de la foto más suaves
+                        .padding(6.dp)
+                        .clip(RoundedCornerShape(16.dp))
                 )
             }
 
             Spacer(modifier = Modifier.width(20.dp))
 
-            // --- 3. INFORMACIÓN DEL PACIENTE ---
             Column(
                 verticalArrangement = Arrangement.spacedBy(6.dp),
                 modifier = Modifier.weight(1f)
@@ -192,10 +198,9 @@ fun PatientHeaderSection(patient: Patient) {
                     text = "${patient.name ?: ""} ${patient.lastName ?: ""}",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextoPrincipal // Tu color casi negro suave
+                    color = TextoPrincipal
                 )
 
-                // Etiqueta de DNI estilizada
                 Surface(
                     color = ButtonPrimary.copy(alpha = 0.08f),
                     shape = RoundedCornerShape(8.dp)
@@ -220,7 +225,6 @@ fun PatientHeaderSection(patient: Patient) {
     }
 }
 
-// --- 2. Grid de Acciones ---
 @Composable
 fun ActionGridSection(patient: Patient, onOdontogramClick: () -> Unit) {
     Column {
