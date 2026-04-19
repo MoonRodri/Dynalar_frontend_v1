@@ -46,6 +46,7 @@ fun HomePage(
     onNavigateProfileUserProfile: () -> Unit,
     onNavigateListPacient: () -> Unit,
     onNavigateBoxCalendar: () -> Unit,
+    onNavigateToAppointmentDetail: (Appointment) -> Unit
 ) {
     //Pop up
     var selectedDateForDialog by remember { mutableStateOf<LocalDate?>(null) }
@@ -88,6 +89,10 @@ fun HomePage(
             onDismiss = {
                 selectedDateForDialog = null
                 appointmentsForDialog = emptyList()
+            },
+            // PASAMOS LA FUNCIÓN DE NAVEGACIÓN AQUÍ:
+            onAppointmentClick = { appointment ->
+                onNavigateToAppointmentDetail(appointment)
             }
         )
     }

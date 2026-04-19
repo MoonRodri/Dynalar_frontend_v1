@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dynalar_frontend_v1.model.patient.Patient
 import com.example.dynalar_frontend_v1.ui.components.CustomTopBar
+import com.example.dynalar_frontend_v1.ui.components.PatientHeaderSection
 import com.example.dynalar_frontend_v1.ui.components.getPatientImage
 import com.example.dynalar_frontend_v1.ui.theme.ButtonPrimary
 import com.example.dynalar_frontend_v1.ui.theme.TextoPrincipal
@@ -146,84 +147,7 @@ fun PatientProfilePage(
     }
 }
 
-@Composable
-fun PatientHeaderSection(patient: Patient) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Surface(
-                modifier = Modifier
-                    .size(90.dp)
-                    .shadow(
-                        elevation = 8.dp,
-                        shape = RoundedCornerShape(20.dp),
-                        clip = false,
-                        ambientColor = ButtonPrimary.copy(alpha = 0.2f),
-                        spotColor = ButtonPrimary.copy(alpha = 0.3f)
-                    ),
-                shape = RoundedCornerShape(20.dp),
-                color = Color.White,
-                border = BorderStroke(1.dp, Color(0xFFF0F0F0))
-            ) {
-                // CAMBIO: Ahora pasamos ID y SEXO para la imagen dinámica
-                Image(
-                    painter = painterResource(id = getPatientImage(patient.id, patient.sex)),
-                    contentDescription = "Foto del paciente",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(6.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                )
-            }
 
-            Spacer(modifier = Modifier.width(20.dp))
-
-            Column(
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = "${patient.name ?: ""} ${patient.lastName ?: ""}",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextoPrincipal
-                )
-
-                Surface(
-                    color = ButtonPrimary.copy(alpha = 0.08f),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        text = "DNI: ${patient.dni ?: "No registrat"}",
-                        fontSize = 13.sp,
-                        color = ButtonPrimary,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-
-                Text(
-                    text = "Telf: ${patient.phone ?: "Sense telèfon"}",
-                    fontSize = 14.sp,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(start = 2.dp)
-                )
-            }
-        }
-    }
-}
 
 @Composable
 fun ActionGridSection(patient: Patient, onOdontogramClick: () -> Unit) {
