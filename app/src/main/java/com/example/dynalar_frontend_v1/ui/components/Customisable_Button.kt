@@ -31,6 +31,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
@@ -54,6 +55,7 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.TextUnit
@@ -128,20 +130,33 @@ fun AddButton(
 fun CustomisableCircle(
     size: Dp = 24.dp,
     color: Color = ButtonPrimary,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    iconTint: Color = Color(0xFF373737),
+    icon: ImageVector? = null,
 ) {
     Box(
         modifier = modifier
             .size(size)
             .clip(CircleShape)
-            .background(color)
-    )
+            .background(color),
+        contentAlignment = Alignment.Center
+    ) {
+        if (icon != null) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(size * 0.6f),
+                tint = iconTint
+
+            )
+        }
+    }
 }
 
 //Botones que te permiten navegar(los del homePage)
 @Composable
 fun CustomisableRectangleButton(
-
+    icon: ImageVector? = null,
     title: String,
     subtitle: String,
     width: Dp = 350.dp,
@@ -172,6 +187,7 @@ fun CustomisableRectangleButton(
             CustomisableCircle(
                 size = 50.dp,
                 color = circleColor,
+                icon = icon,
                 modifier = Modifier
                     .offset(x = 5.dp)
             )
