@@ -74,7 +74,8 @@ fun PatientHeaderSection(
                 border = BorderStroke(1.dp, Color(0xFFF0F0F0))
             ) {
                 Image(
-                    painter = painterResource(id = getPatientImage(patient.id ?: 0)),
+                    // Pasamos patient.sex directamente porque getPatientImage espera el tipo Sex?
+                    painter = painterResource(id = getPatientImage(patient.id ?: 0, patient.sex)),
                     contentDescription = "Foto del pacient",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -169,7 +170,8 @@ fun PatientHeaderSectionApp(
                 border = BorderStroke(1.dp, Color(0xFFF0F0F0))
             ) {
                 Image(
-                    painter = painterResource(id = getPatientImage(patient.id ?: 0)),
+                    // Pasamos patient.sex directamente
+                    painter = painterResource(id = getPatientImage(patient.id ?: 0, patient.sex)),
                     contentDescription = "Foto del pacient",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier

@@ -19,6 +19,7 @@ import androidx.navigation.navArgument
 import com.example.dynalar_frontend_v1.ui.AppRoutes
 import com.example.dynalar_frontend_v1.ui.screens.CalendarPage
 import com.example.dynalar_frontend_v1.ui.screens.CreateProfilePage
+import com.example.dynalar_frontend_v1.ui.screens.DateInformationPage
 import com.example.dynalar_frontend_v1.ui.screens.EditPatientPage
 import com.example.dynalar_frontend_v1.ui.screens.HomePage
 import com.example.dynalar_frontend_v1.ui.screens.ListPatientsScreen
@@ -46,7 +47,7 @@ class MainActivity : ComponentActivity() {
 
                 val navController = rememberNavController()
 
-                
+
                 val patientViewModel: PatientViewModel = viewModel()
                 val appointmentViewModel: AppointmentViewModel = viewModel()
                 val odontogramViewModel: OdontogramViewModel = viewModel()
@@ -90,7 +91,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                  
+
                     composable(AppRoutes.ListPatients.route) {
                         ListPatientsScreen(
                             viewModel = patientViewModel,
@@ -102,7 +103,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    
+
                     composable(
                         route = AppRoutes.PatientProfile.route,
                         arguments = listOf(navArgument("patientId") { type = NavType.LongType })
@@ -119,6 +120,7 @@ class MainActivity : ComponentActivity() {
                         if (patient != null) {
                             PatientProfilePage(
                                 patient = patient,
+                                appointmentViewModel = appointmentViewModel,
                                 onBackClick = { navController.popBackStack() },
                                 onOdontogramClick = {
                                     val odontogramId = patient.odontogram?.id
@@ -126,10 +128,20 @@ class MainActivity : ComponentActivity() {
                                         navController.navigate(AppRoutes.OdontogramPage.createRoute(odontogramId))
                                     }
                                 },
-                                
                                 onEditClick = { id ->
                                     navController.navigate(AppRoutes.EditPatient.createRoute(id))
+                                },
+                                onAppointmentClick = { appointment ->
+                                    appointmentViewModel.selectedAppointment = appointment
+                                    navController.navigate(AppRoutes.ResumeDate.route)
+                                },
+                                onCalendarClick = {
+                                    navController.navigate(AppRoutes.CalendarPage.route)
+                                },
+                                onDateInformationClick = {
+                                    navController.navigate(AppRoutes.DateInformationPage.createRoute(patient.id ?: 0L))
                                 }
+
                             )
                         } else {
                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -138,7 +150,6 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                   
                     composable(
                         route = AppRoutes.EditPatient.route,
                         arguments = listOf(navArgument("patientId") { type = NavType.LongType })
@@ -203,7 +214,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    // PERFIL DE USUARIO 
+                    // PERFIL DE USUARIO
                     composable(AppRoutes.UserProfile.route) {
                         UserProfilePage(
                             viewModel = userViewModel,
@@ -234,8 +245,8 @@ class MainActivity : ComponentActivity() {
                             },
 
                             onAppointmentClick = { appointment ->
-                                appointmentViewModel.selectedAppointment = appointment 
-                                navController.navigate(AppRoutes.ResumeDate.route)  
+                                appointmentViewModel.selectedAppointment = appointment
+                                navController.navigate(AppRoutes.ResumeDate.route)
                             }
                         )
                     }
@@ -261,9 +272,9 @@ class MainActivity : ComponentActivity() {
                             onBackClick = { navController.popBackStack() }
                         )
                     }
-                  
+
                     composable(AppRoutes.ResumeDate.route) {
-                        
+
                         val appointment = appointmentViewModel.selectedAppointment
 
                         if (appointment != null) {
@@ -271,15 +282,27 @@ class MainActivity : ComponentActivity() {
                                 appointment = appointment,
                                 onBackClick = { navController.popBackStack() },
                                 onPatientClick = { patientId ->
-                                   
+
                                     navController.navigate(AppRoutes.PatientProfile.createRoute(patientId))
                                 }
                             )
                         } else {
-                          
+
                             LaunchedEffect(Unit) {
                                 navController.popBackStack()
                             }
+                        }
+                    }
+                    composable(
+                        route = AppRoutes.DateInformationPage.route,
+                        arguments = listOf(navArgument("patientId") { type = NavType.LongType })
+                    ) {
+                        val patient = patientViewModel.selectedPatient
+                        if (patient != null) {
+                            DateInformationPage(
+                                patient = patient,
+                                onBackClick = { navController.popBackStack() }
+                            )
                         }
                     }
 

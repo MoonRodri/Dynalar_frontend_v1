@@ -228,7 +228,7 @@ fun InformationPersonal(
     dni: String, onDniChange: (String) -> Unit,
     countryCode: String, onCountryCodeChange: (String) -> Unit,
     phone: String, onPhoneChange: (String) -> Unit,
-    sex: Sex, onSexChange: (Sex) -> Unit // Nuevo parámetro para el sexo
+    sex: Sex, onSexChange: (Sex) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(20.dp), modifier = Modifier.fillMaxWidth()) {
         InputFieldEditable(label = "Nom", value = name, onValueChange = onNameChange, placeholder = "Nom")
@@ -247,12 +247,12 @@ fun InformationPersonal(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Sex.values().forEach { option ->
+                listOf(Sex.MALE, Sex.FEMALE).forEach { option ->
                     TabButton(
                         text = when(option) {
                             Sex.MALE -> "Home"
                             Sex.FEMALE -> "Dona"
-                            Sex.OTHER -> "Altre"
+                            else -> ""
                         },
                         isSelected = sex == option,
                         onClick = { onSexChange(option) },
