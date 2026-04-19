@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dynalar_frontend_v1.model.patient.Patient
 import com.example.dynalar_frontend_v1.ui.components.CustomTopBar
+import com.example.dynalar_frontend_v1.ui.components.PatientHeaderSection
 import com.example.dynalar_frontend_v1.ui.components.getPatientImage
 import com.example.dynalar_frontend_v1.ui.theme.ButtonPrimary
 import com.example.dynalar_frontend_v1.ui.theme.TextoPrincipal
@@ -128,97 +129,7 @@ fun PatientProfilePage(
     }
 }
 
-// --- 1. Cabecera Dinámica ---
-@Composable
-fun PatientHeaderSection(patient: Patient) {
-    // --- 1. CARD PRINCIPAL DEL PACIENTE (AHORA BLANCA) ---
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        shape = RoundedCornerShape(24.dp), // Bordes suaves para la card
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White // <--- FONDO BLANCO PURO
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp // Una sombra muy sutil para la card entera
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp), // Padding interno de la tarjeta
-            verticalAlignment = Alignment.CenterVertically
-        ) {
 
-            // --- 2. CONTENEDOR DE LA FOTO CON SOMBRA Y BORDE BLANCO ---
-            // Usamos Surface para manejar la sombra y el fondo blanco interno
-            Surface(
-                modifier = Modifier
-                    .size(90.dp) // Tamaño total del contenedor
-                    // APLICAMOS LA SOMBRA AQUÍ PARA QUE RESALTE EL BORDE
-                    .shadow(
-                        elevation = 8.dp, // Sombra pronunciada pero suave
-                        shape = RoundedCornerShape(20.dp),
-                        clip = false,
-                        ambientColor = ButtonPrimary.copy(alpha = 0.2f), // Sombra coloreada sutil
-                        spotColor = ButtonPrimary.copy(alpha = 0.3f)
-                    ),
-                shape = RoundedCornerShape(20.dp),
-                color = Color.White, // <--- FONDO BLANCO INTERNO DEL BORDE
-                // Opcional: un borde exterior muy fino para definirlo más
-                border = BorderStroke(1.dp, Color(0xFFF0F0F0))
-            ) {
-                // La imagen va dentro, con un pequeño padding para crear el efecto de borde blanco
-                Image(
-                    painter = painterResource(id = getPatientImage(patient.id)),
-                    contentDescription = "Foto del paciente",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(6.dp) // <--- ESTE PADDING CREA EL "BORDE BLANCO" INTERNO
-                        .clip(RoundedCornerShape(16.dp)) // Esquinas de la foto más suaves
-                )
-            }
-
-            Spacer(modifier = Modifier.width(20.dp))
-
-            // --- 3. INFORMACIÓN DEL PACIENTE ---
-            Column(
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = "${patient.name ?: ""} ${patient.lastName ?: ""}",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextoPrincipal // Tu color casi negro suave
-                )
-
-                // Etiqueta de DNI estilizada
-                Surface(
-                    color = ButtonPrimary.copy(alpha = 0.08f),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        text = "DNI: ${patient.dni ?: "No registrat"}",
-                        fontSize = 13.sp,
-                        color = ButtonPrimary,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-
-                Text(
-                    text = "Telf: ${patient.phone ?: "Sense telèfon"}",
-                    fontSize = 14.sp,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(start = 2.dp)
-                )
-            }
-        }
-    }
-}
 
 // --- 2. Grid de Acciones ---
 @Composable

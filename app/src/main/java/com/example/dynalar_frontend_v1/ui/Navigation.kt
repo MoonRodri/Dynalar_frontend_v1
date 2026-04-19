@@ -26,4 +26,7 @@ sealed class AppRoutes(val route: String) {
             return "scheduleAppointment/$date/$hour/$minute"
         }
     }
+    object ResumeDate : AppRoutes("resumeDate")
+
+
 }

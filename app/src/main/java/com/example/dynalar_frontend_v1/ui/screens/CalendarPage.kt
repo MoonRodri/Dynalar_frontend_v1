@@ -46,7 +46,8 @@ fun CalendarPage(
     onAddAppointmentClick: (LocalDate, Int, Int) -> Unit = { _, _, _ -> },
     onNavigateBack: () -> Unit = {}
 ) {
-    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
+    // 1. LEEMOS directamente del ViewModel para que la UI reaccione a los cambios
+    val selectedDate = viewModel.selectedCalendarDate
     val sharedScrollState = rememberScrollState()
 
     // Cargar citas al entrar
@@ -68,18 +69,19 @@ fun CalendarPage(
     Scaffold(
         containerColor = Color.White,
         topBar = {
-            // Ponemos la TopBar y la cabecera en un fondo blanco sólido para que nada se vea debajo al hacer scroll
             Column(modifier = Modifier.background(Color.White)) {
                 Spacer(modifier = Modifier.height(25.dp))
                 CustomTopBar(title = "Calendari", onNavigateBack = onNavigateBack)
 
+                // 2. ACTUALIZAMOS usando el ViewModel en lugar de variables locales
                 CalendarHeader(
                     selectedDate = selectedDate,
-                    onPrevDay = { selectedDate = selectedDate.minusDays(1) },
-                    onNextDay = { selectedDate = selectedDate.plusDays(1) },
-                    onTodayClick = { selectedDate = LocalDate.now() }
+                    onPrevDay = { viewModel.updateSelectedDate(selectedDate.minusDays(1)) },
+                    onNextDay = { viewModel.updateSelectedDate(selectedDate.plusDays(1)) },
+                    onTodayClick = { viewModel.updateSelectedDate(LocalDate.now()) }
                 )
-                Divider(color = Color(0xFFEEEEEE))
+                // Usamos HorizontalDivider de M3 o simplemente una caja fina
+                Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0xFFEEEEEE)))
             }
         }
     ) { padding ->
@@ -95,7 +97,6 @@ fun CalendarPage(
                     color = Color(0xFF537895)
                 )
             }
-
 
             Row(
                 modifier = Modifier
@@ -114,7 +115,6 @@ fun CalendarPage(
         }
     }
 }
-
 @Composable
 fun CalendarHeader(
     selectedDate: LocalDate,
@@ -337,7 +337,6 @@ fun appointmentHeightDp(appointment: Appointment): Float {
     return (durationMinutes * SLOT_HEIGHT_DP / 60f).coerceAtLeast(40f)
 }
 
-// ESTA FUNCIÓN ES LA CLAVE PARA QUE NO EXPLOTE CON LA "T" DE SPRING BOOT
 fun extractTimeOnly(dateTimeString: String?): String? {
     if (dateTimeString == null) return null
     return if (dateTimeString.contains("T")) {

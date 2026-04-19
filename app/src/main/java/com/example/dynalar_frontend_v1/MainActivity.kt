@@ -24,6 +24,7 @@ import com.example.dynalar_frontend_v1.ui.screens.ListPatientsScreen
 import com.example.dynalar_frontend_v1.ui.screens.LoginPage
 import com.example.dynalar_frontend_v1.ui.screens.OdontogramPage
 import com.example.dynalar_frontend_v1.ui.screens.PatientProfilePage
+import com.example.dynalar_frontend_v1.ui.screens.ResumeDateScreen
 import com.example.dynalar_frontend_v1.ui.screens.ScheduleAppointmentPage
 import com.example.dynalar_frontend_v1.ui.screens.ToothPage
 import com.example.dynalar_frontend_v1.ui.screens.UserProfilePage
@@ -73,6 +74,14 @@ class MainActivity : ComponentActivity() {
                             onNavigateBoxCalendar = {
                                 navController.navigate(AppRoutes.CalendarPage.route)
                             },
+                            // --- AÑADE ESTO ---
+                            onNavigateToAppointmentDetail = { appointment ->
+                                // 1. Guardamos la cita seleccionada en el ViewModel para que ResumeDate la encuentre
+                                appointmentViewModel.selectedAppointment = appointment
+
+                                // 2. Navegamos a la ruta de la pantalla de resumen
+                                navController.navigate(AppRoutes.ResumeDate.route)
+                            }
                         )
                     }
 
@@ -175,6 +184,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
+
                     composable(AppRoutes.CalendarPage.route) {
                         CalendarPage(
                             viewModel = appointmentViewModel,
@@ -182,10 +192,13 @@ class MainActivity : ComponentActivity() {
                             onAddAppointmentClick = { date, hour, minute ->
                                 navController.navigate(AppRoutes.ScheduleAppointment.createRoute(date.toString(), hour, minute))
                             },
-                            onAppointmentClick = { appointment -> }
+
+                            onAppointmentClick = { appointment ->
+                                appointmentViewModel.selectedAppointment = appointment // Guardamos
+                                navController.navigate(AppRoutes.ResumeDate.route)   // Viajamos
+                            }
                         )
                     }
-
 
                     composable(
                         route = AppRoutes.ScheduleAppointment.route,
@@ -208,6 +221,28 @@ class MainActivity : ComponentActivity() {
                             onBackClick = { navController.popBackStack() }
                         )
                     }
+                    // AFEGEIX AQUEST NOU BLOC PER A LA PANTALLA DE RESUM
+                    composable(AppRoutes.ResumeDate.route) {
+                        // Recuperem la cita que hem guardat prèviament
+                        val appointment = appointmentViewModel.selectedAppointment
+
+                        if (appointment != null) {
+                            ResumeDateScreen(
+                                appointment = appointment,
+                                onBackClick = { navController.popBackStack() },
+                                onPatientClick = { patientId ->
+                                    // Aprofitem la teva ruta existent per anar al perfil!
+                                    navController.navigate(AppRoutes.PatientProfile.createRoute(patientId))
+                                }
+                            )
+                        } else {
+                            // Seguretat: si per algun motiu la cita és nul·la, tornem enrere automàticament
+                            LaunchedEffect(Unit) {
+                                navController.popBackStack()
+                            }
+                        }
+                    }
+
                 }
             }
         }
