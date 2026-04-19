@@ -7,6 +7,7 @@ data class Patient(
     val id: Long? = null,
     val name: String? = null,
     val lastName: String? = null,
+    val sex: Sex? = null,
     val email: String? = null,
     val dni: String? = null,
     val socialSecurityNumber: String? = null,

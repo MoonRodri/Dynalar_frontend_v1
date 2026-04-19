@@ -1,32 +1,61 @@
 package com.example.dynalar_frontend_v1.ui.components
 
 import com.example.dynalar_frontend_v1.R
+import com.example.dynalar_frontend_v1.model.patient.Sex
 
+// Lista completa de imágenes disponibles
 val patientImages = listOf(
-    R.drawable.usuario1,
-    R.drawable.usuario2,
-    R.drawable.usuario3,
-    R.drawable.usuario4,
-    R.drawable.usuario5,
-    R.drawable.usuario6,
-    R.drawable.usuario7,
-    R.drawable.usuario8,
-    R.drawable.usuario9,
-    R.drawable.usuario10,
-    R.drawable.usuario11,
-    R.drawable.usuario12,
+    R.drawable.usuario1,  // Índice 0
+    R.drawable.usuario2,  // Índice 1
+    R.drawable.usuario3,  // Índice 2
+    R.drawable.usuario4,  // Índice 3
+    R.drawable.usuario5,  // Índice 4
+    R.drawable.usuario6,  // Índice 5
+    R.drawable.usuario7,  // Índice 6
+    R.drawable.usuario8,  // Índice 7
+    R.drawable.usuario9,  // Índice 8
+    R.drawable.usuario10, // Índice 9
+    R.drawable.usuario11, // Índice 10
+    R.drawable.usuario12  // Índice 11
 )
 
+/**
+ * Devuelve una imagen basada en el sexo y el ID del paciente.
+ * Mujer: 1, 4, 5, 6, 7, 8, 11
+ * Hombre: 2, 3, 9, 10, 12
+ * Other: Cualquiera (1-12)
+ */
+fun getPatientImage(patientId: Long?, sex: Sex?): Int {
+    val id = patientId ?: 0L
 
-fun getPatientImage(patientId: Long?): Int {
-    if (patientId == null) return R.drawable.usuario1
-    val index = (patientId % patientImages.size).toInt()
-    return patientImages[index]
+    return when (sex) {
+        Sex.FEMALE -> {
+            // Mapeo a recursos: usuario1, 4, 5, 6, 7, 8, 11
+            val femaleOptions = listOf(
+                R.drawable.usuario1, R.drawable.usuario4, R.drawable.usuario5,
+                R.drawable.usuario6, R.drawable.usuario7, R.drawable.usuario8,
+                R.drawable.usuario11
+            )
+            femaleOptions[(id % femaleOptions.size).toInt()]
+        }
+        Sex.MALE -> {
+            // Mapeo a recursos: usuario2, 3, 9, 10, 12
+            val maleOptions = listOf(
+                R.drawable.usuario2, R.drawable.usuario3, R.drawable.usuario9,
+                R.drawable.usuario10, R.drawable.usuario12
+            )
+            maleOptions[(id % maleOptions.size).toInt()]
+        }
+        else -> {
+            // Sex.OTHER o null: Cualquiera de las 12 imágenes
+            patientImages[(id % patientImages.size).toInt()]
+        }
+    }
 }
 
+// Lista completa de códigos de país
 val allCountryCodes = listOf(
-    "+34", // España (Por defecto y primero en la lista)
-    "+1", "+7", "+20", "+27", "+30", "+31", "+32", "+33", "+36", "+39",
+    "+34", "+1", "+7", "+20", "+27", "+30", "+31", "+32", "+33", "+36", "+39",
     "+40", "+41", "+43", "+44", "+45", "+46", "+47", "+48", "+49", "+51",
     "+52", "+53", "+54", "+55", "+56", "+57", "+58", "+60", "+61", "+62",
     "+63", "+64", "+65", "+66", "+81", "+82", "+84", "+86", "+90", "+91",

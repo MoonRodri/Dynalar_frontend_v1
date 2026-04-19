@@ -3,7 +3,6 @@ package com.example.dynalar_frontend_v1.ui.screens
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -38,16 +37,35 @@ fun PatientProfilePage(
     patient: Patient,
     onBackClick: () -> Unit,
     onOdontogramClick: () -> Unit,
+    onEditClick: (Long) -> Unit // Callback para navegar a la edición
 ) {
     Scaffold(
         containerColor = Color(0xFFF5F7FA),
         topBar = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Spacer(modifier = Modifier.height(27.dp))
-                CustomTopBar(
-                    title = "Perfil del Pacient",
-                    onNavigateBack = onBackClick
-                )
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    CustomTopBar(
+                        title = "Perfil del Pacient",
+                        onNavigateBack = onBackClick
+                    )
+
+                    // BOTÓN DE EDITAR (Icono de Lápiz)
+                    IconButton(
+                        onClick = {
+                            patient.id?.let { onEditClick(it) }
+                        },
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd)
+                            .padding(end = 16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Editar Pacient",
+                            tint = Color(0xFF0D47A1)
+                        )
+                    }
+                }
             }
         }
     ) { paddingValues ->
@@ -56,7 +74,7 @@ fun PatientProfilePage(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 30.dp) // Este margen aplica a la lista, no al TopBar
+                .padding(horizontal = 30.dp)
         ) {
             item {
                 Spacer(modifier = Modifier.height(40.dp))
@@ -90,7 +108,7 @@ fun PatientProfilePage(
                         shape = RoundedCornerShape(16.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.White),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                        border = BorderStroke(1.dp, Color(0xFFF0F0F0)) // Borde suave como el de la foto
+                        border = BorderStroke(1.dp, Color(0xFFF0F0F0))
                     ) {
                         Box(
                             modifier = Modifier
@@ -131,7 +149,6 @@ fun PatientProfilePage(
 
 
 
-// --- 2. Grid de Acciones ---
 @Composable
 fun ActionGridSection(patient: Patient, onOdontogramClick: () -> Unit) {
     Column {

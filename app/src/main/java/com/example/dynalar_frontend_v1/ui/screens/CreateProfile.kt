@@ -25,13 +25,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dynalar_frontend_v1.model.patient.MedicalRecord
 import com.example.dynalar_frontend_v1.model.patient.Patient
+import com.example.dynalar_frontend_v1.model.patient.Sex
 import com.example.dynalar_frontend_v1.ui.components.Navegate_Button
 import com.example.dynalar_frontend_v1.ui.components.CustomTopBar
 import com.example.dynalar_frontend_v1.ui.components.InputFieldEditable
 import com.example.dynalar_frontend_v1.ui.components.PhoneInputField
 import com.example.dynalar_frontend_v1.viewmodel.PatientViewModel
-
-
 
 @Composable
 fun CreateProfilePage(
@@ -59,6 +58,7 @@ fun CreateProfileForm(
     var lastName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var dni by remember { mutableStateOf("") }
+    var sex by remember { mutableStateOf(Sex.MALE) } // Estado para el sexo
 
     // Teléfono
     var countryCode by remember { mutableStateOf("+34") }
@@ -87,7 +87,6 @@ fun CreateProfileForm(
                     Navegate_Button(
                         text = "Guarda i Continua",
                         onClick = {
-                            // 1. Validaciones que ya tenías...
                             if (name.isBlank() || lastName.isBlank() || email.isBlank() || dni.isBlank() || phone.isBlank()) {
                                 Toast.makeText(context, "Per favor, emplena tots els camps", Toast.LENGTH_SHORT).show()
                                 return@Navegate_Button
@@ -99,30 +98,26 @@ fun CreateProfileForm(
                                 return@Navegate_Button
                             }
 
-                            // 2. CREAR EL OBJETO PACIENTE CON TUS VARIABLES
-                            // Aquí "empaquetamos" toda la información de los campos
+                            // Crear el objeto paciente incluyendo el Sexo
                             val newPatient = Patient(
                                 name = name,
                                 lastName = lastName,
                                 email = email,
                                 dni = dni,
+                                sex = sex, // Se guarda el sexo seleccionado
                                 phone = "$countryCode $phone",
                                 medicalRecord = MedicalRecord(
-                                    familyHistory = familyHistory,   // Este coincide
-                                    allergies = allergies,           // Este coincide
-
-                                    // MAPEADO DE TUS VARIABLES A TU MODELO:
-                                    medication = medicalNotes,       // Guardamos tus notas médicas en 'medication'
-                                    deceases = dentalConditions,     // Guardamos las condiciones dentales en 'deceases'
-                                    infectiousDeceases = ""          // Lo dejamos vacío de momento o añade otro campo si quieres
+                                    familyHistory = familyHistory,
+                                    allergies = allergies,
+                                    medication = medicalNotes,
+                                    deceases = dentalConditions
                                 )
                             )
-
 
                             patientViewModel.createPatient(newPatient)
 
                             Toast.makeText(context, "Pacient creat correctament", Toast.LENGTH_SHORT).show()
-                            onNavigateBack() //Aqui se pondra el odontograma
+                            onNavigateBack()
                         },
                     )
                 }
@@ -145,14 +140,14 @@ fun CreateProfileForm(
 
             Box(modifier = Modifier.padding(horizontal = 30.dp)) {
                 if (selectedTab == 0) {
-                    // LLamada actualizada con los nuevos parámetros
                     InformationPersonal(
                         name = name, onNameChange = { name = it },
                         lastName = lastName, onLastNameChange = { lastName = it },
                         email = email, onEmailChange = { email = it },
                         dni = dni, onDniChange = { dni = it },
                         countryCode = countryCode, onCountryCodeChange = { countryCode = it },
-                        phone = phone, onPhoneChange = { phone = it }
+                        phone = phone, onPhoneChange = { phone = it },
+                        sex = sex, onSexChange = { sex = it } // Pasar estado de sexo
                     )
                 } else {
                     InformationMedical(
@@ -175,7 +170,7 @@ fun Header_ButtonNavigator(
     onTabSelected: (Int) -> Unit,
     onNavigateBack: () -> Unit,
 ) {
-    Column{
+    Column {
         CustomTopBar(
             title = "Nou Pacient",
             titleFontSize = 20.sp,
@@ -232,21 +227,48 @@ fun InformationPersonal(
     email: String, onEmailChange: (String) -> Unit,
     dni: String, onDniChange: (String) -> Unit,
     countryCode: String, onCountryCodeChange: (String) -> Unit,
-    phone: String, onPhoneChange: (String) -> Unit
+    phone: String, onPhoneChange: (String) -> Unit,
+    sex: Sex, onSexChange: (Sex) -> Unit // Nuevo parámetro para el sexo
 ) {
-    Column (verticalArrangement = Arrangement.spacedBy(20.dp), modifier = Modifier.fillMaxWidth()){
+    Column(verticalArrangement = Arrangement.spacedBy(20.dp), modifier = Modifier.fillMaxWidth()) {
         InputFieldEditable(label = "Nom", value = name, onValueChange = onNameChange, placeholder = "Nom")
         InputFieldEditable(label = "Cognoms", value = lastName, onValueChange = onLastNameChange, placeholder = "Cognoms")
+
+        // --- SELECTOR DE SEXO ---
+        Column {
+            Text(
+                text = "Sexe",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Gray,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Sex.values().forEach { option ->
+                    TabButton(
+                        text = when(option) {
+                            Sex.MALE -> "Home"
+                            Sex.FEMALE -> "Dona"
+                            Sex.OTHER -> "Altre"
+                        },
+                        isSelected = sex == option,
+                        onClick = { onSexChange(option) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
+
         InputFieldEditable(label = "Email", value = email, onValueChange = onEmailChange, placeholder = "correu@exemple.com")
 
-        // --- FILTRO EN TIEMPO REAL PARA EL DNI ---
         InputFieldEditable(
             label = "DNI",
             value = dni,
             onValueChange = { newValue ->
-                // Forzamos mayúscula y máximo 9 caracteres
                 var filtered = newValue.uppercase().take(9)
-                // Permitimos solo números en los 8 primeros y solo letras en el último
                 filtered = filtered.filterIndexed { index, char ->
                     if (index < 8) char.isDigit() else char.isLetter()
                 }
@@ -255,14 +277,12 @@ fun InformationPersonal(
             placeholder = "12345678X"
         )
 
-        // --- COMPONENTE DE TELÉFONO REUTILIZABLE ---
         PhoneInputField(
             label = "Telèfon",
             countryCode = countryCode,
             onCountryCodeChange = onCountryCodeChange,
             phoneNumber = phone,
             onPhoneNumberChange = { newValue ->
-                // Filtramos para que solo sean números y máximo 9 dígitos
                 val filteredPhone = newValue.filter { it.isDigit() }.take(9)
                 onPhoneChange(filteredPhone)
             }
@@ -307,5 +327,3 @@ fun InformationMedical(
         )
     }
 }
-
-
