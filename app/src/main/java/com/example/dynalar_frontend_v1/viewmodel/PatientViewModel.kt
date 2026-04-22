@@ -1,5 +1,7 @@
 package com.example.dynalar_frontend_v1.viewmodel
 
+import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,16 +26,19 @@ class PatientViewModel: ViewModel() {
     var selectedPatient by mutableStateOf<Patient?>(null)
         private set
 
+    var uploadState by mutableStateOf<InterfaceGlobal<Unit>>(InterfaceGlobal.Idle)
+        private set
+
     // Obtener Pacientes
     fun getPatients() {
         viewModelScope.launch {
             uiStatePatient = InterfaceGlobal.Loading
             try {
                 //Descargamos los pacientes
-                val rawPatients = patientRepository.getAllPatients()
+                val sourcePatients = patientRepository.getAllPatients()
 
                 //Ordenamos toda la lista ignorando mayúsculas/minúsculas
-                allPatients = rawPatients.sortedBy {
+                allPatients = sourcePatients.sortedBy {
                     it.name?.lowercase() ?: ""
                 }
 
@@ -41,27 +46,25 @@ class PatientViewModel: ViewModel() {
                 loadedPatients = 0
                 loadMorePatients()
             } catch (e: Exception) {
-                val errorCompleto = e.toString()
-                uiStatePatient = InterfaceGlobal.Error("CHIVATO: $errorCompleto")
+                Log.e("PatientViewModel", "Error loading patients: ${e.message}")
+                uiStatePatient = InterfaceGlobal.Error(e.message)
             }
         }
     }
 
     fun getPatientById(id: Long) {
         viewModelScope.launch {
-
-            val patient = allPatients.find { it.id == id }
-            if (patient != null) {
-                selectedPatient = patient
-            } else {
-
-                try {
-
-                    allPatients = patientRepository.getAllPatients()
+            try {
+                val response = patientRepository.getIdPatient(id)
+                if (response.isSuccessful) {
+                    selectedPatient = response.body()
+                } else {
+                    Log.e("PatientViewModel", "Error loading patient by id: ${response.code()}")
                     selectedPatient = allPatients.find { it.id == id }
-                } catch (e: Exception) {
-                    Log.e("PatientViewModel", "Error cargando paciente individual: ${e.message}")
                 }
+            } catch (e: Exception) {
+                Log.e("PatientViewModel", "Error loading single patient: ${e.message}")
+                selectedPatient = allPatients.find { it.id == id }
             }
         }
     }
@@ -120,5 +123,47 @@ class PatientViewModel: ViewModel() {
 
     fun selectPatient(patient: Patient) {
         selectedPatient = patient
+    }
+
+    fun uploadPatientFiles(
+        context: Context,
+        patientId: Long,
+        uris: List<Uri>,
+        onSuccess: () -> Unit
+    ) {
+        if (uris.isEmpty()) return
+
+        viewModelScope.launch {
+            uploadState = InterfaceGlobal.Loading
+            try {
+                patientRepository.uploadPatientDocuments(
+                    contentResolver = context.contentResolver,
+                    patientId = patientId,
+                    uris = uris
+                )
+                getPatientById(patientId)
+                uploadState = InterfaceGlobal.Success(Unit)
+                onSuccess()
+            } catch (e: Exception) {
+                uploadState = InterfaceGlobal.Error(e.message)
+            }
+        }
+    }
+
+    fun deletePatientDocument(patientId: Long, documentId: Long) {
+        viewModelScope.launch {
+            try {
+                val response = patientRepository.deletePatientDocument(documentId)
+                if (!response.isSuccessful) {
+                    throw Exception("Error borrando archivo: ${response.code()}")
+                }
+                getPatientById(patientId)
+            } catch (e: Exception) {
+                Log.e("PatientViewModel", "ERROR en deletePatientDocument: ${e.message}")
+                selectedPatient = selectedPatient?.let { current ->
+                    if (current.id == patientId) current else current
+                }
+            }
+        }
     }
 }

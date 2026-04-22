@@ -20,6 +20,14 @@ sealed class AppRoutes(val route: String) {
         fun createRoute(patientId: Long) = "patientProfile/$patientId"
     }
 
+    object PatientFiles : AppRoutes("patientFiles/{patientId}") {
+        fun createRoute(patientId: Long) = "patientFiles/$patientId"
+    }
+
+    object PatientFileUpload : AppRoutes("patientFileUpload/{patientId}") {
+        fun createRoute(patientId: Long) = "patientFileUpload/$patientId"
+    }
+
     object ScheduleAppointment : AppRoutes("scheduleAppointment/{date}/{hour}/{minute}") {
 
         fun createRoute(date: String, hour: Int, minute: Int): String {

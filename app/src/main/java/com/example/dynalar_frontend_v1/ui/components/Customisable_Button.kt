@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -46,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -69,22 +71,28 @@ import com.example.dynalar_frontend_v1.ui.theme.TextoSecundario
 fun Navegate_Button(
     text: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier.fillMaxWidth(),
+    modifier: Modifier = Modifier,
     backgroundColor: Color = Color(0xFF537895),
     contentColor: Color = Color.White,
     isLoading: Boolean = false,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    icon: ImageVector? = null,
+    iconSize: Dp = 20.dp,
+    height: Dp = 56.dp,
+    cornerRadius: Dp = 12.dp,
+    fillMaxWidth: Boolean = true
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier.height(56.dp),
+        modifier = if (fillMaxWidth) modifier.fillMaxWidth() else modifier,
         enabled = enabled, // Importante para bloquearlo durante la carga
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(cornerRadius),
         colors = ButtonDefaults.buttonColors(
             containerColor = backgroundColor,
             contentColor = contentColor,
             disabledContainerColor = backgroundColor.copy(alpha = 0.6f)
-        )
+        ),
+        contentPadding = ButtonDefaults.ContentPadding
     ) {
         if (isLoading) {
             CircularProgressIndicator(
@@ -93,10 +101,17 @@ fun Navegate_Button(
                 strokeWidth = 2.dp
             )
         } else {
+            if (icon != null) {
+                androidx.compose.material3.Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(iconSize)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
             Text(
                 text = text,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold
+                style = MaterialTheme.typography.bodyLarge
             )
         }
     }
@@ -155,10 +170,13 @@ fun CustomisableRectangleButton(
 
     val shape = RoundedCornerShape(cornerRadius)
 
+    // ======= CAMBIO RESPONSIVE: ANCHO FLEXIBLE CON LIMITE MAXIMO =======
     Box(
 
         modifier = Modifier
-            .size(width, height)
+            .fillMaxWidth()
+            .widthIn(max = width)
+            .height(height)
             .shadow(elevation, shape)
             .clip(shape)
             .background(backgroundColor)

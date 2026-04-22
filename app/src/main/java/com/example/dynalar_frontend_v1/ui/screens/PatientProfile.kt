@@ -37,6 +37,8 @@ fun PatientProfilePage(
     patient: Patient,
     onBackClick: () -> Unit,
     onOdontogramClick: () -> Unit,
+    onFilesClick: () -> Unit,
+    filesCount: Int,
 ) {
     Scaffold(
         containerColor = Color(0xFFF5F7FA),
@@ -64,7 +66,12 @@ fun PatientProfilePage(
             }
 
             item {
-                ActionGridSection(patient = patient, onOdontogramClick = onOdontogramClick)
+                ActionGridSection(
+                    patient = patient,
+                    onOdontogramClick = onOdontogramClick,
+                    onFilesClick = onFilesClick,
+                    filesCount = filesCount
+                )
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
@@ -222,7 +229,12 @@ fun PatientHeaderSection(patient: Patient) {
 
 // --- 2. Grid de Acciones ---
 @Composable
-fun ActionGridSection(patient: Patient, onOdontogramClick: () -> Unit) {
+fun ActionGridSection(
+    patient: Patient,
+    onOdontogramClick: () -> Unit,
+    onFilesClick: () -> Unit,
+    filesCount: Int
+) {
     Column {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -250,9 +262,9 @@ fun ActionGridSection(patient: Patient, onOdontogramClick: () -> Unit) {
             ActionCard(
                 title = "Archivos",
                 icon = Icons.Default.Folder,
-                badgeCount = patient.documents?.size ?: 0,
+                badgeCount = filesCount,
                 modifier = Modifier.weight(1f),
-                onClick = { /* TODO */ }
+                onClick = onFilesClick
             )
             ActionCard(
                 title = "Historial Clínico",

@@ -24,6 +24,8 @@ import com.example.dynalar_frontend_v1.ui.screens.ListPatientsScreen
 import com.example.dynalar_frontend_v1.ui.screens.LoginPage
 import com.example.dynalar_frontend_v1.ui.screens.OdontogramPage
 import com.example.dynalar_frontend_v1.ui.screens.PatientProfilePage
+import com.example.dynalar_frontend_v1.ui.screens.PatientFileUploadPage
+import com.example.dynalar_frontend_v1.ui.screens.PatientFilesPage
 import com.example.dynalar_frontend_v1.ui.screens.ScheduleAppointmentPage
 import com.example.dynalar_frontend_v1.ui.screens.ToothPage
 import com.example.dynalar_frontend_v1.ui.screens.UserProfilePage
@@ -101,6 +103,9 @@ class MainActivity : ComponentActivity() {
 
                         val patient = patientViewModel.selectedPatient
                         if (patient != null) {
+                            val patientIdForFiles = patient.id ?: -1L
+                            val filesCount = patient.documents?.size ?: 0
+
                             PatientProfilePage(
                                 patient = patient,
                                 onBackClick = { navController.popBackStack() },
@@ -109,7 +114,13 @@ class MainActivity : ComponentActivity() {
                                     if (odontogramId != null) {
                                         navController.navigate(AppRoutes.OdontogramPage.createRoute(odontogramId))
                                     }
-                                }
+                                },
+                                onFilesClick = {
+                                    if (patientIdForFiles != -1L) {
+                                        navController.navigate(AppRoutes.PatientFiles.createRoute(patientIdForFiles))
+                                    }
+                                },
+                                filesCount = filesCount
                             )
                         } else {
                             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -172,6 +183,38 @@ class MainActivity : ComponentActivity() {
                                 navController.popBackStack()
                             },
                             patientViewModel = patientViewModel
+                        )
+                    }
+
+                    composable(
+                        route = AppRoutes.PatientFiles.route,
+                        arguments = listOf(navArgument("patientId") { type = NavType.LongType })
+                    ) { backStackEntry ->
+                        val patientId = backStackEntry.arguments?.getLong("patientId") ?: -1L
+
+                        PatientFilesPage(
+                            patientId = patientId,
+                            patientViewModel = patientViewModel,
+                            onBackClick = { navController.popBackStack() },
+                            onNavigateUpload = {
+                                navController.navigate(AppRoutes.PatientFileUpload.createRoute(patientId))
+                            }
+                        )
+                    }
+
+                    composable(
+                        route = AppRoutes.PatientFileUpload.route,
+                        arguments = listOf(navArgument("patientId") { type = NavType.LongType })
+                    ) { backStackEntry ->
+                        val patientId = backStackEntry.arguments?.getLong("patientId") ?: -1L
+
+                        PatientFileUploadPage(
+                            patientId = patientId,
+                            patientViewModel = patientViewModel,
+                            onBackClick = { navController.popBackStack() },
+                            onUploadDone = {
+                                navController.popBackStack()
+                            }
                         )
                     }
 
