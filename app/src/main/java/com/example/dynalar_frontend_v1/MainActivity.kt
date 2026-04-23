@@ -24,6 +24,7 @@ import com.example.dynalar_frontend_v1.ui.screens.EditPatientPage
 import com.example.dynalar_frontend_v1.ui.screens.HomePage
 import com.example.dynalar_frontend_v1.ui.screens.ListPatientsScreen
 import com.example.dynalar_frontend_v1.ui.screens.LoginPage
+import com.example.dynalar_frontend_v1.ui.screens.MaterialsHome
 import com.example.dynalar_frontend_v1.ui.screens.OdontogramPage
 import com.example.dynalar_frontend_v1.ui.screens.PatientProfilePage
 import com.example.dynalar_frontend_v1.ui.screens.ResumeDateScreen
@@ -68,7 +69,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    // PANTALLA PRINCIPAL
+
                     composable(AppRoutes.Home.route) {
                         HomePage(
                             onNavigateListPacient = {
@@ -80,18 +81,38 @@ class MainActivity : ComponentActivity() {
                             onNavigateBoxCalendar = {
                                 navController.navigate(AppRoutes.CalendarPage.route)
                             },
-                            // --- AÑADE ESTO ---
+                            onNavigateBoxMaterials = {
+                                navController.navigate(AppRoutes.MaterialsHome.route)
+                            },
+
+
                             onNavigateToAppointmentDetail = { appointment ->
                                 // 1. Guardamos la cita seleccionada en el ViewModel para que ResumeDate la encuentre
                                 appointmentViewModel.selectedAppointment = appointment
 
-                                // 2. Navegamos a la ruta de la pantalla de resumen
+
                                 navController.navigate(AppRoutes.ResumeDate.route)
                             }
                         )
                     }
 
-
+                    composable(AppRoutes.MaterialsHome.route) {
+                        MaterialsHome(
+                            onNavigateBack = {
+                                navController.popBackStack() // Vuelve a la Home
+                            },
+                            onNavigateStock = {
+                                // Aquí pones la ruta de tu stock o una URL externa
+                                // Si es una URL de Google Sheets, por ejemplo:
+                                // val intent = Intent(Intent.ACTION_VIEW, Uri.parse("TU_URL_AQUÍ"))
+                                // context.startActivity(intent)
+                                navController.navigate("ruta_stock")
+                            },
+                            onNavigateProtocolo = {
+                                navController.navigate("ruta_protocolo") // Ruta para materiales dentales
+                            }
+                        )
+                    }
                     composable(AppRoutes.ListPatients.route) {
                         ListPatientsScreen(
                             viewModel = patientViewModel,
