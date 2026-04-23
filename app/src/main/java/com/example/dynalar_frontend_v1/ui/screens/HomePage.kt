@@ -49,7 +49,8 @@ fun HomePage(
     onNavigateProfileUserProfile: () -> Unit,
     onNavigateListPacient: () -> Unit,
     onNavigateBoxCalendar: () -> Unit,
-    onNavigateToAppointmentDetail: (Appointment) -> Unit
+    onNavigateToAppointmentDetail: (Appointment) -> Unit,
+    onNavigateBoxMaterials: () -> Unit
 ) {
     //Pop up
     var selectedDateForDialog by remember { mutableStateOf<LocalDate?>(null) }
@@ -69,7 +70,7 @@ fun HomePage(
 
         CalendarHomepage(
             viewModel = viewModel,
-            // Pasamos una función para manejar el clic en un día
+
             onDayClick = { date, appointments ->
                 if (appointments.isNotEmpty()) {
                     selectedDateForDialog = date
@@ -82,7 +83,8 @@ fun HomePage(
         Buttons_HomePage(
             modifier = Modifier.weight(1f),
             onNavigateListPacient = onNavigateListPacient,
-            onNavigateBoxCalendar = onNavigateBoxCalendar
+            onNavigateBoxCalendar = onNavigateBoxCalendar,
+            onNavigateBoxMaterials = onNavigateBoxMaterials
         )
     }
     if (selectedDateForDialog != null) {
@@ -93,7 +95,7 @@ fun HomePage(
                 selectedDateForDialog = null
                 appointmentsForDialog = emptyList()
             },
-            // PASAMOS LA FUNCIÓN DE NAVEGACIÓN AQUÍ:
+
             onAppointmentClick = { appointment ->
                 onNavigateToAppointmentDetail(appointment)
             }
@@ -381,7 +383,8 @@ fun CalendarHomepage(
 fun Buttons_HomePage(
     modifier: Modifier = Modifier,
     onNavigateListPacient: () -> Unit,
-    onNavigateBoxCalendar: () -> Unit
+    onNavigateBoxCalendar: () -> Unit,
+    onNavigateBoxMaterials: () -> Unit
 ) {
     Column(
         modifier = modifier
@@ -408,7 +411,7 @@ fun Buttons_HomePage(
             icon = Icons.Default.Inventory,
             subtitle = "Materials disponibles",
             circleColor = Color.White,
-            onClick = {}
+            onClick = onNavigateBoxMaterials
         )
     }
 }

@@ -35,4 +35,5 @@ sealed class AppRoutes(val route: String) {
 
         fun createRoute(patientId: Long) = "dateInformationPage/$patientId"
     }
+    object MaterialsHome : AppRoutes("materialsHome")
 }
