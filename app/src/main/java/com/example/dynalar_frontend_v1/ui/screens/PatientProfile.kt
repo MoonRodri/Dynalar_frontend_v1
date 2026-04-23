@@ -178,7 +178,7 @@ fun PatientHeaderSection(patient: Patient) {
             ) {
                 // La imagen va dentro, con un pequeño padding para crear el efecto de borde blanco
                 Image(
-                    painter = painterResource(id = getPatientImage(patient.id)),
+                    painter = painterResource(id = getPatientImage(patient.id, patient.sex)),
                     contentDescription = "Foto del paciente",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier

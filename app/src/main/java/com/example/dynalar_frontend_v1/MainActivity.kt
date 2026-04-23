@@ -22,10 +22,12 @@ import com.example.dynalar_frontend_v1.ui.screens.CreateProfilePage
 import com.example.dynalar_frontend_v1.ui.screens.HomePage
 import com.example.dynalar_frontend_v1.ui.screens.ListPatientsScreen
 import com.example.dynalar_frontend_v1.ui.screens.LoginPage
+import com.example.dynalar_frontend_v1.ui.screens.MaterialsHome
 import com.example.dynalar_frontend_v1.ui.screens.OdontogramPage
 import com.example.dynalar_frontend_v1.ui.screens.PatientProfilePage
 import com.example.dynalar_frontend_v1.ui.screens.PatientFileUploadPage
 import com.example.dynalar_frontend_v1.ui.screens.PatientFilesPage
+import com.example.dynalar_frontend_v1.ui.screens.ResumeDateScreen
 import com.example.dynalar_frontend_v1.ui.screens.ScheduleAppointmentPage
 import com.example.dynalar_frontend_v1.ui.screens.ToothPage
 import com.example.dynalar_frontend_v1.ui.screens.UserProfilePage
@@ -75,6 +77,25 @@ class MainActivity : ComponentActivity() {
                             onNavigateBoxCalendar = {
                                 navController.navigate(AppRoutes.CalendarPage.route)
                             },
+                            onNavigateToAppointmentDetail = { appointment ->
+                                appointmentViewModel.selectedAppointment = appointment
+                                navController.navigate(AppRoutes.ResumeDate.route)
+                            },
+                            onNavigateBoxMaterials = {
+                                navController.navigate(AppRoutes.MaterialsHome.route)
+                            }
+                        )
+                    }
+
+                    composable(AppRoutes.MaterialsHome.route) {
+                        MaterialsHome(
+                            onNavigateBack = { navController.popBackStack() },
+                            onNavigateStock = {
+                                // TODO: Wire stock route when stock module routes are defined.
+                            },
+                            onNavigateProtocolo = {
+                                // TODO: Wire protocol route when protocol module routes are defined.
+                            }
                         )
                     }
 
@@ -225,8 +246,28 @@ class MainActivity : ComponentActivity() {
                             onAddAppointmentClick = { date, hour, minute ->
                                 navController.navigate(AppRoutes.ScheduleAppointment.createRoute(date.toString(), hour, minute))
                             },
-                            onAppointmentClick = { appointment -> }
+                            onAppointmentClick = { appointment ->
+                                appointmentViewModel.selectedAppointment = appointment
+                                navController.navigate(AppRoutes.ResumeDate.route)
+                            }
                         )
+                    }
+
+                    composable(AppRoutes.ResumeDate.route) {
+                        val appointment = appointmentViewModel.selectedAppointment
+                        if (appointment != null) {
+                            ResumeDateScreen(
+                                appointment = appointment,
+                                onBackClick = { navController.popBackStack() },
+                                onPatientClick = { patientId ->
+                                    navController.navigate(AppRoutes.PatientProfile.createRoute(patientId))
+                                }
+                            )
+                        } else {
+                            LaunchedEffect(Unit) {
+                                navController.popBackStack()
+                            }
+                        }
                     }
 
 
