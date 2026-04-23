@@ -1,41 +1,53 @@
 package com.example.dynalar_frontend_v1.ui.components
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.dynalar_frontend_v1.interfaces.InterfaceGlobal
 import com.example.dynalar_frontend_v1.model.Appointment
+import com.example.dynalar_frontend_v1.model.Treatment
+import com.example.dynalar_frontend_v1.model.patient.Patient
+import com.example.dynalar_frontend_v1.ui.screens.EditableChip
+import com.example.dynalar_frontend_v1.ui.screens.SectionLabel
+import com.example.dynalar_frontend_v1.ui.screens.TimeSlotGrid
+import com.example.dynalar_frontend_v1.ui.screens.UnavailableChip
 import com.example.dynalar_frontend_v1.ui.theme.ButtonPrimary
 import com.example.dynalar_frontend_v1.ui.theme.TextoPrincipal
+import com.example.dynalar_frontend_v1.viewmodel.AppointmentViewModel
+import com.example.dynalar_frontend_v1.viewmodel.PatientViewModel
+import com.example.dynalar_frontend_v1.viewmodel.TreatmentViewModel
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import kotlin.collections.emptyList
+import com.example.dynalar_frontend_v1.R
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DayAppointmentsDialog(
     date: LocalDate,
     appointments: List<Appointment>,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onAppointmentClick: (Appointment) -> Unit // Parámetro para manejar la navegación
 ) {
-    val dateStr = date.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+    val dateStr = date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -52,47 +64,67 @@ fun DayAppointmentsDialog(
         },
         text = {
             if (appointments.isEmpty()) {
-                Text(text = "No hay citas programadas para este día.", color = Color.Gray)
+                Text(
+                    text = "No hay citas programadas para este día.",
+                    color = Color.Gray,
+                    modifier = Modifier.padding(vertical = 16.dp)
+                )
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(vertical = 8.dp)
                 ) {
                     items(appointments) { appointment ->
-
                         val time = appointment.startTime?.split("T", " ")?.lastOrNull()?.take(5) ?: "--:--"
                         val patientName = "${appointment.patient?.name ?: ""} ${appointment.patient?.lastName ?: ""}".trim()
                         val allergies = appointment.patient?.medicalRecord?.allergies
-
-
                         val treatmentName = appointment.treatment?.name
 
                         Card(
                             colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F7FA)),
                             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                            modifier = Modifier.fillMaxWidth()
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onDismiss() // Cerramos el diálogo
+                                    onAppointmentClick(appointment) // Navegamos al detalle
+                                }
                         ) {
-                            Column(modifier = Modifier.padding(12.dp)) {
+                            Column(modifier = Modifier.padding(16.dp)) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(
-                                        text = time,
-                                        fontWeight = FontWeight.Bold,
-                                        color = ButtonPrimary
-                                    )
-                                    Text(
-                                        text = patientName.ifEmpty { "Paciente Desconocido" },
-                                        fontWeight = FontWeight.Medium,
-                                        color = TextoPrincipal
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = time,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 15.sp,
+                                            color = ButtonPrimary
+                                        )
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Text(
+                                            text = patientName.ifEmpty { "Paciente Desconocido" },
+                                            fontWeight = FontWeight.SemiBold,
+                                            fontSize = 15.sp,
+                                            color = TextoPrincipal
+                                        )
+                                    }
+
+                                    // Icono indicador de navegación
+                                    Icon(
+                                        imageVector = Icons.Default.ChevronRight,
+                                        contentDescription = "Ver detalles",
+                                        tint = Color.LightGray,
+                                        modifier = Modifier.size(20.dp)
                                     )
                                 }
 
-
                                 if (!treatmentName.isNullOrBlank()) {
-                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Spacer(modifier = Modifier.height(8.dp))
                                     Text(
                                         text = "Tractament: $treatmentName",
                                         fontSize = 13.sp,
@@ -102,12 +134,12 @@ fun DayAppointmentsDialog(
                                 }
 
                                 if (!allergies.isNullOrBlank()) {
-                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Spacer(modifier = Modifier.height(6.dp))
                                     Text(
                                         text = "Alergias: $allergies",
                                         fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color(0xFFD32F2F) // Rojo para las alergias
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = Color(0xFFD32F2F)
                                     )
                                 }
                             }
@@ -118,8 +150,165 @@ fun DayAppointmentsDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text(text = "Tancar", color = ButtonPrimary)
+                Text(text = "Tancar", color = ButtonPrimary, fontWeight = FontWeight.Bold)
             }
         }
     )
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AppointmentFormContent(
+    selectedDate: LocalDate,
+    onDateChange: (LocalDate) -> Unit,
+    hour: Int,
+    minute: Int,
+    onStartTimeChange: (Int, Int) -> Unit,
+    endHour: Int,
+    endMinute: Int,
+    onEndTimeChange: (Int, Int) -> Unit,
+    selectedPatient: Patient? = null,
+    onPatientSelected: ((Patient) -> Unit)? = null, // Si es nulo, no muestra el selector de paciente
+    selectedTreatment: Treatment?,
+    onTreatmentSelected: (Treatment) -> Unit,
+    description: String,
+    onDescriptionChange: (String) -> Unit,
+    patientViewModel: PatientViewModel,
+    treatmentViewModel: TreatmentViewModel,
+    appointmentViewModel: AppointmentViewModel
+) {
+    var showCalendar by remember { mutableStateOf(false) }
+
+    // --- CARGA AUTOMÁTICA DE DATOS ---
+    LaunchedEffect(Unit) {
+        treatmentViewModel.getTreatments()
+        if (onPatientSelected != null) {
+            patientViewModel.getPatients()
+        }
+    }
+
+    // --- CARGA DE HUECOS (SLOTS) ---
+    LaunchedEffect(selectedTreatment, selectedDate) {
+        selectedTreatment?.id?.let { id ->
+            val start = selectedDate.with(java.time.DayOfWeek.MONDAY)
+            val end = start.plusDays(6)
+            appointmentViewModel.fetchSlots(id, start, end)
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // Resumen horario
+        Text(
+            text = if (selectedTreatment != null) "%02d:%02d → %02d:%02d".format(hour, minute, endHour, endMinute)
+            else "%02d:%02d → --:--".format(hour, minute),
+            fontSize = 14.sp, color = Color(0xFF90A4AE), fontWeight = FontWeight.Medium,
+            modifier = Modifier.padding(bottom = 20.dp)
+        )
+
+        // 1. DÍA Y HORA
+        SectionLabel(icon = R.drawable.visita_tiempo, text = "Día y hora de la visita")
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            EditableChip(
+                text = selectedDate.format(DateTimeFormatter.ofPattern("EEE, d 'de' MMM", Locale("es"))),
+                onClick = { showCalendar = true }
+            )
+            Spacer(Modifier.width(10.dp))
+            EditableChip(text = "%02d:%02d".format(hour, minute), onClick = { /* Podrías abrir un TimePicker */ })
+            Spacer(Modifier.width(8.dp))
+            Text("→", color = Color(0xFF90A4AE), fontWeight = FontWeight.Bold)
+            Spacer(Modifier.width(8.dp))
+            EditableChip(
+                text = if (selectedTreatment != null) "%02d:%02d".format(endHour, endMinute) else "--:--",
+                onClick = { /* Podrías abrir un TimePicker */ }
+            )
+        }
+
+        // 2. PACIENTE
+        if (onPatientSelected != null) {
+            Spacer(Modifier.height(28.dp))
+            SectionLabel(icon = R.drawable.visita_paciente, text = "Paciente")
+            when (val pState = patientViewModel.uiStatePatient) {
+                is InterfaceGlobal.Success -> {
+                    CustomisableDynamicDropdownMenu(
+                        selectedItem = selectedPatient,
+                        options = pState.data,
+                        label = "Seleccionar pacient",
+                        displayText = { "${it.name ?: ""} ${it.lastName ?: ""}".trim() },
+                        onItemSelected = onPatientSelected
+                    )
+                }
+                is InterfaceGlobal.Loading -> LinearProgressIndicator(Modifier.fillMaxWidth())
+                else -> UnavailableChip("No s'han pogut carregar pacients")
+            }
+        }
+
+        // 3. TRATAMIENTO
+        Spacer(Modifier.height(24.dp))
+        SectionLabel(icon = R.drawable.visita_tratamientos, text = "Tratamiento")
+        when (val tState = treatmentViewModel.uiStateTreatment) {
+            is InterfaceGlobal.Success -> {
+                CustomisableDynamicDropdownMenu(
+                    selectedItem = selectedTreatment,
+                    options = tState.data,
+                    label = "Seleccionar tractament",
+                    displayText = { it.name ?: "" },
+                    onItemSelected = onTreatmentSelected
+                )
+            }
+            is InterfaceGlobal.Loading -> LinearProgressIndicator(Modifier.fillMaxWidth())
+            else -> UnavailableChip("No hi ha tractaments disponibles")
+        }
+
+        // 4. SLOTS DISPONIBLES
+        if (selectedTreatment != null) {
+            Spacer(Modifier.height(28.dp))
+            SectionLabel(icon = R.drawable.visita_tiempo, text = "Horaris Disponibles")
+            when (val slotsState = appointmentViewModel.uiStateSlots) {
+                is InterfaceGlobal.Success -> {
+                    val todaySlots = slotsState.data[selectedDate.toString()] ?: emptyList()
+                    if (todaySlots.isEmpty()) {
+                        UnavailableChip("Sense forats lliures")
+                    } else {
+                        TimeSlotGrid(todaySlots, hour, minute) { h, m -> onStartTimeChange(h, m) }
+                    }
+                }
+                is InterfaceGlobal.Loading -> CircularProgressIndicator(Modifier.size(24.dp))
+                else -> UnavailableChip("Consultant disponibilitat...")
+            }
+        }
+
+        // 5. NOTAS
+        Spacer(Modifier.height(28.dp))
+        SectionLabel(icon = R.drawable.visita_descripcion, text = "Notas")
+        OutlinedTextField(
+            value = description,
+            onValueChange = onDescriptionChange,
+            placeholder = { Text("Afegeix una descripció...") },
+            modifier = Modifier.fillMaxWidth().height(110.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = Color(0xFFF9F9F9),
+                unfocusedBorderColor = Color(0xFFE0E0E0)
+            )
+        )
+    }
+
+    // --- DIÁLOGO DE CALENDARIO ---
+    if (showCalendar) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = selectedDate.atStartOfDay(java.time.ZoneId.of("UTC")).toInstant().toEpochMilli()
+        )
+        DatePickerDialog(
+            onDismissRequest = { showCalendar = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let {
+                        onDateChange(java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneId.of("UTC")).toLocalDate())
+                    }
+                    showCalendar = false
+                }) { Text("Acceptar", color = ButtonPrimary) }
+            }
+        ) { DatePicker(state = datePickerState) }
+    }
 }

@@ -11,6 +11,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Inventory
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -46,6 +49,8 @@ fun HomePage(
     onNavigateProfileUserProfile: () -> Unit,
     onNavigateListPacient: () -> Unit,
     onNavigateBoxCalendar: () -> Unit,
+    onNavigateToAppointmentDetail: (Appointment) -> Unit,
+    onNavigateBoxMaterials: () -> Unit
 ) {
     //Pop up
     var selectedDateForDialog by remember { mutableStateOf<LocalDate?>(null) }
@@ -65,7 +70,7 @@ fun HomePage(
 
         CalendarHomepage(
             viewModel = viewModel,
-            // Pasamos una función para manejar el clic en un día
+
             onDayClick = { date, appointments ->
                 if (appointments.isNotEmpty()) {
                     selectedDateForDialog = date
@@ -78,7 +83,8 @@ fun HomePage(
         Buttons_HomePage(
             modifier = Modifier.weight(1f),
             onNavigateListPacient = onNavigateListPacient,
-            onNavigateBoxCalendar = onNavigateBoxCalendar
+            onNavigateBoxCalendar = onNavigateBoxCalendar,
+            onNavigateBoxMaterials = onNavigateBoxMaterials
         )
     }
     if (selectedDateForDialog != null) {
@@ -88,6 +94,10 @@ fun HomePage(
             onDismiss = {
                 selectedDateForDialog = null
                 appointmentsForDialog = emptyList()
+            },
+
+            onAppointmentClick = { appointment ->
+                onNavigateToAppointmentDetail(appointment)
             }
         )
     }
@@ -373,7 +383,8 @@ fun CalendarHomepage(
 fun Buttons_HomePage(
     modifier: Modifier = Modifier,
     onNavigateListPacient: () -> Unit,
-    onNavigateBoxCalendar: () -> Unit
+    onNavigateBoxCalendar: () -> Unit,
+    onNavigateBoxMaterials: () -> Unit
 ) {
     Column(
         modifier = modifier
@@ -383,21 +394,24 @@ fun Buttons_HomePage(
     ) {
         CustomisableRectangleButton(
             title = "Pacients",
+            icon = Icons.Default.Person,
             subtitle = "Llista de Pacients",
             circleColor = Color.White,
             onClick = onNavigateListPacient
         )
         CustomisableRectangleButton(
             title = "Agenda",
+            icon = Icons.Default.CalendarMonth,
             subtitle = "Gestiona Agenda",
             circleColor = Color.White,
             onClick = onNavigateBoxCalendar
         )
         CustomisableRectangleButton(
             title = "Materials",
+            icon = Icons.Default.Inventory,
             subtitle = "Materials disponibles",
             circleColor = Color.White,
-            onClick = {}
+            onClick = onNavigateBoxMaterials
         )
     }
 }

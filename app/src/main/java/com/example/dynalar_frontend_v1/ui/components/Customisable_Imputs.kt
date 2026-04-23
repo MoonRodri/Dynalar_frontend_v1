@@ -59,7 +59,6 @@ fun PhoneInputField(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        // --- Etiqueta igual que en InputFieldEditable ---
         Text(
             text = label,
             style = MaterialTheme.typography.bodyLarge,
@@ -72,10 +71,9 @@ fun PhoneInputField(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // --- Dropdown del Prefijo (con estilo OutlinedCard) ---
             OutlinedCard(
                 modifier = Modifier
-                    .width(90.dp) // Ancho fijo para el prefijo
+                    .width(105.dp)
                     .height(48.dp)
                     .clickable { expanded = true },
                 shape = RoundedCornerShape(10.dp),
@@ -91,31 +89,53 @@ fun PhoneInputField(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
+                        // Busquem la bandera correctament comparant Strings
+                        val currentCountry = countriesList.find { it.code == countryCode }
+                        val displayFlag = currentCountry?.flag ?: "🌐"
+
                         Text(
-                            text = countryCode,
-                            style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp)
+                            text = "$displayFlag $countryCode",
+                            style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp)
                         )
                         Icon(
                             imageVector = Icons.Default.ArrowDropDown,
-                            contentDescription = "Seleccionar prefijo",
+                            contentDescription = null,
                             tint = Color.Gray,
-                            modifier = Modifier.padding(start = 2.dp).size(20.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                     }
 
-                    // El menú desplegable con la lista
                     DropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false },
                         modifier = Modifier
                             .background(Color.White)
+                            .width(250.dp)
                             .heightIn(max = 300.dp)
                     ) {
-                        allCountryCodes.forEach { code ->
+                        countriesList.forEach { countryItem ->
                             DropdownMenuItem(
-                                text = { Text(text = code) },
+                                text = {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Text(text = countryItem.flag, fontSize = 18.sp)
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Text(
+                                            text = countryItem.name,
+                                            modifier = Modifier.weight(1f),
+                                            fontSize = 14.sp
+                                        )
+                                        Text(
+                                            text = countryItem.code,
+                                            color = Color.Gray,
+                                            fontSize = 13.sp
+                                        )
+                                    }
+                                },
                                 onClick = {
-                                    onCountryCodeChange(code)
+                                    onCountryCodeChange(countryItem.code)
                                     expanded = false
                                 }
                             )
@@ -126,7 +146,6 @@ fun PhoneInputField(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // --- Campo de Texto del Número (Exactamente igual que InputFieldEditable) ---
             OutlinedCard(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -151,10 +170,7 @@ fun PhoneInputField(
                             contentAlignment = Alignment.CenterStart
                         ) {
                             if (phoneNumber.isEmpty()) {
-                                Text(
-                                    text = "600 000 000",
-                                    color = Color.LightGray
-                                )
+                                Text(text = "600 000 000", color = Color.LightGray)
                             }
                             innerTextField()
                         }

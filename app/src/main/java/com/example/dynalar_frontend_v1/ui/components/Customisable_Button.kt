@@ -25,6 +25,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
@@ -32,6 +33,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
@@ -56,8 +58,10 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import com.example.dynalar_frontend_v1.R
@@ -143,20 +147,33 @@ fun AddButton(
 fun CustomisableCircle(
     size: Dp = 24.dp,
     color: Color = ButtonPrimary,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    iconTint: Color = Color(0xFF373737),
+    icon: ImageVector? = null,
 ) {
     Box(
         modifier = modifier
             .size(size)
             .clip(CircleShape)
-            .background(color)
-    )
+            .background(color),
+        contentAlignment = Alignment.Center
+    ) {
+        if (icon != null) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(size * 0.6f),
+                tint = iconTint
+
+            )
+        }
+    }
 }
 
 //Botones que te permiten navegar(los del homePage)
 @Composable
 fun CustomisableRectangleButton(
-
+    icon: ImageVector? = null,
     title: String,
     subtitle: String,
     width: Dp = 350.dp,
@@ -190,6 +207,7 @@ fun CustomisableRectangleButton(
             CustomisableCircle(
                 size = 50.dp,
                 color = circleColor,
+                icon = icon,
                 modifier = Modifier
                     .offset(x = 5.dp)
             )
@@ -216,7 +234,62 @@ fun CustomisableRectangleButton(
 
     }
 }
+@Composable
+fun CustomisableButtonMaterials(
+    iconRes: Int,
+    title: String,
+    subtitle: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(140.dp)
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFF0F4F8)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = BorderStroke(1.dp, Color(0xFFD1E1F0)),
+        onClick = onClick
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
+        ) {
 
+            Image(
+                painter = painterResource(id = iconRes),
+                contentDescription = null,
+                modifier = Modifier.size(75.dp)
+            )
+
+            Spacer(modifier = Modifier.width(24.dp))
+
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color(0xFF1A365D)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.titleSmall
+                    ,
+                    color = Color(0xFF4A5568),
+                    lineHeight = 20.sp
+                )
+            }
+        }
+    }
+}
 //Desplejable en un futuro se tiene que enlazar con la base de datos
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

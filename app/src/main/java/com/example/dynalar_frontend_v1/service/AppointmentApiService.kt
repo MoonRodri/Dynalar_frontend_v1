@@ -23,4 +23,7 @@ interface AppointmentApiService {
 
     @DELETE("appointment/{id}")
     suspend fun deleteAppointment(@Path("id") id: Long): Response<Unit>
+
+    @PUT("appointment/update")
+    suspend fun updateAppointment(@Body appointment: Appointment): Response<Appointment>
 }
