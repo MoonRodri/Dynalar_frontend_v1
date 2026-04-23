@@ -80,8 +80,12 @@ class PatientViewModel: ViewModel() {
     fun deletePatient(id: Long) {
         viewModelScope.launch {
             try {
-                patientRepository.deletePatient(id)
-                getPatients()
+                val response = patientRepository.deletePatient(id)
+                if (response.isSuccessful) {
+                    getPatients()
+                } else {
+                    uiStatePatient = InterfaceGlobal.Error("No se pudo eliminar el paciente")
+                }
             } catch (e: Exception) {
                 Log.e("PatientViewModel", "ERROR en deletePatient: ${e.message}")
                 uiStatePatient = InterfaceGlobal.Error(e.message)
@@ -92,9 +96,18 @@ class PatientViewModel: ViewModel() {
     fun updatePatient(patient: Patient) {
         viewModelScope.launch {
             try {
-                patientRepository.updatePatient(patient)
-                getPatients()
+                val response = patientRepository.updatePatient(patient)
+
+                if (response.isSuccessful) {
+                    selectedPatient = response.body()
+                    getPatients()
+                    Log.d("PatientViewModel", "Paciente actualizado correctamente")
+                } else {
+                    Log.e("PatientViewModel", "Error API al actualizar: ${response.code()}")
+                    uiStatePatient = InterfaceGlobal.Error("No se pudo actualizar el paciente")
+                }
             } catch (e: Exception) {
+                Log.e("PatientViewModel", "Excepción al actualizar: ${e.message}")
                 uiStatePatient = InterfaceGlobal.Error(e.message)
             }
         }
@@ -103,8 +116,12 @@ class PatientViewModel: ViewModel() {
     fun createPatient(patient: Patient) {
         viewModelScope.launch {
             try {
-                patientRepository.createPatient(patient)
-                getPatients()
+                val response = patientRepository.createPatient(patient)
+                if (response.isSuccessful) {
+                    getPatients()
+                } else {
+                    uiStatePatient = InterfaceGlobal.Error("No se pudo crear el paciente")
+                }
             } catch (e: Exception) {
                 uiStatePatient = InterfaceGlobal.Error(e.message)
             }
