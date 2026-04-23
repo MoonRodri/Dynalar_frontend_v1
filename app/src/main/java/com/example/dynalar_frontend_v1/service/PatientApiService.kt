@@ -1,6 +1,9 @@
 package com.example.dynalar_frontend_v1.service
 
 import com.example.dynalar_frontend_v1.model.patient.Patient
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -22,4 +25,17 @@ interface PatientApiService {
 
     @DELETE("patient/{id}")
     suspend fun deletePatient(@Path("id") id: Long): Response<Unit>
+
+    @Multipart
+    @POST("document/patient/{patientId}/upload")
+    suspend fun uploadPatientDocumentByPath(
+        @Path("patientId") patientId: Long,
+        @Part file: MultipartBody.Part,
+        @Part("type") type: RequestBody
+    ): Response<ResponseBody>
+
+    @DELETE("document/{documentId}")
+    suspend fun deletePatientDocument(
+        @Path("documentId") documentId: Long
+    ): Response<Unit>
 }
