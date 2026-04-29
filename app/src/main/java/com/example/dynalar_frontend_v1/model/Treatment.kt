@@ -7,5 +7,6 @@ data class Treatment(
     val name: String? = null,
     val description: String? = null,
     val durationMinutes: Int? = null,
+    val materials: List<TreatmentMaterial>? = emptyList(),
     val dentists: List<Dentist>? = emptyList()
 )

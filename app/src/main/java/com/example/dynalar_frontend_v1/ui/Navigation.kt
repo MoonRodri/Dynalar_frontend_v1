@@ -9,10 +9,16 @@ sealed class AppRoutes(val route: String) {
     object OdontogramPage : AppRoutes("odontogramPage/{odontogramId}") {
         fun createRoute(odontogramId: Long) = "odontogramPage/$odontogramId"
     }
-
     object ToothPage: AppRoutes("toothPage/{odontogramId}/{number}") {
         fun createRoute(odontogramId: Long, number: Int) = "toothPage/$odontogramId/$number"
     }
+
+    object ListProtocols: AppRoutes("listProtocols")
+
+    object ProtocolPage: AppRoutes("protocolPage/{treatmentId}"){
+        fun createRoute(treatmentId: Long) = "protocolPage/$treatmentId"
+        }
+
 
     object UserProfile : AppRoutes("userProfile")
     object CalendarPage : AppRoutes("calendarPage")

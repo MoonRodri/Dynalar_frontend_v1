@@ -23,17 +23,21 @@ import com.example.dynalar_frontend_v1.ui.screens.DateInformationPage
 import com.example.dynalar_frontend_v1.ui.screens.EditPatientPage
 import com.example.dynalar_frontend_v1.ui.screens.HomePage
 import com.example.dynalar_frontend_v1.ui.screens.ListPatientsScreen
+import com.example.dynalar_frontend_v1.ui.screens.ListProtocolsPage
 import com.example.dynalar_frontend_v1.ui.screens.LoginPage
 import com.example.dynalar_frontend_v1.ui.screens.OdontogramPage
 import com.example.dynalar_frontend_v1.ui.screens.PatientProfilePage
+import com.example.dynalar_frontend_v1.ui.screens.ProtocolPage
 import com.example.dynalar_frontend_v1.ui.screens.ResumeDateScreen
 import com.example.dynalar_frontend_v1.ui.screens.ScheduleAppointmentPage
 import com.example.dynalar_frontend_v1.ui.screens.ToothPage
 import com.example.dynalar_frontend_v1.ui.screens.UserProfilePage
 import com.example.dynalar_frontend_v1.ui.theme.Dynalar_frontend_v1Theme
 import com.example.dynalar_frontend_v1.viewmodel.AppointmentViewModel
+import com.example.dynalar_frontend_v1.viewmodel.MaterialViewModel
 import com.example.dynalar_frontend_v1.viewmodel.OdontogramViewModel
 import com.example.dynalar_frontend_v1.viewmodel.PatientViewModel
+import com.example.dynalar_frontend_v1.viewmodel.TreatmentViewModel
 import com.example.dynalar_frontend_v1.viewmodel.UserViewModel
 
 class MainActivity : ComponentActivity() {
@@ -49,13 +53,15 @@ class MainActivity : ComponentActivity() {
 
 
                 val patientViewModel: PatientViewModel = viewModel()
+                val materialViewModel: MaterialViewModel = viewModel()
+                val treatmentViewModel: TreatmentViewModel = viewModel()
                 val appointmentViewModel: AppointmentViewModel = viewModel()
                 val odontogramViewModel: OdontogramViewModel = viewModel()
                 val userViewModel: UserViewModel = viewModel()
 
                 NavHost(
                     navController = navController,
-                    startDestination = AppRoutes.Home.route
+                    startDestination = AppRoutes.Login.route
                 ) {
 
                     // PANTALLA DE LOGIN
@@ -174,6 +180,41 @@ class MainActivity : ComponentActivity() {
                                 CircularProgressIndicator()
                             }
                         }
+                    }
+
+                    // PANTALLA DE PROTOCOLOS
+                    composable(
+                        route = AppRoutes.ListProtocols.route
+                    ) {
+                        ListProtocolsPage (
+                            viewModel = treatmentViewModel,
+                            onBack ={ navController.popBackStack() },
+                            onTreatmentClick = {
+                                treatment ->
+                                treatment.id?.let { id ->
+                                    navController.navigate(AppRoutes.ProtocolPage.createRoute(id))
+                                }
+                            }
+                        )
+                    }
+
+                    // PANTALLA DE PROTOCOLO ESPECIFICO
+                    composable(
+                        route = AppRoutes.ProtocolPage.route,
+                        arguments = listOf(navArgument("treatmentId") { type = NavType.LongType })
+                    ) { backStackEntry ->
+
+                        val treatmentId = backStackEntry.arguments?.getLong("treatmentId")
+                            ?: return@composable
+
+                        ProtocolPage(
+                            treatmentId = treatmentId,
+                            materialViewModel,
+                            treatmentViewModel,
+                            onBack = {
+                                navController.popBackStack()
+                            }
+                        )
                     }
 
                     // PANTALLA DEL ODONTOGRAMA

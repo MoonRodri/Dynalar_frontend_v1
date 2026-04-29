@@ -239,7 +239,7 @@ fun ToothPage(number: Int, odontogramId: Long, viewModel: OdontogramViewModel = 
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "Registrar Prucès",
+                            text = "Registrar Procés",
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.titleLarge
                         )
@@ -250,7 +250,7 @@ fun ToothPage(number: Int, odontogramId: Long, viewModel: OdontogramViewModel = 
                             modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
                         )
 
-                        Text("Seleccioni un Prucès:", fontWeight = FontWeight.SemiBold)
+                        Text("Seleccioni un Procés:", fontWeight = FontWeight.SemiBold)
 
                         Spacer(modifier = Modifier.height(12.dp))
 
@@ -265,7 +265,7 @@ fun ToothPage(number: Int, odontogramId: Long, viewModel: OdontogramViewModel = 
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        Text("Status del Prucès:", fontWeight = FontWeight.SemiBold)
+                        Text("Status del Procés:", fontWeight = FontWeight.SemiBold)
 
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
@@ -309,7 +309,7 @@ fun ToothPage(number: Int, odontogramId: Long, viewModel: OdontogramViewModel = 
                                       },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Desar Prucès")
+                            Text("Desar Procés")
                         }
                     }
                 }
