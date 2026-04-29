@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,6 +25,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
@@ -47,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -55,9 +58,9 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import com.example.dynalar_frontend_v1.R
@@ -71,22 +74,28 @@ import com.example.dynalar_frontend_v1.ui.theme.TextoSecundario
 fun Navegate_Button(
     text: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier.fillMaxWidth(),
+    modifier: Modifier = Modifier,
     backgroundColor: Color = Color(0xFF537895),
     contentColor: Color = Color.White,
     isLoading: Boolean = false,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    icon: ImageVector? = null,
+    iconSize: Dp = 20.dp,
+    height: Dp = 56.dp,
+    cornerRadius: Dp = 12.dp,
+    fillMaxWidth: Boolean = true
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier.height(56.dp),
+        modifier = if (fillMaxWidth) modifier.fillMaxWidth() else modifier,
         enabled = enabled, // Importante para bloquearlo durante la carga
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(cornerRadius),
         colors = ButtonDefaults.buttonColors(
             containerColor = backgroundColor,
             contentColor = contentColor,
             disabledContainerColor = backgroundColor.copy(alpha = 0.6f)
-        )
+        ),
+        contentPadding = ButtonDefaults.ContentPadding
     ) {
         if (isLoading) {
             CircularProgressIndicator(
@@ -95,10 +104,17 @@ fun Navegate_Button(
                 strokeWidth = 2.dp
             )
         } else {
+            if (icon != null) {
+                androidx.compose.material3.Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(iconSize)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
             Text(
                 text = text,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold
+                style = MaterialTheme.typography.bodyLarge
             )
         }
     }
@@ -170,10 +186,13 @@ fun CustomisableRectangleButton(
 
     val shape = RoundedCornerShape(cornerRadius)
 
+    // ======= CAMBIO RESPONSIVE: ANCHO FLEXIBLE CON LIMITE MAXIMO =======
     Box(
 
         modifier = Modifier
-            .size(width, height)
+            .fillMaxWidth()
+            .widthIn(max = width)
+            .height(height)
             .shadow(elevation, shape)
             .clip(shape)
             .background(backgroundColor)
@@ -214,7 +233,62 @@ fun CustomisableRectangleButton(
 
     }
 }
+@Composable
+fun CustomisableButtonMaterials(
+    iconRes: Int,
+    title: String,
+    subtitle: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(140.dp)
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFF0F4F8)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = BorderStroke(1.dp, Color(0xFFD1E1F0)),
+        onClick = onClick
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
+        ) {
 
+            Image(
+                painter = painterResource(id = iconRes),
+                contentDescription = null,
+                modifier = Modifier.size(75.dp)
+            )
+
+            Spacer(modifier = Modifier.width(24.dp))
+
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color(0xFF1A365D)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.titleSmall
+                    ,
+                    color = Color(0xFF4A5568),
+                    lineHeight = 20.sp
+                )
+            }
+        }
+    }
+}
 //Desplejable en un futuro se tiene que enlazar con la base de datos
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

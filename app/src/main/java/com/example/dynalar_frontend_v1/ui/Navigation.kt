@@ -29,16 +29,27 @@ sealed class AppRoutes(val route: String) {
     object EditPatient : AppRoutes("editPatient/{patientId}") {
         fun createRoute(patientId: Long) = "editPatient/$patientId"
     }
-    object ScheduleAppointment : AppRoutes("scheduleAppointment/{date}/{hour}/{minute}") {
-        fun createRoute(date: String, hour: Int, minute: Int): String {
-            return "scheduleAppointment/$date/$hour/$minute"
-        }
+
+    object PatientFiles : AppRoutes("patientFiles/{patientId}") {
+        fun createRoute(patientId: Long) = "patientFiles/$patientId"
+    }
+
+    object PatientFileUpload : AppRoutes("patientFileUpload/{patientId}") {
+        fun createRoute(patientId: Long) = "patientFileUpload/$patientId"
     }
 
     object ResumeDate : AppRoutes("resumeDate")
 
     object DateInformationPage : AppRoutes("dateInformationPage/{patientId}") {
-
         fun createRoute(patientId: Long) = "dateInformationPage/$patientId"
+    }
+
+    object MaterialsHome : AppRoutes("materialsHome")
+
+    object ScheduleAppointment : AppRoutes("scheduleAppointment/{date}/{hour}/{minute}") {
+
+        fun createRoute(date: String, hour: Int, minute: Int): String {
+            return "scheduleAppointment/$date/$hour/$minute"
+        }
     }
 }
