@@ -25,4 +25,12 @@ class MaterialRepository {
     suspend fun deleteMaterial(id: Long) {
         materialApiService.deleteMaterial(id)
     }
+
+    suspend fun increaseStock(id: Long, quantity: Int){
+        materialApiService.increaseStock(id, quantity)
+    }
+
+    suspend fun decreaseStock(id: Long, quantity: Int){
+        materialApiService.decreaseStock(id, quantity)
+    }
 }

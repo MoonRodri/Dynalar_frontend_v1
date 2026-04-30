@@ -7,6 +7,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface MaterialApiService {
 
@@ -16,12 +17,19 @@ interface MaterialApiService {
     @GET("material/{id}")
     suspend fun getMaterialById(@Path("id") id: Long): Material
 
-    @POST("material/create")
+    @POST("material")
     suspend fun createMaterial(@Body material: Material): Material
 
-    @PUT("material/update/{id}")
+    @PUT("material/{id}")
     suspend fun updateMaterial(@Path("id") id: Long, @Body material: Material): Material
 
-    @DELETE("material/delete/{id}")
+    @DELETE("material/{id}")
     suspend fun deleteMaterial(@Path("id") id: Long)
+
+    @PUT("material/{id}/increase-stock")
+    suspend fun increaseStock(@Path("id") id: Long, @Query("quantity") quantity: Int): Material
+
+    @PUT("material/{id}/decrease-stock")
+    suspend fun decreaseStock(@Path("id") id: Long, @Query("quantity") quantity: Int): Material
+
 }

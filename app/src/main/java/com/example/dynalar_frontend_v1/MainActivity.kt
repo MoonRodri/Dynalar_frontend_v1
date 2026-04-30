@@ -19,9 +19,11 @@ import androidx.navigation.navArgument
 import com.example.dynalar_frontend_v1.ui.AppRoutes
 import com.example.dynalar_frontend_v1.ui.screens.CalendarPage
 import com.example.dynalar_frontend_v1.ui.screens.CreateProfilePage
+import com.example.dynalar_frontend_v1.ui.screens.EditPatientPage
 import com.example.dynalar_frontend_v1.ui.screens.HomePage
 import com.example.dynalar_frontend_v1.ui.screens.ListPatientsScreen
 import com.example.dynalar_frontend_v1.ui.screens.ListProtocolsPage
+import com.example.dynalar_frontend_v1.ui.screens.ListStockPage
 import com.example.dynalar_frontend_v1.ui.screens.LoginPage
 import com.example.dynalar_frontend_v1.ui.screens.MaterialsHome
 import com.example.dynalar_frontend_v1.ui.screens.OdontogramPage
@@ -31,6 +33,7 @@ import com.example.dynalar_frontend_v1.ui.screens.PatientFileUploadPage
 import com.example.dynalar_frontend_v1.ui.screens.PatientFilesPage
 import com.example.dynalar_frontend_v1.ui.screens.ResumeDateScreen
 import com.example.dynalar_frontend_v1.ui.screens.ScheduleAppointmentPage
+import com.example.dynalar_frontend_v1.ui.screens.StockPage
 import com.example.dynalar_frontend_v1.ui.screens.ToothPage
 import com.example.dynalar_frontend_v1.ui.screens.UserProfilePage
 import com.example.dynalar_frontend_v1.ui.theme.Dynalar_frontend_v1Theme
@@ -97,11 +100,9 @@ class MainActivity : ComponentActivity() {
                         MaterialsHome(
                             onNavigateBack = { navController.popBackStack() },
                             onNavigateStock = {
-                                // TODO: Wire stock route when stock module routes are defined.
-                            },
+                                navController.navigate(AppRoutes.ListStock.route)                            },
                             onNavigateProtocolo = {
-                                // TODO: Wire protocol route when protocol module routes are defined.
-                            }
+                                navController.navigate(AppRoutes.ListProtocols.route)                            }
                         )
                     }
 
@@ -157,6 +158,12 @@ class MainActivity : ComponentActivity() {
                     }
 
 
+                    composable(
+                        route = AppRoutes.EditPatient.route,
+                        arguments = listOf(navArgument("patientId") { type = NavType.LongType })
+                    ) { backStackEntry ->
+                        val patientId = backStackEntry.arguments?.getLong("patientId") ?: -1L
+
                         LaunchedEffect(patientId) {
                             if (patientViewModel.selectedPatient?.id != patientId) {
                                 patientViewModel.getPatientById(patientId)
@@ -175,6 +182,35 @@ class MainActivity : ComponentActivity() {
                                 CircularProgressIndicator()
                             }
                         }
+                    }
+
+                    // PANTALLA DE STOCK
+                    composable(
+                        route = AppRoutes.ListStock.route
+                    ){
+                        ListStockPage(materialViewModel,
+                            onBack ={ navController.popBackStack() },
+                            onMaterialClick = {
+                                    material ->
+                                material.id?.let { id ->
+                                    navController.navigate(AppRoutes.StockPage.createRoute(id))
+                                }
+                            }
+                        )
+                    }
+
+                    composable(
+                        route = AppRoutes.StockPage.route,
+                        arguments = listOf(navArgument("materialId") { type = NavType.LongType })
+                    ) { backStackEntry ->
+
+                        val materialId = backStackEntry.arguments?.getLong("materialId") ?: 0L
+
+                        StockPage(
+                            materialId = materialId,
+                            viewModel = materialViewModel,
+                            onBack = { navController.popBackStack() }
+                        )
                     }
 
                     // PANTALLA DE PROTOCOLOS
