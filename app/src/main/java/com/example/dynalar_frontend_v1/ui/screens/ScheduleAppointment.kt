@@ -78,7 +78,7 @@ fun ScheduleAppointmentPage(
                             date = selectedDate,
                             hour = hour,
                             minute = minute,
-                            reason = description // <--- PASAMOS LA DESCRIPCIÓN AQUÍ
+                            reason = description
                         )
                     },
                     backgroundColor = if (canConfirm) ButtonPrimary else Color.Gray,
@@ -113,7 +113,6 @@ fun ScheduleAppointmentPage(
         }
     }
 }
-// ── COMPONENTES AUXILIARES (UI) ──
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TimeSlotGrid(slots: List<String>, selH: Int, selM: Int, onSelect: (Int, Int) -> Unit) {
