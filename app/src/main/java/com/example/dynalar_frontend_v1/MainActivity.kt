@@ -131,27 +131,43 @@ class MainActivity : ComponentActivity() {
 
                         val patient = patientViewModel.selectedPatient
                         if (patient != null) {
-                            val patientIdForFiles = patient.id ?: -1L
-                            val filesCount = patient.documents?.size ?: 0
-
                             PatientProfilePage(
                                 patient = patient,
+                                appointmentViewModel = appointmentViewModel, // Importante para cargar las citas
                                 onBackClick = { navController.popBackStack() },
                                 onOdontogramClick = {
-                                        val odontogramId = patient.odontogram?.id
-                                    if (odontogramId != null) {
-                                        navController.navigate(AppRoutes.OdontogramPage.createRoute(odontogramId))
+                                    patient.odontogram?.id?.let { id ->
+                                        navController.navigate(
+                                            AppRoutes.OdontogramPage.createRoute(
+                                                id
+                                            )
+                                        )
                                     }
+                                },
+                                onEditClick = { id ->
+                                    navController.navigate(AppRoutes.EditPatient.createRoute(id))
+                                },
+                                onAppointmentClick = { appointment ->
+                                    appointmentViewModel.selectedAppointment = appointment
+                                    navController.navigate(AppRoutes.ResumeDate.route)
                                 },
                                 onFilesClick = {
-                                    if (patientIdForFiles != -1L) {
-                                        navController.navigate(AppRoutes.PatientFiles.createRoute(patientIdForFiles))
+                                    patient.id?.let { id ->
+                                        navController.navigate(AppRoutes.PatientFiles.createRoute(id))
                                     }
                                 },
-                                filesCount = filesCount
+                                onCalendarClick = {
+                                    navController.navigate(AppRoutes.CalendarPage.route)
+                                },
+                                onDateInformationClick = {
+                                    // Aquí podrías navegar a un historial detallado si lo tienes
+                                }
                             )
                         } else {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
                                 CircularProgressIndicator()
                             }
                         }
