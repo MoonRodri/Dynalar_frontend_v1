@@ -137,7 +137,11 @@ class MainActivity : ComponentActivity() {
                                 onBackClick = { navController.popBackStack() },
                                 onOdontogramClick = {
                                     patient.odontogram?.id?.let { id ->
-                                        navController.navigate(AppRoutes.OdontogramPage.createRoute(id))
+                                        navController.navigate(
+                                            AppRoutes.OdontogramPage.createRoute(
+                                                id
+                                            )
+                                        )
                                     }
                                 },
                                 onEditClick = { id ->
@@ -160,7 +164,10 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         } else {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
                                 CircularProgressIndicator()
                             }
                         }

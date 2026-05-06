@@ -263,7 +263,10 @@ fun EmptyTreatmentsCard() {
         elevation = CardDefaults.cardElevation(2.dp),
         border = BorderStroke(1.dp, Color(0xFFF0F0F0))
     ) {
-        Column(modifier = Modifier.padding(24.dp).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            modifier = Modifier.padding(24.dp).fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Icon(Icons.Default.Info, null, tint = Color.LightGray, modifier = Modifier.size(28.dp))
             Spacer(modifier = Modifier.height(8.dp))
             Text("No hi ha tractaments registrats", color = Color.Gray, fontSize = 14.sp)
