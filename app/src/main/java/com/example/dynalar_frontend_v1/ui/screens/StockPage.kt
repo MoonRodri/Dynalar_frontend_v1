@@ -3,6 +3,7 @@ package com.example.dynalar_frontend_v1.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -14,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dynalar_frontend_v1.interfaces.InterfaceGlobal
@@ -52,11 +55,6 @@ fun StockPage(
                 is InterfaceGlobal.Success -> {
                     val material = uiState.data
 
-                    var tempStock by remember(material.availableStock) {
-                        mutableStateOf(material.availableStock)
-                    }
-                    val hasChanged = tempStock != material.availableStock
-
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -80,6 +78,13 @@ fun StockPage(
 
                         Spacer(modifier = Modifier.height(32.dp))
 
+                        var tempStockString by remember(material.availableStock) {
+                            mutableStateOf(material.availableStock.toString())
+                        }
+
+                        val tempStock = tempStockString.toIntOrNull() ?: 0
+                        val hasChanged = tempStock != material.availableStock
+
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FB)),
@@ -87,25 +92,51 @@ fun StockPage(
                         ) {
                             Column(
                                 modifier = Modifier.padding(16.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
+                                horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
                                 Text("Gestió d'Estoc", fontWeight = FontWeight.SemiBold, color = ButtonPrimary)
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(24.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(16.dp) // Espaciado ajustado
                                 ) {
                                     IconButton(
-                                        onClick = { if (tempStock > 0) tempStock-- },
+                                        onClick = {
+                                            if (tempStock > 0) tempStockString = (tempStock - 1).toString()
+                                        },
                                         modifier = Modifier.background(Color.White, RoundedCornerShape(8.dp))
                                     ) {
                                         Icon(Icons.Default.Remove, contentDescription = "Restar", tint = ButtonPrimary)
                                     }
 
-                                    Text(text = tempStock.toString(), fontSize = 32.sp, fontWeight = FontWeight.Bold)
+                                    OutlinedTextField(
+                                        value = tempStockString,
+                                        onValueChange = { newValue ->
+                                            if (newValue.isEmpty() || newValue.all { it.isDigit() }) {
+                                                tempStockString = newValue
+                                            }
+                                        },
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        textStyle = LocalTextStyle.current.copy(
+                                            fontSize = 24.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            textAlign = TextAlign.Center
+                                        ),
+                                        modifier = Modifier.width(100.dp),
+                                        singleLine = true,
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedBorderColor = ButtonPrimary,
+                                            unfocusedBorderColor = Color.Transparent,
+                                            focusedContainerColor = Color.White,
+                                            unfocusedContainerColor = Color.White
+                                        )
+                                    )
 
+                                    // Botón Sumar
                                     IconButton(
-                                        onClick = { tempStock++ },
+                                        onClick = {
+                                            tempStockString = (tempStock + 1).toString()
+                                        },
                                         modifier = Modifier.background(Color.White, RoundedCornerShape(8.dp))
                                     ) {
                                         Icon(Icons.Default.Add, contentDescription = "Sumar", tint = ButtonPrimary)
@@ -116,6 +147,7 @@ fun StockPage(
 
                         Spacer(modifier = Modifier.height(24.dp))
 
+                        // El botón de actualizar se mantiene igual, usará el 'tempStock' convertido a Int
                         Button(
                             onClick = {
                                 val diff = tempStock - material.availableStock

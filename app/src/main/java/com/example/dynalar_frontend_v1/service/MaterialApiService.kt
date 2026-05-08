@@ -1,6 +1,7 @@
 package com.example.dynalar_frontend_v1.service
 
 import com.example.dynalar_frontend_v1.model.Material
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -24,7 +25,7 @@ interface MaterialApiService {
     suspend fun updateMaterial(@Path("id") id: Long, @Body material: Material): Material
 
     @DELETE("material/{id}")
-    suspend fun deleteMaterial(@Path("id") id: Long)
+    suspend fun deleteMaterial(@Path("id") id: Long): Response<Unit>
 
     @PUT("material/{id}/increase-stock")
     suspend fun increaseStock(@Path("id") id: Long, @Query("quantity") quantity: Int): Material

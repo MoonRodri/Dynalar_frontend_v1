@@ -23,7 +23,10 @@ class MaterialRepository {
     }
 
     suspend fun deleteMaterial(id: Long) {
-        materialApiService.deleteMaterial(id)
+        val response = materialApiService.deleteMaterial(id)
+        if (!response.isSuccessful) {
+            throw Exception("Error al eliminar. Código HTTP: ${response.code()}")
+        }
     }
 
     suspend fun increaseStock(id: Long, quantity: Int){
