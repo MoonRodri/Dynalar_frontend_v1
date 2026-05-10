@@ -30,16 +30,18 @@ import com.example.dynalar_frontend_v1.ui.components.Navegate_Button
 import com.example.dynalar_frontend_v1.ui.components.CustomTopBar
 import com.example.dynalar_frontend_v1.ui.components.InputFieldEditable
 import com.example.dynalar_frontend_v1.ui.components.PhoneInputField
+import com.example.dynalar_frontend_v1.ui.components.SignaturePadControlled
+import com.example.dynalar_frontend_v1.ui.components.ValidationAndSignatureDialog
 import com.example.dynalar_frontend_v1.viewmodel.PatientViewModel
 
 @Composable
 fun CreateProfilePage(
-    onNavigateOdontogramaPage: () -> Unit,
+
     onNavigateBack: () -> Unit,
     patientViewModel: PatientViewModel = viewModel()
 ) {
     CreateProfileForm(
-        onNavigateOdontogramaPage = onNavigateOdontogramaPage,
+
         onNavigateBack = onNavigateBack,
         patientViewModel = patientViewModel
     )
@@ -47,7 +49,7 @@ fun CreateProfilePage(
 
 @Composable
 fun CreateProfileForm(
-    onNavigateOdontogramaPage: () -> Unit,
+
     onNavigateBack: () -> Unit,
     patientViewModel: PatientViewModel
 ) {
@@ -69,9 +71,53 @@ fun CreateProfileForm(
     var dentalConditions by remember { mutableStateOf("") }
     var medicalNotes by remember { mutableStateOf("") }
     var allergies by remember { mutableStateOf("") }
+    var infectiousDeceases by remember { mutableStateOf("") }
+    var showSignatureDialog by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
 
+
+    // En CreateProfile.kt
+    val performSave = { signature: String? ->
+        val newPatient = Patient(
+            name = name,
+            lastName = lastName,
+            email = email,
+            dni = dni,
+            sex = sex,
+            phone = "$countryCode $phone",
+            medicalRecord = MedicalRecord(
+                familyHistory = familyHistory,
+                allergies = allergies,
+                medication = medicalNotes,
+                deceases = dentalConditions,
+                infectiousDeceases = infectiousDeceases,
+                signatureBase64 = signature
+            )
+        )
+
+        // Pasamos una función lambda que se ejecutará solo tras el éxito
+        patientViewModel.createPatient(newPatient) {
+            Toast.makeText(context, "Pacient creat correctament", Toast.LENGTH_SHORT).show()
+            onNavigateBack() // Ahora sí, volvemos atrás
+        }
+    }
+
+    if (showSignatureDialog) {
+        // USAMOS EL COMPONENTE ESPECIALIZADO, NO UN ALERTDIALOG MANUAL
+        ValidationAndSignatureDialog(
+            infectiousDeceases = infectiousDeceases,
+            allergies = allergies,
+            onConfirm = { signatureBase64 ->
+                showSignatureDialog = false
+                performSave(signatureBase64) // Guarda con la firma
+            },
+            onDismiss = {
+                // Esto cierra el diálogo sin hacer nada (botón "Tornar")
+                showSignatureDialog = false
+            }
+        )
+    }
     Scaffold(
         bottomBar = {
             Surface(
@@ -87,6 +133,7 @@ fun CreateProfileForm(
                     Navegate_Button(
                         text = "Guarda i Continua",
                         onClick = {
+
                             if (name.isBlank() || lastName.isBlank() || email.isBlank() || dni.isBlank() || phone.isBlank()) {
                                 Toast.makeText(context, "Per favor, emplena tots els camps", Toast.LENGTH_SHORT).show()
                                 return@Navegate_Button
@@ -97,27 +144,7 @@ fun CreateProfileForm(
                                 Toast.makeText(context, "Correu electrònic invàlid", Toast.LENGTH_SHORT).show()
                                 return@Navegate_Button
                             }
-
-                            // Crear el objeto paciente incluyendo el Sexo
-                            val newPatient = Patient(
-                                name = name,
-                                lastName = lastName,
-                                email = email,
-                                dni = dni,
-                                sex = sex, // Se guarda el sexo seleccionado
-                                phone = "$countryCode $phone",
-                                medicalRecord = MedicalRecord(
-                                    familyHistory = familyHistory,
-                                    allergies = allergies,
-                                    medication = medicalNotes,
-                                    deceases = dentalConditions
-                                )
-                            )
-
-                            patientViewModel.createPatient(newPatient)
-
-                            Toast.makeText(context, "Pacient creat correctament", Toast.LENGTH_SHORT).show()
-                            onNavigateBack()
+                            showSignatureDialog = true
                         },
                     )
                 }
@@ -147,14 +174,19 @@ fun CreateProfileForm(
                         dni = dni, onDniChange = { dni = it },
                         countryCode = countryCode, onCountryCodeChange = { countryCode = it },
                         phone = phone, onPhoneChange = { phone = it },
-                        sex = sex, onSexChange = { sex = it } // Pasar estado de sexo
+                        sex = sex, onSexChange = { sex = it },
+
+
+                        // Pasar estado de sexo
                     )
                 } else {
                     InformationMedical(
                         familyHistory = familyHistory, onFamilyHistoryChange = { familyHistory = it },
                         dentalConditions = dentalConditions, onDentalConditionsChange = { dentalConditions = it },
                         medicalNotes = medicalNotes, onMedicalNotesChange = { medicalNotes = it },
-                        allergies = allergies, onAllergiesChange = { allergies = it }
+                        allergies = allergies, onAllergiesChange = { allergies = it },
+                        infectiousDeceases = infectiousDeceases,
+                        onInfectiousDeceasesChange = { infectiousDeceases = it }
                     )
                 }
             }
@@ -287,6 +319,9 @@ fun InformationPersonal(
                 onPhoneChange(filteredPhone)
             }
         )
+
+
+
     }
 }
 
@@ -295,7 +330,9 @@ fun InformationMedical(
     familyHistory: String, onFamilyHistoryChange: (String) -> Unit,
     dentalConditions: String, onDentalConditionsChange: (String) -> Unit,
     medicalNotes: String, onMedicalNotesChange: (String) -> Unit,
-    allergies: String, onAllergiesChange: (String) -> Unit
+    allergies: String, onAllergiesChange: (String) -> Unit,
+    infectiousDeceases: String, // Recibir parámetro
+    onInfectiousDeceasesChange: (String) -> Unit
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(20.dp),
@@ -325,5 +362,12 @@ fun InformationMedical(
             onValueChange = onAllergiesChange,
             placeholder = "Ej: Penicilina"
         )
+        InputFieldEditable(
+            label = "Malalties Infeccioses",
+            value = infectiousDeceases,
+            onValueChange = onInfectiousDeceasesChange,
+            placeholder = "Hepatitis, VIH, etc."
+        )
+
     }
 }

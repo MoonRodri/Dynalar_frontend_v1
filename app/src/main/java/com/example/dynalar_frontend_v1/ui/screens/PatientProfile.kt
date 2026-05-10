@@ -96,7 +96,7 @@ fun PatientProfilePage(
                 onDateInformationClick = onDateInformationClick,
                 onFilesClick = onFilesClick,
 
-            )
+                )
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -225,7 +225,7 @@ fun ActionGridSection(
                 modifier = Modifier.weight(1f),
                 onClick = onFilesClick
             )
-            ActionCard(title = "Historial", icon = Icons.Default.List, modifier = Modifier.weight(1f), onClick = onDateInformationClick)
+            ActionCard(title = "Historial Clínic", icon = Icons.Default.List, modifier = Modifier.weight(1f), onClick = onDateInformationClick)
         }
     }
 }

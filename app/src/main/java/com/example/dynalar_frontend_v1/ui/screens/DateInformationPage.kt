@@ -1,97 +1,142 @@
 package com.example.dynalar_frontend_v1.ui.screens
 
+import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FamilyRestroom
-import androidx.compose.material.icons.filled.MedicalServices
-import androidx.compose.material.icons.filled.Medication
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.filled.Coronavirus
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dynalar_frontend_v1.model.patient.Patient
 import com.example.dynalar_frontend_v1.ui.components.CustomTopBar
-import com.example.dynalar_frontend_v1.ui.components.Navegate_Button
+import com.example.dynalar_frontend_v1.ui.components.SignatureView
+import com.example.dynalar_frontend_v1.ui.components.ValidationAndSignatureDialog
+
+// Importamos tus colores de paleta
+val ButtonPrimary = Color(0xFF4A6D8C)
+val FondoPagina = Color(0xFFF7F6F4)
 
 @Composable
 fun DateInformationPage(
     patient: Patient,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onUpdatePatient: (Patient) -> Unit
 ) {
+    var showSignatureDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    if (showSignatureDialog) {
+        ValidationAndSignatureDialog(
+            infectiousDeceases = patient.medicalRecord?.infectiousDeceases,
+            allergies = patient.medicalRecord?.allergies,
+            onConfirm = { signatureBase64 ->
+                showSignatureDialog = false
+
+                // Creamos la copia actualizada
+                val updatedPatient = patient.copy(
+                    medicalRecord = patient.medicalRecord?.copy(
+                        signatureBase64 = signatureBase64
+                    )
+                )
+                onUpdatePatient(updatedPatient)
+                Toast.makeText(context, "Signatura guardada correctament", Toast.LENGTH_SHORT).show()
+            },
+            onDismiss = { showSignatureDialog = false }
+        )
+    }
     Scaffold(
         topBar = {
-            // Apliquem el fons i el marge superior directament a la TopBar
-            Column() {
+            Column(modifier = Modifier.background(FondoPagina)) {
                 Spacer(modifier = Modifier.height(27.dp))
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    CustomTopBar(
-                        title = "Historial Mèdic",
-                        onNavigateBack = onBackClick
-                    )
-                }
+                CustomTopBar(
+                    title = "Historial Mèdic",
+                    onNavigateBack = onBackClick
+                )
             }
         },
-        containerColor = Color(0xFFF8F9FA)
+        containerColor = FondoPagina
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
+                .padding(bottom = 32.dp) // Espacio final
         ) {
+            Spacer(modifier = Modifier.height(24.dp))
 
-            Spacer(modifier = Modifier.height(37.dp))
-
-            // Llista de targetes d'informació
             Column(
                 modifier = Modifier.padding(horizontal = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp) // Una mica més d'espai entre camps
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+
                 InfoCardReadOnly(
                     label = "Historial Familiar",
                     value = patient.medicalRecord?.familyHistory,
-                    icon = Icons.Default.FamilyRestroom,
-                    iconColor = Color(0xFF5C6BC0)
+                    icon = Icons.Default.FamilyRestroom
                 )
                 InfoCardReadOnly(
                     label = "Malalties i Condicions",
                     value = patient.medicalRecord?.deceases,
-                    icon = Icons.Default.MedicalServices,
-                    iconColor = Color(0xFFEF5350)
+                    icon = Icons.Default.MedicalServices
                 )
                 InfoCardReadOnly(
                     label = "Medicació",
                     value = patient.medicalRecord?.medication,
-                    icon = Icons.Default.Medication,
-                    iconColor = Color(0xFF66BB6A)
+                    icon = Icons.Default.Medication
                 )
                 InfoCardReadOnly(
                     label = "Al·lèrgies",
                     value = patient.medicalRecord?.allergies,
-                    icon = Icons.Default.Warning,
-                    iconColor = Color(0xFFFFA726)
+                    icon = Icons.Default.Warning
                 )
+                // Eliminada la duplicación, dejamos solo una tarjeta de infecciosas
                 InfoCardReadOnly(
                     label = "Malalties Infeccioses",
                     value = patient.medicalRecord?.infectiousDeceases,
-                    icon = Icons.Default.Coronavirus,
-                    iconColor = Color(0xFFAB47BC)
+                    icon = Icons.Default.Coronavirus
                 )
-            }
 
-            // Espai final per no xocar amb el botó inferior
-            Spacer(modifier = Modifier.height(50.dp))
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Sección de Firma
+                Text(
+                    text = "Consentiment",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.Black.copy(alpha = 0.6f),
+                    fontWeight = FontWeight.Bold
+                )
+
+                // Aplicamos estilo de card a la vista de la firma
+                OutlinedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.outlinedCardColors(containerColor = Color.White),
+                    border = BorderStroke(1.dp, SolidColor(Color.LightGray.copy(alpha = 0.4f))),
+                    elevation = CardDefaults.outlinedCardElevation(defaultElevation = 1.dp)
+                ) {
+                    Box(modifier = Modifier.padding(16.dp)) {
+                        SignatureView(signatureBase64 = patient.medicalRecord?.signatureBase64)
+                    }
+                }
+            }
         }
     }
 }
@@ -100,45 +145,54 @@ fun DateInformationPage(
 fun InfoCardReadOnly(
     label: String,
     value: String?,
-    icon: ImageVector,
-    iconColor: Color
+    icon: ImageVector
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        // Títol amb icona
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
-        ) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        // Label con estilo similar al PhoneInputField (Azul Dynalar suave)
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = iconColor,
-                modifier = Modifier.size(18.dp)
+                tint = ButtonPrimary,
+                modifier = Modifier.size(16.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = label,
+                style = MaterialTheme.typography.bodyLarge,
                 fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Gray
+                fontWeight = FontWeight.Medium,
+                color = Color.Black.copy(alpha = 0.7f)
             )
         }
 
-        // El "quadrat" que imita el disseny dels InputFields però de lectura
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            color = Color.White,
-            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE0E0E0)),
-            shadowElevation = 2.dp
+        // Card que imita el diseño de los OutlinedCard de tus inputs
+        OutlinedCard(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 48.dp),
+            shape = RoundedCornerShape(10.dp),
+            colors = CardDefaults.outlinedCardColors(containerColor = Color.White),
+            border = BorderStroke(1.dp, SolidColor(Color.LightGray.copy(alpha = 0.4f))),
+            elevation = CardDefaults.outlinedCardElevation(defaultElevation = 1.dp)
         ) {
-            Text(
-                text = if (value.isNullOrBlank()) "Sense dades" else value,
-                modifier = Modifier.padding(16.dp),
-                fontSize = 15.sp,
-                color = if (value.isNullOrBlank()) Color.LightGray else Color.Black,
-                lineHeight = 20.sp
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Text(
+                    text = if (value.isNullOrBlank()) "Sense dades registrades" else value,
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontSize = 15.sp,
+                        color = if (value.isNullOrBlank()) Color.LightGray else Color.Black.copy(alpha = 0.9f)
+                    )
+                )
+            }
         }
     }
 }

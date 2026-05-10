@@ -145,7 +145,6 @@ fun EditPatientPage(
                                         text = when(option) {
                                             Sex.MALE -> "Home"
                                             Sex.FEMALE -> "Dona"
-                                            Sex.OTHER -> "Altre"
                                         },
                                         isSelected = sex == option,
                                         onClick = { sex = option },
