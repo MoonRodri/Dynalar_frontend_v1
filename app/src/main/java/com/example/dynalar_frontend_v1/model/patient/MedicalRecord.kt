@@ -6,5 +6,6 @@ data class MedicalRecord(
     val medication: String? = null,
     val familyHistory: String? = null,
     val infectiousDeceases: String? = null,
-    val deceases: String? = null
+    val deceases: String? = null,
+    val signatureBase64: String? = null
 )

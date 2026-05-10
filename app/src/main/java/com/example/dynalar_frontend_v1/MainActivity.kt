@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,6 +20,7 @@ import androidx.navigation.navArgument
 import com.example.dynalar_frontend_v1.ui.AppRoutes
 import com.example.dynalar_frontend_v1.ui.screens.CalendarPage
 import com.example.dynalar_frontend_v1.ui.screens.CreateProfilePage
+import com.example.dynalar_frontend_v1.ui.screens.DateInformationPage
 import com.example.dynalar_frontend_v1.ui.screens.EditPatientPage
 import com.example.dynalar_frontend_v1.ui.screens.HomePage
 import com.example.dynalar_frontend_v1.ui.screens.ListPatientsScreen
@@ -63,7 +65,7 @@ class MainActivity : ComponentActivity() {
 
                 NavHost(
                     navController = navController,
-                    startDestination = AppRoutes.Login.route
+                    startDestination = AppRoutes.Home.route
                 ) {
 
                     composable(AppRoutes.Login.route) {
@@ -160,7 +162,9 @@ class MainActivity : ComponentActivity() {
                                     navController.navigate(AppRoutes.CalendarPage.route)
                                 },
                                 onDateInformationClick = {
-                                    // Aquí podrías navegar a un historial detallado si lo tienes
+                                    patient.id?.let { id ->
+                                        navController.navigate(AppRoutes.DateInformationPage.createRoute(id))
+                                    }
                                 }
                             )
                         } else {
@@ -172,7 +176,35 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
+                    composable(
+                        route = AppRoutes.DateInformationPage.route,
+                        arguments = listOf(navArgument("patientId") { type = NavType.LongType })
+                    ) { backStackEntry ->
+                        val patientId = backStackEntry.arguments?.getLong("patientId") ?: -1L
 
+                        LaunchedEffect(patientId) {
+                            if (patientId != -1L) {
+                                patientViewModel.getPatientById(patientId)
+                            }
+                        }
+
+                        val patient = patientViewModel.selectedPatient
+
+                        if (patient != null) {
+                            DateInformationPage(
+                                patient = patient,
+                                onBackClick = { navController.popBackStack() },
+                                onUpdatePatient = { updatedPatient ->
+                                    // Aquí es donde el ViewModel hace su trabajo
+                                    patientViewModel.updatePatient(updatedPatient)
+                                }
+                            )
+                        } else {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                    }
 
                     composable(
                         route = AppRoutes.EditPatient.route,
@@ -311,9 +343,6 @@ class MainActivity : ComponentActivity() {
 
                     composable(AppRoutes.CreateProfile.route) {
                         CreateProfilePage(
-                            onNavigateOdontogramaPage = {
-                                navController.navigate(AppRoutes.OdontogramPage.route)
-                            },
                             onNavigateBack = {
                                 navController.popBackStack()
                             },

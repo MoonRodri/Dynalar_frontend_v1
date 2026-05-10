@@ -20,7 +20,7 @@ class PatientViewModel: ViewModel() {
     private var filteredPatients: List<Patient> = emptyList()
     private val patientRepository = PatientRepository()
     private var allPatients: List<Patient> = emptyList()
-    private val pageSize = 10
+    private val pageSize = 100
     private var loadedPatients = 0
 
     var selectedPatient by mutableStateOf<Patient?>(null)
@@ -113,21 +113,24 @@ class PatientViewModel: ViewModel() {
         }
     }
 
-    fun createPatient(patient: Patient) {
+    fun createPatient(patient: Patient, onSuccess: () -> Unit) {
         viewModelScope.launch {
             try {
                 val response = patientRepository.createPatient(patient)
                 if (response.isSuccessful) {
+                    // 1. Recargamos la lista desde el servidor obligatoriamente
                     getPatients()
+
+                    // 2. Ejecutamos la navegación
+                    onSuccess()
                 } else {
-                    uiStatePatient = InterfaceGlobal.Error("No se pudo crear el paciente")
+                    uiStatePatient = InterfaceGlobal.Error("Error: ${response.code()}")
                 }
             } catch (e: Exception) {
                 uiStatePatient = InterfaceGlobal.Error(e.message)
             }
         }
     }
-
     fun searchPatients(query: String) {
         filteredPatients = if (query.isBlank()) allPatients
         else allPatients.filter {
