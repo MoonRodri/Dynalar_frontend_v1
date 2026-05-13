@@ -28,6 +28,9 @@ import java.io.ByteArrayOutputStream
 
 @Composable
 fun ValidationAndSignatureDialog(
+    title: String = "Validació i Consentiment",
+    consentTitle: String = "Consentiment Anestèsia:",
+    consentText: String? = null, // Si es null, usa el texto por defecto de anestesia
     infectiousDeceases: String?,
     allergies: String?,
     onConfirm: (signatureBase64: String) -> Unit,
@@ -40,13 +43,17 @@ fun ValidationAndSignatureDialog(
 
     val hasSigned = strokes.isNotEmpty()
 
+
+    val defaultConsentText = "Es confirma la revisió d'al·lèrgies (${allergies ?: "cap"}) i el consentiment per a l'ús d'anestèsics si fos necessari."
+    val finalConsentText = consentText ?: defaultConsentText
+
     AlertDialog(
         onDismissRequest = onDismiss,
         icon = {
             Icon(Icons.Default.Warning, contentDescription = null, tint = Color.Red)
         },
         title = {
-            Text("Validació i Consentiment", fontWeight = FontWeight.Bold)
+            Text(title, fontWeight = FontWeight.Bold)
         },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
@@ -59,9 +66,9 @@ fun ValidationAndSignatureDialog(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Text("Consentiment Anestèsia:", fontWeight = FontWeight.Bold)
+                Text(consentTitle, fontWeight = FontWeight.Bold)
                 Text(
-                    text = "Es confirma la revisió d'al·lèrgies (${allergies ?: "cap"}) i el consentiment per a l'ús d'anestèsics si fos necessari.",
+                    text = finalConsentText,
                     fontSize = 12.sp
                 )
 
@@ -103,14 +110,12 @@ fun ValidationAndSignatureDialog(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Opción Omitir (Sin firma)
                 TextButton(onClick = { onConfirm("") }) {
                     Text("Ometre firma", color = Color.Gray)
                 }
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Confirmar (Con firma)
                 Button(
                     enabled = hasSigned,
                     onClick = {
@@ -130,7 +135,6 @@ fun ValidationAndSignatureDialog(
         }
     )
 }
-
 @Composable
 fun SignaturePadControlled(
     resetKey: Int,

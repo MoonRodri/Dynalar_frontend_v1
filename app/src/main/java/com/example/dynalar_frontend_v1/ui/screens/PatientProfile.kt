@@ -1,5 +1,6 @@
 package com.example.dynalar_frontend_v1.ui.screens
 
+import PatientHeaderSection
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,7 +28,6 @@ import com.example.dynalar_frontend_v1.interfaces.InterfaceGlobal
 import com.example.dynalar_frontend_v1.model.Appointment
 import com.example.dynalar_frontend_v1.model.patient.Patient
 import com.example.dynalar_frontend_v1.ui.components.CustomTopBar
-import com.example.dynalar_frontend_v1.ui.components.PatientHeaderSection
 import com.example.dynalar_frontend_v1.viewmodel.AppointmentViewModel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter

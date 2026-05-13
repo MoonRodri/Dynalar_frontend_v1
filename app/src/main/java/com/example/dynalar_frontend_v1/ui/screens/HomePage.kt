@@ -139,7 +139,7 @@ fun CalendarHomepage(
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
     val today = LocalDate.now()
 
-    // --- ESTADO PARA EL SELECTOR DE FECHA MANUAL ---
+
     var showDatePicker by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -148,7 +148,6 @@ fun CalendarHomepage(
 
     val uiState = viewModel.uiStateCalendar
 
-    // Mapeamos las citas por fecha para acceso rápido
     val appointmentsByDate = remember(uiState) {
         if (uiState is InterfaceGlobal.Success) {
             val map = mutableMapOf<LocalDate, MutableList<Appointment>>()
@@ -223,7 +222,7 @@ fun CalendarHomepage(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // --- CABECERA CLICKABLE ---
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
@@ -344,7 +343,7 @@ fun CalendarHomepage(
         }
     }
 
-    //Calendario para cambiar dia manualmente
+
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = currentMonth.atDay(1)
@@ -356,7 +355,7 @@ fun CalendarHomepage(
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { millis ->
-                        // Usamos la ruta completa java.time... para evitar conflictos
+
                         val selectedDate = java.time.Instant.ofEpochMilli(millis)
                             .atZone(java.time.ZoneId.of("UTC")).toLocalDate()
                         currentMonth = YearMonth.from(selectedDate)

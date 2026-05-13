@@ -60,7 +60,7 @@ fun CreateProfileForm(
     var lastName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var dni by remember { mutableStateOf("") }
-    var sex by remember { mutableStateOf(Sex.MALE) } // Estado para el sexo
+    var sex by remember { mutableStateOf(Sex.MALE) }
 
     // Teléfono
     var countryCode by remember { mutableStateOf("+34") }
@@ -72,13 +72,15 @@ fun CreateProfileForm(
     var medicalNotes by remember { mutableStateOf("") }
     var allergies by remember { mutableStateOf("") }
     var infectiousDeceases by remember { mutableStateOf("") }
-    var showSignatureDialog by remember { mutableStateOf(false) }
+
+    // --- ESTADOS PARA LAS DOS FIRMAS ---
+    var signatureStep by remember { mutableStateOf(0) }
+    var tempAnesthesiaSignature by remember { mutableStateOf<String?>(null) }
 
     val context = LocalContext.current
 
-
     // En CreateProfile.kt
-    val performSave = { signature: String? ->
+    val performSave = { anesthesiaSig: String?, historySig: String? ->
         val newPatient = Patient(
             name = name,
             lastName = lastName,
@@ -92,30 +94,44 @@ fun CreateProfileForm(
                 medication = medicalNotes,
                 deceases = dentalConditions,
                 infectiousDeceases = infectiousDeceases,
-                signatureBase64 = signature
+                signatureBase64 = anesthesiaSig,          // Firma de Anestesia
+                signatureConfirmation = historySig        // Firma de Historial
             )
         )
 
-        // Pasamos una función lambda que se ejecutará solo tras el éxito
         patientViewModel.createPatient(newPatient) {
             Toast.makeText(context, "Pacient creat correctament", Toast.LENGTH_SHORT).show()
-            onNavigateBack() // Ahora sí, volvemos atrás
+            onNavigateBack()
         }
     }
 
-    if (showSignatureDialog) {
-        // USAMOS EL COMPONENTE ESPECIALIZADO, NO UN ALERTDIALOG MANUAL
+    if (signatureStep == 1) {
         ValidationAndSignatureDialog(
+            title = "Consentiment Anestèsia",
+            consentTitle = "Consentiment Anestèsia:",
             infectiousDeceases = infectiousDeceases,
             allergies = allergies,
-            onConfirm = { signatureBase64 ->
-                showSignatureDialog = false
-                performSave(signatureBase64) // Guarda con la firma
+            onConfirm = { signature ->
+                tempAnesthesiaSignature = signature // Guardamos temporalmente la primera
+                signatureStep = 2 // Pasamos al diálogo 2
             },
-            onDismiss = {
-                // Esto cierra el diálogo sin hacer nada (botón "Tornar")
-                showSignatureDialog = false
-            }
+            onDismiss = { signatureStep = 0 } // Cancelamos el proceso
+        )
+    } else if (signatureStep == 2) {
+        ValidationAndSignatureDialog(
+            title = "Confirmació d'Historial",
+            consentTitle = "Confirmació de dades:",
+            consentText = "El pacient confirma que les dades de l'historial mèdic, malalties i al·lèrgies revisades són correctes.",
+            infectiousDeceases = infectiousDeceases,
+            allergies = allergies,
+            onConfirm = { signature ->
+                val historySignature = signature
+                signatureStep = 0 // Cerramos diálogos
+
+                // CORRECCIÓN 2: Llamamos a performSave con ambas variables
+                performSave(tempAnesthesiaSignature, historySignature)
+            },
+            onDismiss = { signatureStep = 0 } // Cancelamos el proceso
         )
     }
     Scaffold(
@@ -144,7 +160,7 @@ fun CreateProfileForm(
                                 Toast.makeText(context, "Correu electrònic invàlid", Toast.LENGTH_SHORT).show()
                                 return@Navegate_Button
                             }
-                            showSignatureDialog = true
+                            signatureStep = 1
                         },
                     )
                 }

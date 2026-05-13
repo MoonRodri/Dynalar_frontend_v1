@@ -20,7 +20,7 @@ class PatientViewModel: ViewModel() {
     private var filteredPatients: List<Patient> = emptyList()
     private val patientRepository = PatientRepository()
     private var allPatients: List<Patient> = emptyList()
-    private val pageSize = 100
+    private val pageSize = 300
     private var loadedPatients = 0
 
     var selectedPatient by mutableStateOf<Patient?>(null)
@@ -29,6 +29,7 @@ class PatientViewModel: ViewModel() {
     var uploadState by mutableStateOf<InterfaceGlobal<Unit>>(InterfaceGlobal.Idle)
         private set
 
+    var isDeleteHintShown by mutableStateOf(false)
     // Obtener Pacientes
     fun getPatients() {
         viewModelScope.launch {
@@ -118,10 +119,10 @@ class PatientViewModel: ViewModel() {
             try {
                 val response = patientRepository.createPatient(patient)
                 if (response.isSuccessful) {
-                    // 1. Recargamos la lista desde el servidor obligatoriamente
+
                     getPatients()
 
-                    // 2. Ejecutamos la navegación
+
                     onSuccess()
                 } else {
                     uiStatePatient = InterfaceGlobal.Error("Error: ${response.code()}")

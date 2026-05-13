@@ -2,6 +2,7 @@ package com.example.dynalar_frontend_v1.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -19,7 +20,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Coronavirus
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -46,6 +50,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+
 import com.example.dynalar_frontend_v1.R
 import com.example.dynalar_frontend_v1.interfaces.InterfaceGlobal
 import com.example.dynalar_frontend_v1.model.patient.Patient
@@ -72,6 +77,7 @@ fun ListPatientsScreen(
     // Estados para controlar el pop-up de confirmación de borrado
     var showDeleteDialog by remember { mutableStateOf(false) }
     var patientToDelete by remember { mutableStateOf<Long?>(null) }
+
 
     LaunchedEffect(Unit) {
         viewModel.getPatients()
@@ -105,6 +111,7 @@ fun ListPatientsScreen(
                         .filter { !it.name.isNullOrBlank() }
                         .groupBy { it.name!!.first().uppercaseChar() }
 
+                    val firstPatientId = patients.values.firstOrNull()?.firstOrNull()?.id
                     LazyColumn(
                         modifier = Modifier.weight(1f).fillMaxWidth(),
                         contentPadding = PaddingValues(bottom = 24.dp)
@@ -112,8 +119,14 @@ fun ListPatientsScreen(
                         patients.forEach { (initial, patientList) ->
                             item { CharacterHeader(initial) }
 
+
                             items(patientList, key = { it.id ?: 0L }) { patient ->
+
+                                val isFirstElement = (patient.id == firstPatientId)
                                 SwipeToDeleteContainer(
+                                    enableHintAnimation = isFirstElement,
+                                    hintAlreadyShown = viewModel.isDeleteHintShown,
+                                    onHintShown = { viewModel.isDeleteHintShown = true },
                                     onDelete = {
                                         patientToDelete = patient.id
                                         showDeleteDialog = true
@@ -252,6 +265,14 @@ fun PatientItem(
     patient: Patient,
     onClick: (Patient) -> Unit
 ) {
+
+    val allergies = patient.medicalRecord?.allergies
+    val infectiousDeceases = patient.medicalRecord?.infectiousDeceases
+
+
+    val hasInfections = !infectiousDeceases.isNullOrBlank()
+    val hasAllergies = !allergies.isNullOrBlank()
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -269,7 +290,6 @@ fun PatientItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                // CAMBIO AQUÍ: Pasamos patient.id y patient.sex
                 painter = painterResource(id = getPatientImage(patient.id, patient.sex)),
                 contentDescription = "Pacient",
                 modifier = Modifier
@@ -280,12 +300,71 @@ fun PatientItem(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 Text(
                     text = "${patient.name ?: ""} ${patient.lastName ?: ""}",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium
                 )
+
+
+                if (hasInfections) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Coronavirus,
+                            contentDescription = null,
+                            tint = Color.Red,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = infectiousDeceases!!,
+                            color = Color.Red,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+
+                // --- 2. Alerta de Alergias ---
+                if (hasAllergies) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = null,
+                            tint = Color(0xFFE65100),
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Al·lèrgia: $allergies",
+                            color = Color(0xFFE65100),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+
+                // --- 3. Si está limpio (Sin alertas) ---
+                if (!hasInfections && !hasAllergies) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            tint = Color(0xFF388E3C),
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Sense alertes mèdiques",
+                            color = Color(0xFF388E3C),
+                            fontSize = 12.sp
+                        )
+                    }
+                }
             }
         }
     }

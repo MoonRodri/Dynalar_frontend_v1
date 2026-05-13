@@ -10,11 +10,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,14 +20,19 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.dynalar_frontend_v1.model.patient.MedicalRecord
 import com.example.dynalar_frontend_v1.model.patient.Patient
 import com.example.dynalar_frontend_v1.ui.components.CustomTopBar
 import com.example.dynalar_frontend_v1.ui.components.SignatureView
 import com.example.dynalar_frontend_v1.ui.components.ValidationAndSignatureDialog
 
-// Importamos tus colores de paleta
 val ButtonPrimary = Color(0xFF4A6D8C)
 val FondoPagina = Color(0xFFF7F6F4)
+
+
+enum class SignatureType {
+    ANESTHESIA, HISTORY
+}
 
 @Composable
 fun DateInformationPage(
@@ -39,28 +40,35 @@ fun DateInformationPage(
     onBackClick: () -> Unit,
     onUpdatePatient: (Patient) -> Unit
 ) {
-    var showSignatureDialog by remember { mutableStateOf(false) }
+
+    var activeSignatureType by remember { mutableStateOf<SignatureType?>(null) }
     val context = LocalContext.current
 
-    if (showSignatureDialog) {
+    if (activeSignatureType != null) {
+        val isAnesthesia = activeSignatureType == SignatureType.ANESTHESIA
+
         ValidationAndSignatureDialog(
+            title = if (isAnesthesia) "Consentiment Anestèsia" else "Confirmació d'Historial",
+            consentTitle = if (isAnesthesia) "Consentiment Anestèsia:" else "Confirmació de dades:",
+            consentText = if (isAnesthesia) null else "El pacient confirma que les dades de l'historial mèdic, malalties i al·lèrgies revisades són correctes.",
             infectiousDeceases = patient.medicalRecord?.infectiousDeceases,
             allergies = patient.medicalRecord?.allergies,
             onConfirm = { signatureBase64 ->
-                showSignatureDialog = false
+                val currentRecord = patient.medicalRecord ?: MedicalRecord()
+                val updatedRecord = if (isAnesthesia) {
+                    currentRecord.copy(signatureBase64 = signatureBase64)
+                } else {
+                    currentRecord.copy(signatureConfirmation = signatureBase64)
+                }
 
-                // Creamos la copia actualizada
-                val updatedPatient = patient.copy(
-                    medicalRecord = patient.medicalRecord?.copy(
-                        signatureBase64 = signatureBase64
-                    )
-                )
-                onUpdatePatient(updatedPatient)
+                onUpdatePatient(patient.copy(medicalRecord = updatedRecord))
+                activeSignatureType = null
                 Toast.makeText(context, "Signatura guardada correctament", Toast.LENGTH_SHORT).show()
             },
-            onDismiss = { showSignatureDialog = false }
+            onDismiss = { activeSignatureType = null }
         )
     }
+
     Scaffold(
         topBar = {
             Column(modifier = Modifier.background(FondoPagina)) {
@@ -78,7 +86,7 @@ fun DateInformationPage(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(bottom = 32.dp) // Espacio final
+                .padding(bottom = 32.dp)
         ) {
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -86,54 +94,76 @@ fun DateInformationPage(
                 modifier = Modifier.padding(horizontal = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-
-                InfoCardReadOnly(
-                    label = "Historial Familiar",
-                    value = patient.medicalRecord?.familyHistory,
-                    icon = Icons.Default.FamilyRestroom
-                )
-                InfoCardReadOnly(
-                    label = "Malalties i Condicions",
-                    value = patient.medicalRecord?.deceases,
-                    icon = Icons.Default.MedicalServices
-                )
-                InfoCardReadOnly(
-                    label = "Medicació",
-                    value = patient.medicalRecord?.medication,
-                    icon = Icons.Default.Medication
-                )
-                InfoCardReadOnly(
-                    label = "Al·lèrgies",
-                    value = patient.medicalRecord?.allergies,
-                    icon = Icons.Default.Warning
-                )
-                // Eliminada la duplicación, dejamos solo una tarjeta de infecciosas
-                InfoCardReadOnly(
-                    label = "Malalties Infeccioses",
-                    value = patient.medicalRecord?.infectiousDeceases,
-                    icon = Icons.Default.Coronavirus
-                )
+                InfoCardReadOnly(label = "Historial Familiar", value = patient.medicalRecord?.familyHistory, icon = Icons.Default.FamilyRestroom)
+                InfoCardReadOnly(label = "Malalties i Condicions", value = patient.medicalRecord?.deceases, icon = Icons.Default.MedicalServices)
+                InfoCardReadOnly(label = "Medicació", value = patient.medicalRecord?.medication, icon = Icons.Default.Medication)
+                InfoCardReadOnly(label = "Al·lèrgies", value = patient.medicalRecord?.allergies, icon = Icons.Default.Warning)
+                InfoCardReadOnly(label = "Malalties Infeccioses", value = patient.medicalRecord?.infectiousDeceases, icon = Icons.Default.Coronavirus)
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Sección de Firma
-                Text(
-                    text = "Consentiment",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.Black.copy(alpha = 0.6f),
-                    fontWeight = FontWeight.Bold
+
+                SignatureSection(
+                    title = "Consentiment Anestèsia",
+                    signatureBase64 = patient.medicalRecord?.signatureBase64,
+                    onRequestSignature = { activeSignatureType = SignatureType.ANESTHESIA }
                 )
 
-                // Aplicamos estilo de card a la vista de la firma
-                OutlinedCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.outlinedCardColors(containerColor = Color.White),
-                    border = BorderStroke(1.dp, SolidColor(Color.LightGray.copy(alpha = 0.4f))),
-                    elevation = CardDefaults.outlinedCardElevation(defaultElevation = 1.dp)
+
+                SignatureSection(
+                    title = "Confirmació d'Historial",
+                    signatureBase64 = patient.medicalRecord?.signatureConfirmation,
+                    onRequestSignature = { activeSignatureType = SignatureType.HISTORY }
+                )
+            }
+        }
+    }
+}
+
+
+@Composable
+fun SignatureSection(
+    title: String,
+    signatureBase64: String?,
+    onRequestSignature: () -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            color = Color.Black.copy(alpha = 0.6f),
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedCard(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.outlinedCardColors(containerColor = Color.White),
+            border = BorderStroke(1.dp, SolidColor(Color.LightGray.copy(alpha = 0.4f))),
+            elevation = CardDefaults.outlinedCardElevation(defaultElevation = 1.dp)
+        ) {
+
+            if (!signatureBase64.isNullOrBlank()) {
+
+                Box(modifier = Modifier.padding(16.dp)) {
+                    SignatureView(signatureBase64 = signatureBase64)
+                }
+            } else {
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Box(modifier = Modifier.padding(16.dp)) {
-                        SignatureView(signatureBase64 = patient.medicalRecord?.signatureBase64)
+                    Button(
+                        onClick = onRequestSignature,
+                        colors = ButtonDefaults.buttonColors(containerColor = ButtonPrimary)
+                    ) {
+                        Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Afegir Signatura")
                     }
                 }
             }
@@ -151,7 +181,6 @@ fun InfoCardReadOnly(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        // Label con estilo similar al PhoneInputField (Azul Dynalar suave)
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = icon,
@@ -169,7 +198,6 @@ fun InfoCardReadOnly(
             )
         }
 
-        // Card que imita el diseño de los OutlinedCard de tus inputs
         OutlinedCard(
             modifier = Modifier
                 .fillMaxWidth()
