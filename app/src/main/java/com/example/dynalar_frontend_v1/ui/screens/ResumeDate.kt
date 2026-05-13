@@ -1,5 +1,6 @@
 package com.example.dynalar_frontend_v1.ui.screens
 
+import PatientHeaderSectionApp
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,7 +21,6 @@ import com.example.dynalar_frontend_v1.model.Appointment
 import com.example.dynalar_frontend_v1.ui.components.AppointmentFormContent
 import com.example.dynalar_frontend_v1.ui.components.CustomTopBar
 import com.example.dynalar_frontend_v1.ui.components.Navegate_Button
-import com.example.dynalar_frontend_v1.ui.components.PatientHeaderSectionApp
 import com.example.dynalar_frontend_v1.ui.theme.ButtonPrimary
 import com.example.dynalar_frontend_v1.viewmodel.AppointmentViewModel
 import com.example.dynalar_frontend_v1.viewmodel.PatientViewModel

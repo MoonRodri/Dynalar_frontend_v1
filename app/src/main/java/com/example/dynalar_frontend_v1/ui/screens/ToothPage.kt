@@ -62,7 +62,7 @@ import com.example.dynalar_frontend_v1.viewmodel.OdontogramViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ToothPage(number: Int, odontogramId: Long, viewModel: OdontogramViewModel = viewModel(), onBack: () -> Unit) {
+fun ToothPage(number: Int, odontogramId: Long, viewModel: OdontogramViewModel = viewModel(), onBack: () -> Unit,) {
 
     var selectedSurface by remember { mutableStateOf(ToothSurface.NONE) }
     var selectedProcessStatus by remember { mutableStateOf<ProcessStatus?>(ProcessStatus.FET) }
@@ -184,25 +184,25 @@ fun ToothPage(number: Int, odontogramId: Long, viewModel: OdontogramViewModel = 
                 onDismissRequest = { showEntries = false },
                 sheetState = sheetState
             ) {
-                OdontogramEntries(entries = toothEntries, onDeleteEntry = {entryToRemove ->
 
-                val updatedEntries = entries.filterNot {
-                    it.tooth?.number == entryToRemove.tooth?.number &&
-                            it.surface == entryToRemove.surface &&
-                            it.dentalProcess?.name == entryToRemove.dentalProcess?.name
-                }
+                OdontogramEntries(
+                    entries = toothEntries,
+                    viewModel = viewModel,
+                    onDeleteEntry = { entryToRemove ->
+                        val updatedEntries = entries.filterNot {
+                            it.tooth?.number == entryToRemove.tooth?.number &&
+                                    it.surface == entryToRemove.surface &&
+                                    it.dentalProcess?.name == entryToRemove.dentalProcess?.name
+                        }
+                        val odontogramToUpdate = Odontogram(odontogramEntries = updatedEntries)
+                        viewModel.updateOdontogram(odontogramId, odontogramToUpdate)
 
-                val odontogramToUpdate = Odontogram(
-                    odontogramEntries = updatedEntries
+
+                        toothEntries = updatedEntries.filter { it.tooth?.number == number }
+                        displayEntries = updatedEntries.filter { it.tooth?.number == number }
+                    }
                 )
-
-                viewModel.updateOdontogram(odontogramId, odontogramToUpdate)
-
-                toothEntries = updatedEntries.filter { it.tooth?.number == number }
-                displayEntries = updatedEntries.filter { it.tooth?.number == number }
             }
-            )
-        }
         }
 
         Column(

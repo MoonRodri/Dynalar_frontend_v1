@@ -57,6 +57,8 @@ fun EditPatientPage(
     var dentalConditions by remember { mutableStateOf(patient.medicalRecord?.deceases ?: "") }
     var medicalNotes by remember { mutableStateOf(patient.medicalRecord?.medication ?: "") }
     var allergies by remember { mutableStateOf(patient.medicalRecord?.allergies ?: "") }
+    var infectiousDeceases by remember { mutableStateOf(patient.medicalRecord?.infectiousDeceases ?: "") }
+
 
     val context = LocalContext.current
 
@@ -186,6 +188,7 @@ fun EditPatientPage(
                         InputFieldEditable(label = "Condicions Dentals", value = dentalConditions, onValueChange = { dentalConditions = it })
                         InputFieldEditable(label = "Medicació", value = medicalNotes, onValueChange = { medicalNotes = it })
                         InputFieldEditable(label = "Al·lèrgies", value = allergies, onValueChange = { allergies = it })
+                        InputFieldEditable(label = "Enfermetats infecciosas", value = infectiousDeceases, onValueChange = { infectiousDeceases = it })
                     }
                 }
             }

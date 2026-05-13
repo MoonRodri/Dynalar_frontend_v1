@@ -101,6 +101,7 @@ fun OdontogramPage(
         ) {
             OdontogramEntries(
                 entries = filteredEntries,
+                viewModel = viewModel,
                 onDeleteEntry = { entryToRemove ->
 
                     val updatedEntries = entries.filterNot {
@@ -261,7 +262,8 @@ fun OdontogramPage(
 @Composable
 fun OdontogramEntries(
     entries: List<OdontogramEntry>,
-    onDeleteEntry: (OdontogramEntry) -> Unit
+    onDeleteEntry: (OdontogramEntry) -> Unit,
+    viewModel: OdontogramViewModel
 ) {
     var entryToDelete by remember { mutableStateOf<OdontogramEntry?>(null) }
 
@@ -299,9 +301,16 @@ fun OdontogramEntries(
                     .align(Alignment.CenterHorizontally)
             )
         } else {
+            val firstEntry = entries.firstOrNull()
+
             entries.forEach { entry ->
+                val isFirst = (entry == firstEntry)
                 SwipeToDeleteContainer(
-                    onDelete = { entryToDelete = entry }
+                    onDelete = { entryToDelete = entry },
+                    enableHintAnimation = isFirst,
+                    hintAlreadyShown = viewModel.isDeleteHintShown,
+                    onHintShown = { viewModel.isDeleteHintShown = true }
+
                 ) {
                     Box(modifier = Modifier.background(Color.White)) {
                         EntryItem(entry = entry)

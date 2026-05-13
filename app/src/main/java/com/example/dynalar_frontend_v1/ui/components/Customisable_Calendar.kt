@@ -1,12 +1,18 @@
 package com.example.dynalar_frontend_v1.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Coronavirus
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,6 +44,7 @@ import java.time.format.DateTimeFormatter
 import kotlin.collections.emptyList
 import com.example.dynalar_frontend_v1.R
 import java.util.Locale
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,16 +87,20 @@ fun DayAppointmentsDialog(
                         val patientName = "${appointment.patient?.name ?: ""} ${appointment.patient?.lastName ?: ""}".trim()
                         val allergies = appointment.patient?.medicalRecord?.allergies
                         val treatmentName = appointment.treatment?.name
+                        val infectiousDeceases = appointment.patient?.medicalRecord?.infectiousDeceases
+
+                        val hasInfections = !infectiousDeceases.isNullOrBlank()
+                        val hasAllergies = !allergies.isNullOrBlank()
 
                         Card(
                             colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F7FA)),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    onDismiss() // Cerramos el diálogo
-                                    onAppointmentClick(appointment) // Navegamos al detalle
+                                    onDismiss()
+                                    onAppointmentClick(appointment)
                                 }
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
@@ -99,48 +110,115 @@ fun DayAppointmentsDialog(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text(
-                                            text = time,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 15.sp,
-                                            color = ButtonPrimary
-                                        )
+                                        Surface( // Fondo para la hora para destacarla
+                                            color = ButtonPrimary.copy(alpha = 0.1f),
+                                            shape = RoundedCornerShape(8.dp)
+                                        ) {
+                                            Text(
+                                                text = time,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 15.sp,
+                                                color = ButtonPrimary,
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                            )
+                                        }
                                         Spacer(modifier = Modifier.width(12.dp))
                                         Text(
                                             text = patientName.ifEmpty { "Paciente Desconocido" },
-                                            fontWeight = FontWeight.SemiBold,
-                                            fontSize = 15.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 16.sp,
                                             color = TextoPrincipal
                                         )
                                     }
 
-                                    // Icono indicador de navegación
-                                    Icon(
-                                        imageVector = Icons.Default.ChevronRight,
-                                        contentDescription = "Ver detalles",
-                                        tint = Color.LightGray,
-                                        modifier = Modifier.size(20.dp)
-                                    )
+                                    // --- LA FLECHA MEJORADA ---
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = ButtonPrimary.copy(alpha = 0.1f),
+                                        modifier = Modifier.size(32.dp)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                imageVector = Icons.Default.ArrowForwardIos,
+                                                contentDescription = "Ver detalles",
+                                                tint = ButtonPrimary,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    }
                                 }
 
                                 if (!treatmentName.isNullOrBlank()) {
-                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Spacer(modifier = Modifier.height(12.dp))
                                     Text(
                                         text = "Tractament: $treatmentName",
-                                        fontSize = 13.sp,
+                                        fontSize = 14.sp,
                                         color = Color.DarkGray,
                                         fontWeight = FontWeight.Medium
                                     )
                                 }
 
-                                if (!allergies.isNullOrBlank()) {
-                                    Spacer(modifier = Modifier.height(6.dp))
-                                    Text(
-                                        text = "Alergias: $allergies",
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.ExtraBold,
-                                        color = Color(0xFFD32F2F)
-                                    )
+                                // --- ETIQUETAS VISUALES DE ALERTAS (ESTILO PÍLDORA) ---
+                                if (hasInfections || hasAllergies) {
+                                    Spacer(modifier = Modifier.height(10.dp))
+                                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+
+                                        // Etiqueta Infecciones
+                                        if (hasInfections) {
+                                            Surface(
+                                                color = Color.Red.copy(alpha = 0.1f),
+                                                shape = RoundedCornerShape(6.dp),
+                                                border = BorderStroke(1.dp, Color.Red.copy(alpha = 0.3f))
+                                            ) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Coronavirus,
+                                                        contentDescription = null,
+                                                        tint = Color.Red,
+                                                        modifier = Modifier.size(14.dp)
+                                                    )
+                                                    Spacer(modifier = Modifier.width(4.dp))
+                                                    Text(
+                                                        text = infectiousDeceases!!,
+                                                        color = Color.Red,
+                                                        fontSize = 12.sp,
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+                                                }
+                                            }
+                                        }
+
+                                        // Etiqueta Alergias
+                                        if (hasAllergies) {
+                                            Surface(
+                                                color = Color(0xFFE65100).copy(alpha = 0.1f),
+                                                shape = RoundedCornerShape(6.dp),
+                                                border = BorderStroke(1.dp, Color(0xFFE65100).copy(alpha = 0.3f))
+                                            ) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Warning,
+                                                        contentDescription = null,
+                                                        tint = Color(0xFFE65100),
+                                                        modifier = Modifier.size(14.dp)
+                                                    )
+                                                    Spacer(modifier = Modifier.width(4.dp))
+                                                    Text(
+                                                        text = "Al·lèrgies: $allergies",
+                                                        color = Color(0xFFE65100),
+                                                        fontSize = 12.sp,
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -169,7 +247,7 @@ fun AppointmentFormContent(
     endMinute: Int,
     onEndTimeChange: (Int, Int) -> Unit,
     selectedPatient: Patient? = null,
-    onPatientSelected: ((Patient) -> Unit)? = null, // Si es nulo, no muestra el selector de paciente
+    onPatientSelected: ((Patient) -> Unit)? = null,
     selectedTreatment: Treatment?,
     onTreatmentSelected: (Treatment) -> Unit,
     description: String,
@@ -180,7 +258,7 @@ fun AppointmentFormContent(
 ) {
     var showCalendar by remember { mutableStateOf(false) }
 
-    // --- CARGA AUTOMÁTICA DE DATOS ---
+
     LaunchedEffect(Unit) {
         treatmentViewModel.getTreatments()
         if (onPatientSelected != null) {
@@ -188,7 +266,7 @@ fun AppointmentFormContent(
         }
     }
 
-    // --- CARGA DE HUECOS (SLOTS) ---
+
     LaunchedEffect(selectedTreatment, selectedDate) {
         selectedTreatment?.id?.let { id ->
             val start = selectedDate.with(java.time.DayOfWeek.MONDAY)
@@ -198,7 +276,7 @@ fun AppointmentFormContent(
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        // Resumen horario
+
         Text(
             text = if (selectedTreatment != null) "%02d:%02d → %02d:%02d".format(hour, minute, endHour, endMinute)
             else "%02d:%02d → --:--".format(hour, minute),
@@ -206,7 +284,7 @@ fun AppointmentFormContent(
             modifier = Modifier.padding(bottom = 20.dp)
         )
 
-        // 1. DÍA Y HORA
+
         SectionLabel(icon = R.drawable.visita_tiempo, text = "Día y hora de la visita")
         Row(verticalAlignment = Alignment.CenterVertically) {
             EditableChip(
@@ -214,13 +292,13 @@ fun AppointmentFormContent(
                 onClick = { showCalendar = true }
             )
             Spacer(Modifier.width(10.dp))
-            EditableChip(text = "%02d:%02d".format(hour, minute), onClick = { /* Podrías abrir un TimePicker */ })
+            EditableChip(text = "%02d:%02d".format(hour, minute), onClick = {  })
             Spacer(Modifier.width(8.dp))
             Text("→", color = Color(0xFF90A4AE), fontWeight = FontWeight.Bold)
             Spacer(Modifier.width(8.dp))
             EditableChip(
                 text = if (selectedTreatment != null) "%02d:%02d".format(endHour, endMinute) else "--:--",
-                onClick = { /* Podrías abrir un TimePicker */ }
+                onClick = { }
             )
         }
 
@@ -294,7 +372,7 @@ fun AppointmentFormContent(
         )
     }
 
-    // --- DIÁLOGO DE CALENDARIO ---
+
     if (showCalendar) {
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = selectedDate.atStartOfDay(java.time.ZoneId.of("UTC")).toInstant().toEpochMilli()

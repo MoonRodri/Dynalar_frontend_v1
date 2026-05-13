@@ -1,5 +1,8 @@
 package com.example.dynalar_frontend_v1.viewmodel
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.dynalar_frontend_v1.model.odontogram.Odontogram
@@ -22,7 +25,8 @@ class OdontogramViewModel(): ViewModel(){
     private val odontogramRepository = OdontogramRepository()
 
     private val dentalProcessRepository = DentalProcessRepository()
-
+    // Dentro de OdontogramViewModel
+    var isDeleteHintShown by mutableStateOf(false)
     fun getOdontogramById(id: Long) {
         viewModelScope.launch {
             _odontogramUiState.value = OdontogramUiState.Loading
