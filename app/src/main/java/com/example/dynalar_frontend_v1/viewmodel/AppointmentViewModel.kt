@@ -57,11 +57,12 @@ class AppointmentViewModel : ViewModel() {
     /**
      * Busca huecos disponibles para un tratamiento y rango de fechas
      */
-    fun fetchSlots(treatmentId: Long, startDate: LocalDate, endDate: LocalDate) {
+    fun fetchSlots(patientId: Long, treatmentId: Long, startDate: LocalDate, endDate: LocalDate) {
         uiStateSlots = InterfaceGlobal.Loading
         viewModelScope.launch {
             try {
                 val request = SlotRequest(
+                    patientId = patientId,
                     treatmentId = treatmentId,
                     startDate = startDate.toString(),
                     endDate = endDate.toString()

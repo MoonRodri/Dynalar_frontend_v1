@@ -267,11 +267,14 @@ fun AppointmentFormContent(
     }
 
 
-    LaunchedEffect(selectedTreatment, selectedDate) {
-        selectedTreatment?.id?.let { id ->
+    LaunchedEffect(selectedTreatment, selectedDate, selectedPatient) {
+        val pId = selectedPatient?.id
+        val tId = selectedTreatment?.id
+
+        if (pId != null && tId != null) {
             val start = selectedDate.with(java.time.DayOfWeek.MONDAY)
             val end = start.plusDays(6)
-            appointmentViewModel.fetchSlots(id, start, end)
+            appointmentViewModel.fetchSlots(pId, tId, start, end)
         }
     }
 
