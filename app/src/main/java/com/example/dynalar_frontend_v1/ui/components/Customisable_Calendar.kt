@@ -329,9 +329,18 @@ fun AppointmentFormContent(
         SectionLabel(icon = R.drawable.visita_tratamientos, text = "Tratamiento")
         when (val tState = treatmentViewModel.uiStateTreatment) {
             is InterfaceGlobal.Success -> {
+                // Filtramos los tratamientos si el paciente no ha firmado la anestesia
+                val filteredTreatments = if (selectedPatient != null && selectedPatient.medicalRecord?.signatureBase64.isNullOrBlank()) {
+                    tState.data.filter { treatment ->
+                        treatment.materials?.none { it.material.name.contains("Anestesia", ignoreCase = true) } ?: true
+                    }
+                } else {
+                    tState.data
+                }
+
                 CustomisableDynamicDropdownMenu(
                     selectedItem = selectedTreatment,
-                    options = tState.data,
+                    options = filteredTreatments,
                     label = "Seleccionar tractament",
                     displayText = { it.name ?: "" },
                     onItemSelected = onTreatmentSelected
