@@ -53,6 +53,7 @@ fun DateInformationPage(
             consentText = if (isAnesthesia) null else "El pacient confirma que les dades de l'historial mèdic, malalties i al·lèrgies revisades són correctes.",
             infectiousDeceases = patient.medicalRecord?.infectiousDeceases,
             allergies = patient.medicalRecord?.allergies,
+            isOptional = isAnesthesia, // Si es anestesia es opcional, si es historial es obligatorio
             onConfirm = { signatureBase64 ->
                 val currentRecord = patient.medicalRecord ?: MedicalRecord()
                 val updatedRecord = if (isAnesthesia) {
