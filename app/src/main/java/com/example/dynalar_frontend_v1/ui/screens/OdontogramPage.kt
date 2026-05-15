@@ -22,6 +22,8 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Fill
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,6 +33,7 @@ import com.example.dynalar_frontend_v1.model.odontogram.OdontogramEntry
 import com.example.dynalar_frontend_v1.model.odontogram.OdontogramUiState
 import com.example.dynalar_frontend_v1.model.odontogram.ProcessStatus
 import com.example.dynalar_frontend_v1.model.odontogram.ToothSurface
+import com.example.dynalar_frontend_v1.model.odontogram.ToothSymbol
 import com.example.dynalar_frontend_v1.ui.components.CustomTopBar
 import com.example.dynalar_frontend_v1.ui.components.SwipeToDeleteContainer
 import com.example.dynalar_frontend_v1.viewmodel.OdontogramViewModel
@@ -528,7 +531,6 @@ fun OdontogramVerticalView(
             )
             Spacer(modifier = Modifier.height(12.dp))
         }
-
             Spacer(modifier = Modifier.height(32.dp))
         }
     }
@@ -719,13 +721,23 @@ fun MiniToothItem(number: Int, toothSize: Int, numberSize: Int = 10, entries: Li
         }
     }
 
-    fun getEntryColor(surface: ToothSurface): Color? {
-        val completEntry = toothEntries.find { it.surface == ToothSurface.COMPLET }
+    fun getEntryColorForSurface(surface: ToothSurface): Color? {
+        val completEntry = toothEntries.find { it?.surface == ToothSurface.COMPLET }
+
         if (completEntry != null) {
-            val color = getColorForEntry(completEntry)
-            if (color != null) return color
+            val symbol = getToothSymbol(toothEntries)
+
+            if (symbol != ToothSymbol.NONE) {
+                return null
+            }
+
+            val completColor = getColorForEntry(completEntry)
+            if (completColor != null) {
+                return completColor
+            }
         }
-        val entry = toothEntries.find { it.surface == surface }
+
+        val entry = toothEntries.find { it?.surface == surface }
         return entry?.let { getColorForEntry(it) }
     }
 
@@ -759,7 +771,7 @@ fun MiniToothItem(number: Int, toothSize: Int, numberSize: Int = 10, entries: Li
                 val pathCenter = Path().apply { moveTo(iTL.x, iTL.y); lineTo(iTR.x, iTR.y); lineTo(iBR.x, iBR.y); lineTo(iBL.x, iBL.y); close() }
 
                 fun paintSurface(path: Path, surface: ToothSurface) {
-                    val entryColor = getEntryColor(surface)
+                    val entryColor = getEntryColorForSurface(surface)
                     if (entryColor != null) {
                         drawPath(path = path, color = entryColor.copy(alpha = 0.7f), style = Fill)
                     }
@@ -793,17 +805,17 @@ fun MiniToothItem(number: Int, toothSize: Int, numberSize: Int = 10, entries: Li
                 val pathRight = Path().apply { moveTo(s, 0f); lineTo(s, s); lineTo(center.x, center.y); close() }
 
                 fun paintSurface(path: Path, surface: ToothSurface) {
-                    val entryColor = getEntryColor(surface)
+                    val entryColor = getEntryColorForSurface(surface)
                     if (entryColor != null) {
                         drawPath(path = path, color = entryColor.copy(alpha = 0.7f), style = Fill)
                     }
                     drawPath(path = path, color = black, style = Stroke(width = stroke / 2f))
                 }
 
-                paintSurface(pathTop,    if (isUpperPart) ToothSurface.VESTIBULAR else ToothSurface.LINGUAL)
-                paintSurface(pathBottom, if (isUpperPart) ToothSurface.LINGUAL    else ToothSurface.VESTIBULAR)
-                paintSurface(pathLeft,   if (isLeftPart)  ToothSurface.MESIAL     else ToothSurface.DISTAL)
-                paintSurface(pathRight,  if (isLeftPart)  ToothSurface.DISTAL     else ToothSurface.MESIAL)
+                paintSurface(pathTop, if (isUpperPart) ToothSurface.VESTIBULAR else ToothSurface.LINGUAL)
+                paintSurface(pathBottom, if (isUpperPart) ToothSurface.LINGUAL else ToothSurface.VESTIBULAR)
+                paintSurface(pathLeft, if (isLeftPart) ToothSurface.MESIAL else ToothSurface.DISTAL)
+                paintSurface(pathRight, if (isLeftPart) ToothSurface.DISTAL else ToothSurface.MESIAL)
 
                 drawRect(color = black, style = Stroke(width = stroke))
                 drawLine(black, Offset(0f, 0f), center, stroke)
@@ -811,7 +823,64 @@ fun MiniToothItem(number: Int, toothSize: Int, numberSize: Int = 10, entries: Li
                 drawLine(black, Offset(0f, s), center, stroke)
                 drawLine(black, Offset(s, s), center, stroke)
             }
-        }
+
+            val completEntry = toothEntries.find { it.surface == ToothSurface.COMPLET }
+            val symbol = getToothSymbol(toothEntries)
+
+            if (symbol != ToothSymbol.NONE && completEntry != null) {
+                val symbolColor = getColorForEntry(completEntry) ?: Color.Black
+                val symbolStroke = s * 0.16f
+
+                when (symbol) {
+                    ToothSymbol.X, ToothSymbol.X_ORT -> {
+                        drawLine(
+                            color = symbolColor,
+                            start = Offset(s * 0.15f, s * 0.15f),
+                            end = Offset(s * 0.85f, s * 0.85f),
+                            strokeWidth = symbolStroke
+                        )
+                        drawLine(
+                            color = symbolColor,
+                            start = Offset(s * 0.85f, s * 0.15f),
+                            end = Offset(s * 0.15f, s * 0.85f),
+                            strokeWidth = symbolStroke
+                        )
+                        if (symbol == ToothSymbol.X_ORT) {
+                            drawContext.canvas.nativeCanvas.drawText(
+                                "ORT",
+                                s * 0.5f,
+                                s * 0.95f,
+                                android.graphics.Paint().apply {
+                                    this.color = symbolColor.toArgb()
+                                    textSize = s * 0.25f
+                                    textAlign = android.graphics.Paint.Align.CENTER
+                                    isFakeBoldText = true
+                                }
+                            )
+                        }
+                    }
+                    ToothSymbol.E -> {
+                        val textPaint = android.graphics.Paint().apply {
+                            this.color = symbolColor.toArgb()
+                            textSize = s * 1.1f
+                            textAlign = android.graphics.Paint.Align.CENTER
+                            isFakeBoldText = true
+                            typeface = android.graphics.Typeface.SERIF
+                        }
+                        val centerY =
+                            (s / 2f) - ((textPaint.descent() + textPaint.ascent()) / 2f)
+
+                        drawContext.canvas.nativeCanvas.drawText(
+                            "E",
+                            s * 0.5f,
+                            centerY,
+                            textPaint
+                        )
+                    }
+                    else -> {}
+                    }
+                }
+            }
         Spacer(modifier = Modifier.height(2.dp))
         Text("$number", fontSize = numberSize.sp, color = Color.Red)
     }
