@@ -62,7 +62,16 @@ fun DateInformationPage(
                     currentRecord.copy(signatureConfirmation = signatureBase64)
                 }
 
-                onUpdatePatient(patient.copy(medicalRecord = updatedRecord))
+                val updatedPatient = if (isAnesthesia) {
+                    patient.copy(
+                        medicalRecord = updatedRecord,
+                        anesthesiaConsent = !signatureBase64.isNullOrBlank()
+                    )
+                } else {
+                    patient.copy(medicalRecord = updatedRecord)
+                }
+
+                onUpdatePatient(updatedPatient)
                 activeSignatureType = null
                 Toast.makeText(context, "Signatura guardada correctament", Toast.LENGTH_SHORT).show()
             },

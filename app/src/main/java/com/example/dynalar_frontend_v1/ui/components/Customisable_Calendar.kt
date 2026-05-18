@@ -330,9 +330,17 @@ fun AppointmentFormContent(
         when (val tState = treatmentViewModel.uiStateTreatment) {
             is InterfaceGlobal.Success -> {
                 // Filtramos los tratamientos si el paciente no ha firmado la anestesia
-                val filteredTreatments = if (selectedPatient != null && selectedPatient.medicalRecord?.signatureBase64.isNullOrBlank()) {
-                    tState.data.filter { treatment ->
-                        treatment.materials?.none { it.material.name.contains("Anestesia", ignoreCase = true) } ?: true
+                // Verificamos tanto el campo booleano como la existencia de la firma en el registro médico
+                val filteredTreatments = if (selectedPatient != null) {
+                    val hasSignedAnesthesia = selectedPatient.anesthesiaConsent == true || 
+                                              !selectedPatient.medicalRecord?.signatureBase64.isNullOrBlank()
+                    
+                    if (!hasSignedAnesthesia) {
+                        tState.data.filter { treatment ->
+                            treatment.materials?.none { it.material.name.contains("Anest", ignoreCase = true) } ?: true
+                        }
+                    } else {
+                        tState.data
                     }
                 } else {
                     tState.data

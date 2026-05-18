@@ -88,6 +88,7 @@ fun CreateProfileForm(
             dni = dni,
             sex = sex,
             phone = "$countryCode $phone",
+            anesthesiaConsent = !anesthesiaSig.isNullOrBlank(), // Marcamos el booleano si hay firma
             medicalRecord = MedicalRecord(
                 familyHistory = familyHistory,
                 allergies = allergies,
