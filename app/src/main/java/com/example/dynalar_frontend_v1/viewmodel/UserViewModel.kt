@@ -21,7 +21,7 @@ class UserViewModel: ViewModel() {
             _userUiState.value = LoginUiState.Loading
             try {
                 val users = userRepository.getAllUsers()
-                // Aquí puedes crear un estado específico si quieres listar varios usuarios
+
             } catch (e: Exception) {
                 e.printStackTrace()
                 _userUiState.value = LoginUiState.Error("Error al obtener usuarios")
@@ -29,7 +29,6 @@ class UserViewModel: ViewModel() {
         }
     }
 
-    // Función para obtener usuario por id
     fun getUserById(userId: Long) {
         viewModelScope.launch {
             _userUiState.value = LoginUiState.Loading

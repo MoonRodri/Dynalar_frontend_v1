@@ -52,7 +52,7 @@ fun DayAppointmentsDialog(
     date: LocalDate,
     appointments: List<Appointment>,
     onDismiss: () -> Unit,
-    onAppointmentClick: (Appointment) -> Unit // Parámetro para manejar la navegación
+    onAppointmentClick: (Appointment) -> Unit
 ) {
     val dateStr = date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
 
@@ -110,7 +110,7 @@ fun DayAppointmentsDialog(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Surface( // Fondo para la hora para destacarla
+                                        Surface(
                                             color = ButtonPrimary.copy(alpha = 0.1f),
                                             shape = RoundedCornerShape(8.dp)
                                         ) {
@@ -158,12 +158,12 @@ fun DayAppointmentsDialog(
                                     )
                                 }
 
-                                // --- ETIQUETAS VISUALES DE ALERTAS (ESTILO PÍLDORA) ---
+
                                 if (hasInfections || hasAllergies) {
                                     Spacer(modifier = Modifier.height(10.dp))
                                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
 
-                                        // Etiqueta Infecciones
+
                                         if (hasInfections) {
                                             Surface(
                                                 color = Color.Red.copy(alpha = 0.1f),
@@ -191,7 +191,7 @@ fun DayAppointmentsDialog(
                                             }
                                         }
 
-                                        // Etiqueta Alergias
+
                                         if (hasAllergies) {
                                             Surface(
                                                 color = Color(0xFFE65100).copy(alpha = 0.1f),
@@ -305,7 +305,7 @@ fun AppointmentFormContent(
             )
         }
 
-        // 2. PACIENTE
+
         if (onPatientSelected != null) {
             Spacer(Modifier.height(28.dp))
             SectionLabel(icon = R.drawable.visita_paciente, text = "Paciente")
@@ -358,7 +358,7 @@ fun AppointmentFormContent(
             else -> UnavailableChip("No hi ha tractaments disponibles")
         }
 
-        // 4. SLOTS DISPONIBLES
+
         if (selectedTreatment != null) {
             Spacer(Modifier.height(28.dp))
             SectionLabel(icon = R.drawable.visita_tiempo, text = "Horaris Disponibles")
@@ -376,7 +376,7 @@ fun AppointmentFormContent(
             }
         }
 
-        // 5. NOTAS
+
         Spacer(Modifier.height(28.dp))
         SectionLabel(icon = R.drawable.visita_descripcion, text = "Notas")
         OutlinedTextField(

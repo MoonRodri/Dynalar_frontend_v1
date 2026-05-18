@@ -6,6 +6,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -88,7 +90,7 @@ fun HomePage(
             val nowTime = LocalTime.now()
 
             var citasHoyCount = 0
-            var nextAppointment: Appointment? = null
+            var nextAppointments = emptyList<Appointment>()
 
             if (uiState is InterfaceGlobal.Success) {
                 val todayAppointments = uiState.data.filter {
@@ -96,21 +98,29 @@ fun HomePage(
                 }
                 citasHoyCount = todayAppointments.size
 
-                nextAppointment = todayAppointments.minByOrNull { appt ->
-                    try {
-                        val timeStr = appt.startTime?.replace("T", " ")?.split(" ")?.lastOrNull()?.take(5) ?: "23:59"
-                        val parts = timeStr.split(":")
-                        val apptMinutes = parts[0].toInt() * 60 + parts[1].toInt()
-                        val currentMinutes = nowTime.hour * 60 + nowTime.minute
+                if (todayAppointments.isNotEmpty()) {
 
-                        if (apptMinutes >= currentMinutes) {
-                            apptMinutes - currentMinutes
-                        } else {
-                            10000 + (currentMinutes - apptMinutes)
-                        }
-                    } catch (e: Exception) {
-                        99999
+                    val groupedByTime = todayAppointments.groupBy { appt ->
+                        appt.startTime?.replace("T", " ")?.split(" ")?.lastOrNull()?.take(5) ?: "23:59"
                     }
+
+
+                    val bestGroup = groupedByTime.minByOrNull { (timeStr, _) ->
+                        try {
+                            val parts = timeStr.split(":")
+                            val apptMinutes = parts[0].toInt() * 60 + parts[1].toInt()
+                            val currentMinutes = nowTime.hour * 60 + nowTime.minute
+
+                            if (apptMinutes >= currentMinutes) {
+                                apptMinutes - currentMinutes
+                            } else {
+                                10000 + (currentMinutes - apptMinutes)
+                            }
+                        } catch (e: Exception) {
+                            99999
+                        }
+                    }
+                    nextAppointments = bestGroup?.value ?: emptyList()
                 }
             }
 
@@ -139,7 +149,7 @@ fun HomePage(
             Spacer(modifier = Modifier.height(40.dp))
 
             NextAppointmentSection(
-                nextAppointment = nextAppointment,
+                nextAppointments = nextAppointments,
                 onPatientClick = { patientId ->
                     onNavigateToPatientProfile(patientId)
                 }
@@ -181,115 +191,40 @@ fun GreetingSection(citasHoy: Int) {
 
 @Composable
 fun NextAppointmentSection(
-    nextAppointment: Appointment?,
+    nextAppointments: List<Appointment>,
     onPatientClick: (Long) -> Unit
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+        modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.Start
     ) {
         Text(
             text = "Pròxima Cita",
             fontWeight = FontWeight.Bold,
             color = Color(0xFF2C3E50),
-            fontSize = 18.sp
+            fontSize = 18.sp,
+            modifier = Modifier.padding(horizontal = 24.dp) // Padding movido aquí
         )
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-        if (nextAppointment != null) {
-            val timeStr = nextAppointment.startTime?.split("T", " ")?.lastOrNull()?.substring(0, 5) ?: "--:--"
-            val patientName = "${nextAppointment.patient?.name ?: "Pacient"} ${nextAppointment.patient?.lastName ?: ""}".trim()
-            val treatmentName = nextAppointment.treatment?.name ?: "Sense especificar"
+        if (nextAppointments.isNotEmpty()) {
 
-            // Extraer Alergias y Enfermedades Infecciosas
-            val allergies = nextAppointment.patient?.medicalRecord?.allergies
-            val infectiousDeceases = nextAppointment.patient?.medicalRecord?.infectiousDeceases
-
-            Surface(
+            LazyRow(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                color = Color.White,
-                shadowElevation = 2.dp
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(horizontal = 24.dp)
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            nextAppointment.patient?.id?.let { patientId ->
-                                onPatientClick(patientId)
-                            }
-                        }
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(55.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFFE3F2FD)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = timeStr,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1A5BB2),
-                            fontSize = 16.sp
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = patientName,
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF2C3E50),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            text = treatmentName,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-
-                        // Alertas Médicas en Rojo
-                        if (!allergies.isNullOrBlank()) {
-                            Text(
-                                text = "Al·lèrgies: $allergies",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = Color(0xFFF57C00),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-
-                        if (!infectiousDeceases.isNullOrBlank()) {
-                            Text(
-                                text = "Infeccioses: $infectiousDeceases",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = Color(0xFFD32F2F),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
-
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowRight,
-                        contentDescription = "Veure perfil",
-                        tint = Color(0xFF1A5BB2)
+                items(nextAppointments) { appointment ->
+                    NextAppointmentCardItem(
+                        appointment = appointment,
+                        modifier = Modifier.fillParentMaxWidth(if (nextAppointments.size > 1) 0.85f else 1f),
+                        onPatientClick = onPatientClick
                     )
                 }
             }
         } else {
             Surface(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
                 shape = RoundedCornerShape(16.dp),
                 color = Color.Transparent,
                 border = BorderStroke(1.dp, Color(0xFFE0E0E0))
@@ -323,6 +258,111 @@ fun NextAppointmentSection(
     }
 }
 
+@Composable
+fun NextAppointmentCardItem(
+    appointment: Appointment,
+    modifier: Modifier = Modifier,
+    onPatientClick: (Long) -> Unit
+) {
+    val timeStr = appointment.startTime?.split("T", " ")?.lastOrNull()?.substring(0, 5) ?: "--:--"
+    val patientName = "${appointment.patient?.name ?: "Pacient"} ${appointment.patient?.lastName ?: ""}".trim()
+    val treatmentName = appointment.treatment?.name ?: "Sense especificar"
+
+    // EXTRAEMOS EL BOX
+    val boxInfo = appointment.box?.number?.let { "Box $it" } ?: ""
+
+    // EXTRAEMOS ALERGIAS E INFECCIONES
+    val allergies = appointment.patient?.medicalRecord?.allergies
+    val infectiousDeceases = appointment.patient?.medicalRecord?.infectiousDeceases
+
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        color = Color.White,
+        shadowElevation = 2.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    appointment.patient?.id?.let { patientId ->
+                        onPatientClick(patientId)
+                    }
+                }
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(45.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFFE3F2FD)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = timeStr,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1A5BB2),
+                    fontSize = 14.sp
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+
+                Text(
+                    text = patientName.ifEmpty { "Desconegut" },
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF2C3E50),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+
+                Text(
+                    text = if (boxInfo.isNotEmpty()) "$boxInfo | $treatmentName" else treatmentName,
+                    fontSize = 11.sp,
+                    color = Color.Gray,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+
+                if (!allergies.isNullOrBlank()) {
+                    Text(
+                        text = "Al·lèrgies: $allergies",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color(0xFFF57C00),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+
+                if (!infectiousDeceases.isNullOrBlank()) {
+                    Text(
+                        text = "Infeccioses: $infectiousDeceases",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color(0xFFD32F2F),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowRight,
+                contentDescription = "Veure perfil",
+                tint = Color(0xFF1A5BB2),
+                modifier = Modifier.size(18.dp)
+            )
+        }
+    }
+}
 @Composable
 fun Header_HomePage(onNavigateProfileUserProfile: () -> Unit) {
     Row(
@@ -532,7 +572,7 @@ fun Buttons_HomePage(modifier: Modifier = Modifier, onNavigateListPacient: () ->
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             CardMenuButton(
                 icon = Icons.Default.Inventory,
-                title = "Materials",
+                title = "Gestió",
                 onClick = onNavigateBoxMaterials,
                 modifier = Modifier.fillMaxWidth()
             )

@@ -88,7 +88,7 @@ fun Navegate_Button(
     Button(
         onClick = onClick,
         modifier = if (fillMaxWidth) modifier.fillMaxWidth() else modifier,
-        enabled = enabled, // Importante para bloquearlo durante la carga
+        enabled = enabled,
         shape = RoundedCornerShape(cornerRadius),
         colors = ButtonDefaults.buttonColors(
             containerColor = backgroundColor,
@@ -252,6 +252,21 @@ fun <T> CustomisableDynamicDropdownMenu(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
+
+    var searchText by remember {
+        mutableStateOf(selectedItem?.let { displayText(it) } ?: "")
+    }
+
+
+    LaunchedEffect(selectedItem) {
+        searchText = selectedItem?.let { displayText(it) } ?: ""
+    }
+
+
+    val filteredOptions = options.filter {
+        displayText(it).contains(searchText, ignoreCase = true)
+    }
+
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = !expanded },
@@ -259,37 +274,45 @@ fun <T> CustomisableDynamicDropdownMenu(
     ) {
 
         OutlinedTextField(
-            readOnly = true,
-            value = selectedItem?.let { displayText(it) } ?: "",
-            onValueChange = {},
-            label = { Text(label, fontWeight = FontWeight.Bold) }, // Etiqueta unificada a Bold
+            readOnly = false,
+            value = searchText,
+            onValueChange = {
+                searchText = it
+                expanded = true
+            },
+            label = { Text(label, fontWeight = FontWeight.Bold) },
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded)
             },
             modifier = Modifier
-
                 .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable, true)
                 .fillMaxWidth()
         )
 
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
 
-            options.forEach { item ->
-                DropdownMenuItem(
-                    text = { Text(displayText(item)) },
-                    onClick = {
-                        expanded = false
-                        onItemSelected(item)
-                    }
-                )
+        if (filteredOptions.isNotEmpty()) {
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = {
+                    expanded = false
+
+                    searchText = selectedItem?.let { displayText(it) } ?: ""
+                }
+            ) {
+                filteredOptions.forEach { item ->
+                    DropdownMenuItem(
+                        text = { Text(displayText(item)) },
+                        onClick = {
+                            searchText = displayText(item)
+                            expanded = false
+                            onItemSelected(item) // Llama al callback original
+                        }
+                    )
+                }
             }
         }
     }
 }
-
 
 //Forma de arriba de los perfiles
 @Composable

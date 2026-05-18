@@ -20,12 +20,7 @@ val patientImages = listOf(
     R.drawable.usuario12  // Índice 11
 )
 
-/**
- * Devuelve una imagen basada en el sexo y el ID del paciente.
- * Mujer: 1, 4, 5, 6, 7, 8, 11
- * Hombre: 2, 3, 9, 10, 12
- * Other: Cualquiera (1-12)
- */
+
 fun getPatientImage(patientId: Long?, sex: Sex?): Int {
     val id = patientId ?: 0L
 
@@ -38,7 +33,7 @@ fun getPatientImage(patientId: Long?, sex: Sex?): Int {
             )
             femaleOptions[(id % femaleOptions.size).toInt()]
         }
-        // Per defecte, si no és FEMALE, tractem com a MALE
+
         else -> {
             val maleOptions = listOf(
                 R.drawable.usuario2, R.drawable.usuario3, R.drawable.usuario9,

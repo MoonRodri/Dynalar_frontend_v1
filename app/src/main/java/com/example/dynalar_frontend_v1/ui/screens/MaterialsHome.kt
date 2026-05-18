@@ -32,12 +32,12 @@ fun MaterialsHome(
             .fillMaxSize()
             .background(Color(0xFFF8F9FA))
     ) {
-        // 1. Margen superior real
+
         Spacer(modifier = Modifier.height(27.dp))
 
-        // 2. La barra superior
+
         CustomTopBar(
-            title = "Gestió de Materials",
+            title = "Gestió",
             onNavigateBack = onNavigateBack,
             modifier = Modifier.fillMaxWidth()
         )

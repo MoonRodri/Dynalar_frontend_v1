@@ -25,7 +25,7 @@ class OdontogramViewModel(): ViewModel(){
     private val odontogramRepository = OdontogramRepository()
 
     private val dentalProcessRepository = DentalProcessRepository()
-    // Dentro de OdontogramViewModel
+
     var isDeleteHintShown by mutableStateOf(false)
     fun getOdontogramById(id: Long) {
         viewModelScope.launch {
