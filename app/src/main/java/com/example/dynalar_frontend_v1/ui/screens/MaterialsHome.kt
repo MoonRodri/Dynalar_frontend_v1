@@ -18,6 +18,7 @@ import com.example.dynalar_frontend_v1.R
 import com.example.dynalar_frontend_v1.ui.components.CustomTopBar
 import com.example.dynalar_frontend_v1.ui.components.CustomisableButtonMaterials
 
+
 @Composable
 fun MaterialsHome(
     onNavigateBack: () -> Unit,
