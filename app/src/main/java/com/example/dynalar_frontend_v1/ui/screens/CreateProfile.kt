@@ -73,7 +73,7 @@ fun CreateProfileForm(
     var allergies by remember { mutableStateOf("") }
     var infectiousDeceases by remember { mutableStateOf("") }
 
-    // --- ESTADOS PARA LAS DOS FIRMAS ---
+
     var signatureStep by remember { mutableStateOf(0) }
     var tempAnesthesiaSignature by remember { mutableStateOf<String?>(null) }
 
@@ -88,15 +88,15 @@ fun CreateProfileForm(
             dni = dni,
             sex = sex,
             phone = "$countryCode $phone",
-            anesthesiaConsent = !anesthesiaSig.isNullOrBlank(), // Marcamos el booleano si hay firma
+            anesthesiaConsent = !anesthesiaSig.isNullOrBlank(),
             medicalRecord = MedicalRecord(
                 familyHistory = familyHistory,
                 allergies = allergies,
                 medication = medicalNotes,
                 deceases = dentalConditions,
                 infectiousDeceases = infectiousDeceases,
-                signatureBase64 = anesthesiaSig,          // Firma de Anestesia
-                signatureConfirmation = historySig        // Firma de Historial
+                signatureBase64 = anesthesiaSig,
+                signatureConfirmation = historySig
             )
         )
 
@@ -128,9 +128,9 @@ fun CreateProfileForm(
             isOptional = false,
             onConfirm = { signature ->
                 val historySignature = signature
-                signatureStep = 0 // Cerramos diálogos
+                signatureStep = 0
 
-                // CORRECCIÓN 2: Llamamos a performSave con ambas variables
+
                 performSave(tempAnesthesiaSignature, historySignature)
             },
             onDismiss = { signatureStep = 0 } // Cancelamos el proceso
@@ -160,6 +160,16 @@ fun CreateProfileForm(
                             val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-zA-Z]{2,}\$".toRegex()
                             if (!email.matches(emailRegex)) {
                                 Toast.makeText(context, "Correu electrònic invàlid", Toast.LENGTH_SHORT).show()
+                                return@Navegate_Button
+                            }
+                            val phoneRegex = "^[0-9]{9}\$".toRegex()
+                            if (!phone.trim().matches(phoneRegex)) {
+                                Toast.makeText(context, "Format de telèfon invàlid (han de ser 9 dígits)", Toast.LENGTH_SHORT).show()
+                                return@Navegate_Button
+                            }
+                            val dniRegex = "^[XYZxyz]?\\d{7,8}[A-Za-z]\$".toRegex()
+                            if (!dni.trim().matches(dniRegex)) {
+                                Toast.makeText(context, "Format de DNI o NIE invàlid", Toast.LENGTH_SHORT).show()
                                 return@Navegate_Button
                             }
                             signatureStep = 1
@@ -195,7 +205,7 @@ fun CreateProfileForm(
                         sex = sex, onSexChange = { sex = it },
 
 
-                        // Pasar estado de sexo
+
                     )
                 } else {
                     InformationMedical(
@@ -284,7 +294,7 @@ fun InformationPersonal(
         InputFieldEditable(label = "Nom", value = name, onValueChange = onNameChange, placeholder = "Nom")
         InputFieldEditable(label = "Cognoms", value = lastName, onValueChange = onLastNameChange, placeholder = "Cognoms")
 
-        // --- SELECTOR DE SEXO ---
+
         Column {
             Text(
                 text = "Sexe",
