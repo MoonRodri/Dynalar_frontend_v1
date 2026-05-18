@@ -329,9 +329,26 @@ fun AppointmentFormContent(
         SectionLabel(icon = R.drawable.visita_tratamientos, text = "Tratamiento")
         when (val tState = treatmentViewModel.uiStateTreatment) {
             is InterfaceGlobal.Success -> {
+                // Filtramos los tratamientos si el paciente no ha firmado la anestesia
+                // Verificamos tanto el campo booleano como la existencia de la firma en el registro médico
+                val filteredTreatments = if (selectedPatient != null) {
+                    val hasSignedAnesthesia = selectedPatient.anesthesiaConsent == true || 
+                                              !selectedPatient.medicalRecord?.signatureBase64.isNullOrBlank()
+                    
+                    if (!hasSignedAnesthesia) {
+                        tState.data.filter { treatment ->
+                            treatment.materials?.none { it.material.name.contains("Anest", ignoreCase = true) } ?: true
+                        }
+                    } else {
+                        tState.data
+                    }
+                } else {
+                    tState.data
+                }
+
                 CustomisableDynamicDropdownMenu(
                     selectedItem = selectedTreatment,
-                    options = tState.data,
+                    options = filteredTreatments,
                     label = "Seleccionar tractament",
                     displayText = { it.name ?: "" },
                     onItemSelected = onTreatmentSelected

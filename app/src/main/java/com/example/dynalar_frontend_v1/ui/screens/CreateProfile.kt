@@ -88,6 +88,7 @@ fun CreateProfileForm(
             dni = dni,
             sex = sex,
             phone = "$countryCode $phone",
+            anesthesiaConsent = !anesthesiaSig.isNullOrBlank(), // Marcamos el booleano si hay firma
             medicalRecord = MedicalRecord(
                 familyHistory = familyHistory,
                 allergies = allergies,
@@ -124,6 +125,7 @@ fun CreateProfileForm(
             consentText = "El pacient confirma que les dades de l'historial mèdic, malalties i al·lèrgies revisades són correctes.",
             infectiousDeceases = infectiousDeceases,
             allergies = allergies,
+            isOptional = false,
             onConfirm = { signature ->
                 val historySignature = signature
                 signatureStep = 0 // Cerramos diálogos

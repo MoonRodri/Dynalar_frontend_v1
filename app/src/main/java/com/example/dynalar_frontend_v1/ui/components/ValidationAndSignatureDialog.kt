@@ -33,6 +33,7 @@ fun ValidationAndSignatureDialog(
     consentText: String? = null, // Si es null, usa el texto por defecto de anestesia
     infectiousDeceases: String?,
     allergies: String?,
+    isOptional: Boolean = true,
     onConfirm: (signatureBase64: String) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -110,11 +111,13 @@ fun ValidationAndSignatureDialog(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(onClick = { onConfirm("") }) {
-                    Text("Ometre firma", color = Color.Gray)
-                }
+                if (isOptional) {
+                    TextButton(onClick = { onConfirm("") }) {
+                        Text("Ometre firma", color = Color.Gray)
+                    }
 
-                Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
 
                 Button(
                     enabled = hasSigned,

@@ -54,12 +54,37 @@ fun ScheduleAppointmentPage(
     var selectedPatient by remember { mutableStateOf<Patient?>(null) }
     var description by remember { mutableStateOf("") }
 
+    // --- ESTADO PARA ADVERTENCIA DE ENFERMEDADES ---
+    var showInfectionWarning by remember { mutableStateOf(false) }
+    var hasAcceptedInfectionWarning by remember { mutableStateOf(false) }
+
     // Éxito al crear
     LaunchedEffect(appointmentViewModel.uiStateAutoAssign) {
         if (appointmentViewModel.uiStateAutoAssign is InterfaceGlobal.Success) {
             appointmentViewModel.resetAutoAssignState()
             onBackClick()
         }
+    }
+
+    if (showInfectionWarning) {
+        AlertDialog(
+            onDismissRequest = { showInfectionWarning = false },
+            title = { Text("Avís Mèdic", fontWeight = FontWeight.Bold, color = Color.Red) },
+            text = {
+                Text("Aquest pacient té registrades malalties infeccioses: ${selectedPatient?.medicalRecord?.infectiousDeceases}. \n\nSi us plau, prengui les mesures de seguretat necessàries.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showInfectionWarning = false
+                        hasAcceptedInfectionWarning = true
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = ButtonPrimary)
+                ) {
+                    Text("Entès")
+                }
+            }
+        )
     }
 
     Scaffold(
@@ -72,14 +97,20 @@ fun ScheduleAppointmentPage(
                 Navegate_Button(
                     text = if (isLoading) "Assignant..." else "Confirmar Cita",
                     onClick = {
-                        appointmentViewModel.autoAssign(
-                            patientId = selectedPatient!!.id!!,
-                            treatmentId = selectedTreatment!!.id!!,
-                            date = selectedDate,
-                            hour = hour,
-                            minute = minute,
-                            reason = description
-                        )
+                        val hasInfections = !selectedPatient?.medicalRecord?.infectiousDeceases.isNullOrBlank()
+
+                        if (hasInfections && !hasAcceptedInfectionWarning) {
+                            showInfectionWarning = true
+                        } else {
+                            appointmentViewModel.autoAssign(
+                                patientId = selectedPatient!!.id!!,
+                                treatmentId = selectedTreatment!!.id!!,
+                                date = selectedDate,
+                                hour = hour,
+                                minute = minute,
+                                reason = description
+                            )
+                        }
                     },
                     backgroundColor = if (canConfirm) ButtonPrimary else Color.Gray,
                     modifier = Modifier.fillMaxWidth().height(56.dp)

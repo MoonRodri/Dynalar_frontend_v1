@@ -53,6 +53,7 @@ fun DateInformationPage(
             consentText = if (isAnesthesia) null else "El pacient confirma que les dades de l'historial mèdic, malalties i al·lèrgies revisades són correctes.",
             infectiousDeceases = patient.medicalRecord?.infectiousDeceases,
             allergies = patient.medicalRecord?.allergies,
+            isOptional = isAnesthesia, // Si es anestesia es opcional, si es historial es obligatorio
             onConfirm = { signatureBase64 ->
                 val currentRecord = patient.medicalRecord ?: MedicalRecord()
                 val updatedRecord = if (isAnesthesia) {
@@ -61,7 +62,16 @@ fun DateInformationPage(
                     currentRecord.copy(signatureConfirmation = signatureBase64)
                 }
 
-                onUpdatePatient(patient.copy(medicalRecord = updatedRecord))
+                val updatedPatient = if (isAnesthesia) {
+                    patient.copy(
+                        medicalRecord = updatedRecord,
+                        anesthesiaConsent = !signatureBase64.isNullOrBlank()
+                    )
+                } else {
+                    patient.copy(medicalRecord = updatedRecord)
+                }
+
+                onUpdatePatient(updatedPatient)
                 activeSignatureType = null
                 Toast.makeText(context, "Signatura guardada correctament", Toast.LENGTH_SHORT).show()
             },
