@@ -1,6 +1,7 @@
 package com.example.dynalar_frontend_v1.network
 
 import com.example.dynalar_frontend_v1.service.AppointmentApiService
+import com.example.dynalar_frontend_v1.service.BoxApiService
 import com.example.dynalar_frontend_v1.service.OdontogramApiService
 import com.example.dynalar_frontend_v1.service.DentalProcessApiService
 import com.example.dynalar_frontend_v1.service.MaterialApiService
@@ -28,6 +29,6 @@ object RetrofitClient {
     val treatmentApiService: TreatmentApiService by lazy { instance.create(TreatmentApiService::class.java) }
 
     val materialApiService: MaterialApiService by lazy { instance.create(MaterialApiService::class.java) }
-    val dentalProcessApiService: DentalProcessApiService by lazy { instance.create(DentalProcessApiService::class.java)
-    }
+    val dentalProcessApiService: DentalProcessApiService by lazy { instance.create(DentalProcessApiService::class.java) }
+    val boxApiService: BoxApiService by lazy { instance.create(BoxApiService::class.java) }
 }

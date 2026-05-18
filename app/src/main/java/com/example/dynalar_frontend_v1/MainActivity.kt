@@ -18,6 +18,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.dynalar_frontend_v1.ui.AppRoutes
+import com.example.dynalar_frontend_v1.ui.screens.BoxPage
 import com.example.dynalar_frontend_v1.ui.screens.CalendarPage
 import com.example.dynalar_frontend_v1.ui.screens.CreateProfilePage
 import com.example.dynalar_frontend_v1.ui.screens.DateInformationPage
@@ -40,6 +41,7 @@ import com.example.dynalar_frontend_v1.ui.screens.ToothPage
 import com.example.dynalar_frontend_v1.ui.screens.UserProfilePage
 import com.example.dynalar_frontend_v1.ui.theme.Dynalar_frontend_v1Theme
 import com.example.dynalar_frontend_v1.viewmodel.AppointmentViewModel
+import com.example.dynalar_frontend_v1.viewmodel.BoxViewModel
 import com.example.dynalar_frontend_v1.viewmodel.MaterialViewModel
 import com.example.dynalar_frontend_v1.viewmodel.OdontogramViewModel
 import com.example.dynalar_frontend_v1.viewmodel.PatientViewModel
@@ -61,11 +63,12 @@ class MainActivity : ComponentActivity() {
                 val treatmentViewModel: TreatmentViewModel = viewModel()
                 val appointmentViewModel: AppointmentViewModel = viewModel()
                 val odontogramViewModel: OdontogramViewModel = viewModel()
+                val boxViewModel: BoxViewModel = viewModel()
                 val userViewModel: UserViewModel = viewModel()
 
                 NavHost(
                     navController = navController,
-                    startDestination = AppRoutes.Home.route
+                    startDestination = AppRoutes.Login.route
                 ) {
 
                     composable(AppRoutes.Login.route) {
@@ -101,6 +104,9 @@ class MainActivity : ComponentActivity() {
                     composable(AppRoutes.MaterialsHome.route) {
                         MaterialsHome(
                             onNavigateBack = { navController.popBackStack() },
+                            onNavigateBox = {
+                                navController.navigate(AppRoutes.BoxPage.route)
+                            },
                             onNavigateStock = {
                                 navController.navigate(AppRoutes.ListStock.route)                            },
                             onNavigateProtocolo = {
@@ -364,6 +370,10 @@ class MainActivity : ComponentActivity() {
                                 navController.navigate(AppRoutes.PatientFileUpload.createRoute(patientId))
                             }
                         )
+                    }
+
+                    composable(AppRoutes.BoxPage.route){
+                        BoxPage(onBack = {navController.popBackStack()}, viewModel = boxViewModel)
                     }
 
                     composable(
