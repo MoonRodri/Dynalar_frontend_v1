@@ -246,14 +246,14 @@ fun SignatureView(signatureBase64: String?) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(150.dp), // Espacio para ver la firma
+                .height(150.dp),
             shape = RoundedCornerShape(12.dp),
             color = Color.White,
             border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE0E0E0)),
             shadowElevation = 2.dp
         ) {
             if (!signatureBase64.isNullOrBlank()) {
-                // Decodificar Base64 a Bitmap
+
                 val imageBytes = Base64.decode(signatureBase64, Base64.DEFAULT)
                 val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
 

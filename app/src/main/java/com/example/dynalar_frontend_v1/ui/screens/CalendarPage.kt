@@ -46,11 +46,11 @@ fun CalendarPage(
     onAddAppointmentClick: (LocalDate, Int, Int) -> Unit = { _, _, _ -> },
     onNavigateBack: () -> Unit = {}
 ) {
-    // 1. LEEMOS directamente del ViewModel para que la UI reaccione a los cambios
+
     val selectedDate = viewModel.selectedCalendarDate
     val sharedScrollState = rememberScrollState()
 
-    // Cargar citas al entrar
+
     LaunchedEffect(Unit) {
         viewModel.fetchCalendar()
     }
@@ -249,7 +249,7 @@ fun AppointmentCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    // Cálculo de la hora
+
     val startLabel = formatTime(appointment.startTime)
     val endLabel = run {
         val startMin = parseTimeToMinutes(appointment.startTime)
@@ -261,15 +261,15 @@ fun AppointmentCard(
             formatTime(appointment.endTime)
         }
     }
+    val boxInfo = appointment.box?.number?.let { "Box $it" } ?: ""
 
-    // Datos a mostrar
     val patientName = "${appointment.patient?.name ?: ""} ${appointment.patient?.lastName ?: ""}".trim()
     val doctorName = "Dr/a. ${appointment.dentist?.surname ?: ""}".trim()
     val treatmentName = appointment.treatment?.name ?: ""
-
-    // Extraer alergias del historial médico (MedicalRecord)
+    val infectiousDeceases = appointment.patient?.medicalRecord?.infectiousDeceases
     val allergies = appointment.patient?.medicalRecord?.allergies
     val hasAllergies = !allergies.isNullOrBlank()
+    val hasInfectious = !infectiousDeceases.isNullOrBlank()
 
     Box(
         modifier = modifier
@@ -280,15 +280,15 @@ fun AppointmentCard(
             .padding(start = 8.dp, top = 4.dp, end = 4.dp, bottom = 4.dp)
     ) {
         Column {
-            // 1. Hora
+
             Text(
-                text = "$startLabel - $endLabel",
+                text = if (boxInfo.isNotEmpty()) "$startLabel - $endLabel | $boxInfo" else "$startLabel - $endLabel",
                 fontSize = 11.sp,
                 color = color,
                 fontWeight = FontWeight.SemiBold
             )
 
-            // 2. Nombre del Paciente (Destacado)
+
             Text(
                 text = patientName.ifEmpty { "Pacient Desconegut" },
                 fontSize = 12.sp,
@@ -310,12 +310,23 @@ fun AppointmentCard(
                 )
             }
 
-            // 4. Tratamiento y Doctor asignado
+            if (hasInfectious) {
+                Text(
+                    text = "Infeccioses: $infectiousDeceases",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color(0xFFD32F2F),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+
             if (treatmentName.isNotBlank()) {
                 Text(
                     text = "$treatmentName | $doctorName",
                     fontSize = 10.sp,
-                    color = Color.Gray,
+                    color = Color.DarkGray,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )

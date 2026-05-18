@@ -17,31 +17,27 @@ import java.time.LocalDateTime
 
 class AppointmentViewModel : ViewModel() {
 
-    // --- ESTADOS ---
 
-    // NUEVO: Guarda la fecha seleccionada en el calendario para que no tenga "amnesia"
+
     var selectedCalendarDate by mutableStateOf(LocalDate.now())
 
     var selectedAppointment by mutableStateOf<Appointment?>(null)
 
-    // Estado para la lista de citas del calendario
+
     var uiStateCalendar: InterfaceGlobal<List<Appointment>> by mutableStateOf(InterfaceGlobal.Loading)
         private set
 
-    // Estado para los huecos (slots) disponibles
     var uiStateSlots: InterfaceGlobal<Map<String, List<String>>> by mutableStateOf(InterfaceGlobal.Loading)
         private set
 
-    // Estado para el resultado de la asignación automática (crear cita)
+
     var uiStateAutoAssign: InterfaceGlobal<Appointment> by mutableStateOf(InterfaceGlobal.Idle)
         private set
 
     private val apiService = RetrofitClient.appointmentApiService
 
 
-    /**
-     * Obtiene todas las citas para mostrar en el calendario
-     */
+
     fun fetchCalendar() {
         uiStateCalendar = InterfaceGlobal.Loading
         viewModelScope.launch {
@@ -55,9 +51,7 @@ class AppointmentViewModel : ViewModel() {
         }
     }
 
-    /**
-     * Busca huecos disponibles para un tratamiento y rango de fechas
-     */
+
     fun fetchSlots(patientId: Long, treatmentId: Long, startDate: LocalDate, endDate: LocalDate) {
         uiStateSlots = InterfaceGlobal.Loading
         viewModelScope.launch {
@@ -81,14 +75,12 @@ class AppointmentViewModel : ViewModel() {
         }
     }
 
-    /**
-     * Crea una cita usando la lógica de auto-asignación del backend
-     */
+
     fun autoAssign(patientId: Long, treatmentId: Long, date: LocalDate, hour: Int, minute: Int,reason: String) {
         uiStateAutoAssign = InterfaceGlobal.Loading
         viewModelScope.launch {
             try {
-                // Formateamos la fecha a texto con el formato estricto ISO que pide Java: "YYYY-MM-DDTHH:MM:00"
+
                 val requestedTimeStr =
                     String.format("%sT%02d:%02d:00", date.toString(), hour, minute)
 
@@ -113,7 +105,7 @@ class AppointmentViewModel : ViewModel() {
         }
     }
 
-    // Reemplaza tu función getNextAppointment en AppointmentViewModel.kt por esta:
+
     fun getNextAppointment(appointments: List<Appointment>): Appointment? {
         val now = LocalDateTime.now()
 
@@ -121,42 +113,37 @@ class AppointmentViewModel : ViewModel() {
             try {
                 val timeStr = appointment.startTime ?: return@mapNotNull null
 
-                // 1. Normalizamos la fecha (cambiamos espacio por 'T' y quitamos milisegundos)
+
                 var cleanStr = timeStr.replace(" ", "T").substringBefore(".")
 
-                // 2. Si le faltan los segundos (ej: "2024-05-18T10:00"), se los añadimos
+
                 if (cleanStr.count { it == ':' } == 1) {
                     cleanStr += ":00"
                 }
 
                 val appTime = LocalDateTime.parse(cleanStr)
 
-                // 3. Comprobamos si la cita es posterior al momento exacto actual
+
                 if (appTime.isAfter(now)) {
                     Pair(appointment, appTime)
                 } else {
                     null
                 }
             } catch (e: Exception) {
-                null // Si hay un error raro de formato, ignoramos esta cita
+                null
             }
         }
-            .minByOrNull { it.second } // Buscamos la fecha/hora más cercana (la más pequeña)
-            ?.first // Extraemos el 'Appointment'
+            .minByOrNull { it.second }
+            ?.first
     }
 
-    /**
-     * Limpia el estado de creación para permitir nuevas citas
-     */
+
     fun resetAutoAssignState() {
         uiStateAutoAssign = InterfaceGlobal.Idle
     }
 
 
-    /**
-     * Actualiza una cita existente
-     */
-    // En AppointmentViewModel.kt
+
 
     fun updateAppointment(appointment: Appointment) {
         viewModelScope.launch {
@@ -164,10 +151,10 @@ class AppointmentViewModel : ViewModel() {
                 val response = apiService.updateAppointment(appointment)
 
                 if (response.isSuccessful && response.body() != null) {
-                    // 1. IMPORTANTE: Actualizamos la cita seleccionada con la respuesta del servidor
+
                     selectedAppointment = response.body()
 
-                    // 2. Refrescamos la lista global para que el calendario esté al día
+
                     fetchCalendar()
                 } else {
                     val errorMsg = response.errorBody()?.string() ?: "Error al actualitzar la cita"
@@ -179,7 +166,7 @@ class AppointmentViewModel : ViewModel() {
         }
     }
 
-    // Dentro de AppointmentViewModel
+
     fun updateSelectedDate(newDate: LocalDate) {
         selectedCalendarDate = newDate
     }
