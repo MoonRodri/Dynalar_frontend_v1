@@ -12,6 +12,7 @@ import com.example.dynalar_frontend_v1.model.SlotRequest
 import com.example.dynalar_frontend_v1.network.RetrofitClient
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 
 class AppointmentViewModel : ViewModel() {
@@ -110,6 +111,38 @@ class AppointmentViewModel : ViewModel() {
                 uiStateAutoAssign = InterfaceGlobal.Error("Fallo de red: ${e.message}")
             }
         }
+    }
+
+    // Reemplaza tu función getNextAppointment en AppointmentViewModel.kt por esta:
+    fun getNextAppointment(appointments: List<Appointment>): Appointment? {
+        val now = LocalDateTime.now()
+
+        return appointments.mapNotNull { appointment ->
+            try {
+                val timeStr = appointment.startTime ?: return@mapNotNull null
+
+                // 1. Normalizamos la fecha (cambiamos espacio por 'T' y quitamos milisegundos)
+                var cleanStr = timeStr.replace(" ", "T").substringBefore(".")
+
+                // 2. Si le faltan los segundos (ej: "2024-05-18T10:00"), se los añadimos
+                if (cleanStr.count { it == ':' } == 1) {
+                    cleanStr += ":00"
+                }
+
+                val appTime = LocalDateTime.parse(cleanStr)
+
+                // 3. Comprobamos si la cita es posterior al momento exacto actual
+                if (appTime.isAfter(now)) {
+                    Pair(appointment, appTime)
+                } else {
+                    null
+                }
+            } catch (e: Exception) {
+                null // Si hay un error raro de formato, ignoramos esta cita
+            }
+        }
+            .minByOrNull { it.second } // Buscamos la fecha/hora más cercana (la más pequeña)
+            ?.first // Extraemos el 'Appointment'
     }
 
     /**
