@@ -141,98 +141,49 @@ fun AddButton(
     }
 }
 
-//Circulo ( lo he utilizado para hacer el boton global
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CustomisableCircle(
-    size: Dp = 24.dp,
-    color: Color = ButtonPrimary,
+fun CardMenuButton(
+    icon: ImageVector,
+    title: String,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    iconTint: Color = Color(0xFF373737),
-    icon: ImageVector? = null,
+    iconTint: Color = Color(0xFF1A5BB2),
+    textColor: Color = Color(0xFF2C3E50)
 ) {
-    Box(
-        modifier = modifier
-            .size(size)
-            .clip(CircleShape)
-            .background(color),
-        contentAlignment = Alignment.Center
+    Surface(
+        onClick = onClick,
+        modifier = modifier.height(100.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = Color.White,
+        shadowElevation = 2.dp
     ) {
-        if (icon != null) {
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxSize()
+        ) {
             Icon(
                 imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(size * 0.6f),
+                contentDescription = title,
+                modifier = Modifier.size(32.dp),
                 tint = iconTint
+            )
 
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                color = textColor,
+                fontSize = 14.sp
             )
         }
     }
 }
-
-//Botones que te permiten navegar(los del homePage)
-@Composable
-fun CustomisableRectangleButton(
-    icon: ImageVector? = null,
-    title: String,
-    subtitle: String,
-    width: Dp = 350.dp,
-    height: Dp = 60.dp,
-    circleColor: Color = Color.Green,
-    elevation: Dp = 3.dp,
-    cornerRadius: Dp = 15.dp,
-    backgroundColor: Color = ButtonPrimary,
-    onClick: () -> Unit = {}
-) {
-
-    val shape = RoundedCornerShape(cornerRadius)
-
-    // ======= CAMBIO RESPONSIVE: ANCHO FLEXIBLE CON LIMITE MAXIMO =======
-    Box(
-
-        modifier = Modifier
-            .fillMaxWidth()
-            .widthIn(max = width)
-            .height(height)
-            .shadow(elevation, shape)
-            .clip(shape)
-            .background(backgroundColor)
-            .clickable { onClick() },
-        contentAlignment = Alignment.CenterStart
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(start = 10.dp)) {
-
-            CustomisableCircle(
-                size = 50.dp,
-                color = circleColor,
-                icon = icon,
-                modifier = Modifier
-                    .offset(x = 5.dp)
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column{
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Thin, // Título unificado a Bold
-                    color = Color.White
-                )
-
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.6f)
-                )
-
-            }
-
-        }
-
-    }
-}
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomisableButtonMaterials(
     iconRes: Int,
@@ -241,49 +192,48 @@ fun CustomisableButtonMaterials(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(140.dp)
-            .padding(horizontal = 16.dp),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFF0F4F8)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        border = BorderStroke(1.dp, Color(0xFFD1E1F0)),
-        onClick = onClick
+    Surface(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = Color.White,
+        shadowElevation = 2.dp
     ) {
         Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFFE3F2FD)), // Azul clarito
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = iconRes),
+                    contentDescription = null,
+                    modifier = Modifier.size(36.dp)
+                )
+            }
 
-            Image(
-                painter = painterResource(id = iconRes),
-                contentDescription = null,
-                modifier = Modifier.size(75.dp)
-            )
+            Spacer(modifier = Modifier.width(20.dp))
 
-            Spacer(modifier = Modifier.width(24.dp))
-
-            Column {
+            // Textos
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color(0xFF1A365D)
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF2C3E50)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = subtitle,
-                    style = MaterialTheme.typography.titleSmall
-                    ,
-                    color = Color(0xFF4A5568),
-                    lineHeight = 20.sp
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
                 )
             }
         }

@@ -94,6 +94,10 @@ class MainActivity : ComponentActivity() {
                             },
                             onNavigateBoxMaterials = {
                                 navController.navigate(AppRoutes.MaterialsHome.route)
+                            },
+                            // !!! AÑADE ESTA LÍNEA AQUÍ PARA CONECTAR LA NAVEGACIÓN !!!
+                            onNavigateToPatientProfile = { patientId ->
+                                navController.navigate(AppRoutes.PatientProfile.createRoute(patientId))
                             }
                         )
                     }
