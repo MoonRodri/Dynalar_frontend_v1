@@ -81,8 +81,25 @@ fun EditPatientPage(
                                 Toast.makeText(context, "Emplena els camps obligatoris", Toast.LENGTH_SHORT).show()
                                 return@Navegate_Button
                             }
+                            val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-zA-Z]{2,}\$".toRegex()
+                            if (!email.trim().matches(emailRegex)) {
+                                Toast.makeText(context, "Correu electrònic invàlid", Toast.LENGTH_SHORT).show()
+                                return@Navegate_Button
+                            }
 
-                            // Creamos la copia actualizada del paciente
+                            val phoneRegex = "^[0-9]{9}\$".toRegex()
+                            if (!phone.trim().matches(phoneRegex)) {
+                                Toast.makeText(context, "Format de telèfon invàlid (han de ser 9 dígits)", Toast.LENGTH_SHORT).show()
+                                return@Navegate_Button
+                            }
+
+                            val dniRegex = "^[XYZxyz]?\\d{7,8}[A-Za-z]\$".toRegex()
+                            if (!dni.trim().matches(dniRegex)) {
+                                Toast.makeText(context, "Format de DNI o NIE invàlid", Toast.LENGTH_SHORT).show()
+                                return@Navegate_Button
+                            }
+
+
                             val updatedPatient = patient.copy(
                                 name = name,
                                 lastName = lastName,
@@ -124,12 +141,11 @@ fun EditPatientPage(
 
             Box(modifier = Modifier.padding(horizontal = 30.dp)) {
                 if (selectedTab == 0) {
-                    // Reutilizamos la lógica de InformationPersonal
+
                     Column(verticalArrangement = Arrangement.spacedBy(20.dp), modifier = Modifier.fillMaxWidth()) {
                         InputFieldEditable(label = "Nom", value = name, onValueChange = { name = it }, placeholder = "Nom")
                         InputFieldEditable(label = "Cognoms", value = lastName, onValueChange = { lastName = it }, placeholder = "Cognoms")
 
-                        // --- SELECTOR DE SEXO ---
                         Column {
                             Text(
                                 text = "Sexe",
@@ -182,7 +198,7 @@ fun EditPatientPage(
                         )
                     }
                 } else {
-                    // Pestaña de Historial Clínico
+
                     Column(verticalArrangement = Arrangement.spacedBy(20.dp), modifier = Modifier.fillMaxWidth()) {
                         InputFieldEditable(label = "Historial Familiar", value = familyHistory, onValueChange = { familyHistory = it })
                         InputFieldEditable(label = "Condicions Dentals", value = dentalConditions, onValueChange = { dentalConditions = it })
