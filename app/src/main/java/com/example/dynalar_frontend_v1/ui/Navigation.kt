@@ -51,6 +51,7 @@ sealed class AppRoutes(val route: String) {
 
     object MaterialsHome : AppRoutes("materialsHome")
 
+    object BoxPage : AppRoutes("boxPage")
     object ScheduleAppointment : AppRoutes("scheduleAppointment/{date}/{hour}/{minute}") {
 
         fun createRoute(date: String, hour: Int, minute: Int): String {

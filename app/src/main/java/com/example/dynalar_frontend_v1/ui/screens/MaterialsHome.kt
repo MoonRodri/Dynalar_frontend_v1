@@ -21,6 +21,7 @@ import com.example.dynalar_frontend_v1.ui.components.CustomisableButtonMaterials
 @Composable
 fun MaterialsHome(
     onNavigateBack: () -> Unit,
+    onNavigateBox: () -> Unit,
     onNavigateStock: () -> Unit,
     onNavigateProtocolo: () -> Unit
 ) {
@@ -46,6 +47,7 @@ fun MaterialsHome(
             contentAlignment = Alignment.Center
         ) {
             Buttons_MaterialsPage(
+                onNavigateBox = onNavigateBox,
                 onNavigateStock = onNavigateStock,
                 onNavigateProtocolo = onNavigateProtocolo
             )
@@ -56,6 +58,7 @@ fun MaterialsHome(
 @Composable
 fun Buttons_MaterialsPage(
     modifier: Modifier = Modifier,
+    onNavigateBox: () -> Unit,
     onNavigateStock: () -> Unit,
     onNavigateProtocolo: () -> Unit
 ) {
@@ -63,8 +66,18 @@ fun Buttons_MaterialsPage(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp) // Espacio elegante entre botones
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
+
+        CustomisableButtonMaterials(
+            iconRes = R.drawable.clinica_dental,
+            title = "Box",
+            subtitle = "Gestió de Boxes",
+            onClick = onNavigateBox
+        )
+
+        Spacer(modifier = Modifier.height(60.dp))
+
         CustomisableButtonMaterials(
             iconRes = R.drawable.stock,
             title = "Stock Materials",
