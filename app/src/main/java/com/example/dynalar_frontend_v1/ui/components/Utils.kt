@@ -18,7 +18,8 @@ val patientImages = listOf(
     R.drawable.usuario10, // Índice 9
     R.drawable.usuario11, // Índice 10
     R.drawable.usuario12, // Índice 11
-    R.drawable.usuario13  // Índice 12
+    R.drawable.usuario13, // Índice 12
+    R.drawable.usuario20 // Índice 13
 )
 
 
@@ -38,7 +39,8 @@ fun getPatientImage(patientId: Long?, sex: Sex?): Int {
         else -> {
             val maleOptions = listOf(
                 R.drawable.usuario2, R.drawable.usuario3, R.drawable.usuario9,
-                R.drawable.usuario10, R.drawable.usuario12, R.drawable.usuario13
+                R.drawable.usuario10, R.drawable.usuario12, R.drawable.usuario13,
+                R.drawable.usuario20
             )
             maleOptions[(id % maleOptions.size).toInt()]
         }
