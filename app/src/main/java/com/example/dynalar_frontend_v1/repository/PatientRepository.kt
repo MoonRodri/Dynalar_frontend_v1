@@ -3,6 +3,7 @@ package com.example.dynalar_frontend_v1.repository
 import android.content.ContentResolver
 import android.net.Uri
 import android.util.Log
+import com.example.dynalar_frontend_v1.model.PageResponse
 import com.example.dynalar_frontend_v1.model.patient.Patient
 import com.example.dynalar_frontend_v1.network.RetrofitClient
 import okhttp3.MediaType.Companion.toMediaType
@@ -14,17 +15,17 @@ class PatientRepository {
 
     private val patientApiService = RetrofitClient.patientApiService
 
-    suspend fun getAllPatients(): List<Patient> {
+    suspend fun getAllPatients(page: Int = 0, size: Int = 100): PageResponse<Patient> {
         Log.e("CHIVATO", "ENTRADA EN getAllPatients")
 
         try {
-            val response = patientApiService.getAllPatients()
+            val response = patientApiService.getAllPatients(page, size)
 
             Log.e("CHIVATO", "CODI RESPOSTA: ${response.code()}")
 
             if (response.isSuccessful) {
                 Log.e("CHIVATO", "RESPOSTA CORRECTE")
-                return response.body() ?: emptyList()
+                return response.body() ?: PageResponse(content = emptyList())
             } else {
                 Log.e("CHIVATO", "ERROR BODY: ${response.errorBody()?.string()}")
                 throw Exception("Error del servidor: ${response.code()}")
@@ -32,6 +33,20 @@ class PatientRepository {
 
         } catch (e: Exception) {
             Log.e("CHIVATO", "EXCEPCIO REAL: ${e.message}", e)
+            throw e
+        }
+    }
+
+    suspend fun searchPatients(query: String, page: Int = 0, size: Int = 100): PageResponse<Patient> {
+        try {
+            val response = patientApiService.searchPatients(query, page, size)
+            if (response.isSuccessful) {
+                return response.body() ?: PageResponse(content = emptyList())
+            } else {
+                throw Exception("Error del servidor: ${response.code()}")
+            }
+        } catch (e: Exception) {
+            Log.e("PatientRepository", "Error searching patients: ${e.message}")
             throw e
         }
     }

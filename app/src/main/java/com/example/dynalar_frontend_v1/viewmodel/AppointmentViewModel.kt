@@ -10,6 +10,7 @@ import com.example.dynalar_frontend_v1.model.Appointment
 import com.example.dynalar_frontend_v1.model.AutoAssignRequest
 import com.example.dynalar_frontend_v1.model.SlotRequest
 import com.example.dynalar_frontend_v1.network.RetrofitClient
+import com.example.dynalar_frontend_v1.model.DaySummary
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -17,14 +18,21 @@ import java.time.LocalDateTime
 
 class AppointmentViewModel : ViewModel() {
 
-
-
     var selectedCalendarDate by mutableStateOf(LocalDate.now())
 
     var selectedAppointment by mutableStateOf<Appointment?>(null)
 
 
     var uiStateCalendar: InterfaceGlobal<List<Appointment>> by mutableStateOf(InterfaceGlobal.Loading)
+        private set
+
+    var uiStateToday: InterfaceGlobal<List<Appointment>> by mutableStateOf(InterfaceGlobal.Loading)
+        private set
+
+    var uiStateSummary: InterfaceGlobal<List<DaySummary>> by mutableStateOf(InterfaceGlobal.Loading)
+        private set
+
+    var uiStatePatientAppointments: InterfaceGlobal<List<Appointment>> by mutableStateOf(InterfaceGlobal.Loading)
         private set
 
     var uiStateSlots: InterfaceGlobal<Map<String, List<String>>> by mutableStateOf(InterfaceGlobal.Loading)
@@ -37,16 +45,81 @@ class AppointmentViewModel : ViewModel() {
     private val apiService = RetrofitClient.appointmentApiService
 
 
+    private var lastStart: LocalDateTime? = null
+    private var lastEnd: LocalDateTime? = null
 
-    fun fetchCalendar() {
+    fun fetchCalendar(start: LocalDateTime? = lastStart, end: LocalDateTime? = lastEnd) {
+        lastStart = start
+        lastEnd = end
         uiStateCalendar = InterfaceGlobal.Loading
         viewModelScope.launch {
             try {
-                val response = apiService.getAllAppointments()
-                uiStateCalendar = InterfaceGlobal.Success(response)
+                val startStr = start?.toString()
+                val endStr = end?.toString()
+                
+                val response = apiService.getAllAppointments(size = 500, start = startStr, end = endStr)
+                uiStateCalendar = InterfaceGlobal.Success(response.content)
             } catch (e: Exception) {
                 uiStateCalendar =
                     InterfaceGlobal.Error("Error al cargar el calendario: ${e.message}")
+            }
+        }
+    }
+
+    fun fetchAppointmentsInRange(start: LocalDateTime, end: LocalDateTime) {
+        fetchCalendar(start, end)
+    }
+
+    fun fetchPatientAppointments(patientId: Long) {
+        uiStatePatientAppointments = InterfaceGlobal.Loading
+        viewModelScope.launch {
+            try {
+                val response = apiService.getAppointmentsByPatientId(patientId)
+                uiStatePatientAppointments = InterfaceGlobal.Success(response)
+            } catch (e: Exception) {
+                uiStatePatientAppointments =
+                    InterfaceGlobal.Error("Error al cargar citas del paciente: ${e.message}")
+            }
+        }
+    }
+
+    fun fetchToday() {
+        uiStateToday = InterfaceGlobal.Loading
+        viewModelScope.launch {
+            try {
+                val today = LocalDate.now()
+                val start = today.atStartOfDay().toString()
+                val end = today.atTime(23, 59, 59).toString()
+                val response = apiService.getAllAppointments(size = 50, start = start, end = end)
+                uiStateToday = InterfaceGlobal.Success(response.content)
+            } catch (e: Exception) {
+                uiStateToday = InterfaceGlobal.Error("Error al cargar citas de hoy: ${e.message}")
+            }
+        }
+    }
+
+    fun fetchSummary(start: LocalDateTime, end: LocalDateTime) {
+        uiStateSummary = InterfaceGlobal.Loading
+        viewModelScope.launch {
+            try {
+                val response = apiService.getCalendarSummary(start.toString(), end.toString())
+                uiStateSummary = InterfaceGlobal.Success(response)
+            } catch (e: Exception) {
+                uiStateSummary = InterfaceGlobal.Error("Error al cargar resumen: ${e.message}")
+            }
+        }
+    }
+
+    fun fetchDayDetails(date: LocalDate) {
+        uiStateCalendar = InterfaceGlobal.Loading
+        viewModelScope.launch {
+            try {
+                val start = date.atStartOfDay().toString()
+                val end = date.atTime(23, 59, 59).toString()
+                val response = apiService.getAllAppointments(size = 100, start = start, end = end)
+                uiStateCalendar = InterfaceGlobal.Success(response.content)
+            } catch (e: Exception) {
+                uiStateCalendar = InterfaceGlobal.Error("Error al cargar detalles del día: ${e.message}")
             }
         }
     }

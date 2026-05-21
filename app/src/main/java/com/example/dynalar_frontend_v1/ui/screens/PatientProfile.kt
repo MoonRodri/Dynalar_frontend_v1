@@ -45,15 +45,14 @@ fun PatientProfilePage(
     onDateInformationClick: () -> Unit,
     onFilesClick: () -> Unit,
 ) {
-    LaunchedEffect(Unit) {
-        appointmentViewModel.fetchCalendar()
+    LaunchedEffect(patient.id) {
+        patient.id?.let { appointmentViewModel.fetchPatientAppointments(it) }
     }
 
-    val uiState = appointmentViewModel.uiStateCalendar
-    val patientAppointments = remember(uiState, patient.id) {
+    val uiState = appointmentViewModel.uiStatePatientAppointments
+    val patientAppointments = remember(uiState) {
         if (uiState is InterfaceGlobal.Success) {
-            uiState.data.filter { it.patient?.id == patient.id }
-                .sortedByDescending { it.startTime }
+            uiState.data.sortedByDescending { it.startTime }
         } else {
             emptyList()
         }

@@ -60,8 +60,11 @@ fun HomePage(
     onNavigateBoxMaterials: () -> Unit,
     onNavigateToPatientProfile: (Long) -> Unit
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.fetchToday()
+    }
+
     var selectedDateForDialog by remember { mutableStateOf<LocalDate?>(null) }
-    var appointmentsForDialog by remember { mutableStateOf<List<Appointment>>(emptyList()) }
 
     BoxWithConstraints(
         modifier = Modifier
@@ -85,7 +88,7 @@ fun HomePage(
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            val uiState = viewModel.uiStateCalendar
+            val uiState = viewModel.uiStateToday
             val today = LocalDate.now()
             val nowTime = LocalTime.now()
 
@@ -93,9 +96,7 @@ fun HomePage(
             var nextAppointments = emptyList<Appointment>()
 
             if (uiState is InterfaceGlobal.Success) {
-                val todayAppointments = uiState.data.filter {
-                    it.startTime?.startsWith(today.toString()) == true
-                }
+                val todayAppointments = uiState.data
                 citasHoyCount = todayAppointments.size
 
                 if (todayAppointments.isNotEmpty()) {
@@ -130,11 +131,9 @@ fun HomePage(
 
             CalendarHomepage(
                 viewModel = viewModel,
-                onDayClick = { date, appointments ->
-                    if (appointments.isNotEmpty()) {
-                        selectedDateForDialog = date
-                        appointmentsForDialog = appointments
-                    }
+                onDayClick = { date ->
+                    viewModel.fetchDayDetails(date)
+                    selectedDateForDialog = date
                 }
             )
 
@@ -149,6 +148,7 @@ fun HomePage(
             Spacer(modifier = Modifier.height(40.dp))
 
             NextAppointmentSection(
+                isLoading = uiState is InterfaceGlobal.Loading,
                 nextAppointments = nextAppointments,
                 onPatientClick = { patientId ->
                     onNavigateToPatientProfile(patientId)
@@ -158,12 +158,15 @@ fun HomePage(
     }
 
     if (selectedDateForDialog != null) {
+        val detailUiState = viewModel.uiStateCalendar
+        val appointments = if (detailUiState is InterfaceGlobal.Success) detailUiState.data else emptyList()
+
         DayAppointmentsDialog(
             date = selectedDateForDialog!!,
-            appointments = appointmentsForDialog,
+            appointments = appointments,
+            isLoading = detailUiState is InterfaceGlobal.Loading,
             onDismiss = {
                 selectedDateForDialog = null
-                appointmentsForDialog = emptyList()
             },
             onAppointmentClick = { appointment ->
                 onNavigateToAppointmentDetail(appointment)
@@ -191,6 +194,7 @@ fun GreetingSection(citasHoy: Int) {
 
 @Composable
 fun NextAppointmentSection(
+    isLoading: Boolean,
     nextAppointments: List<Appointment>,
     onPatientClick: (Long) -> Unit
 ) {
@@ -207,7 +211,16 @@ fun NextAppointmentSection(
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        if (nextAppointments.isNotEmpty()) {
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = ButtonPrimary)
+            }
+        } else if (nextAppointments.isNotEmpty()) {
 
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
@@ -402,27 +415,28 @@ fun Header_HomePage(onNavigateProfileUserProfile: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CalendarHomepage(viewModel: AppointmentViewModel, onDayClick: (LocalDate, List<Appointment>) -> Unit) {
+fun CalendarHomepage(viewModel: AppointmentViewModel, onDayClick: (LocalDate) -> Unit) {
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
     val today = LocalDate.now()
     var showDatePicker by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) { viewModel.fetchCalendar() }
-    val uiState = viewModel.uiStateCalendar
+    LaunchedEffect(currentMonth) {
+        val startOfMonth = currentMonth.atDay(1).atStartOfDay()
+        val endOfMonth = currentMonth.atEndOfMonth().atTime(23, 59, 59)
+        viewModel.fetchSummary(startOfMonth, endOfMonth)
+    }
+    val uiState = viewModel.uiStateSummary
 
-    val appointmentsByDate = remember(uiState) {
+    val summaryByDate = remember(uiState) {
         if (uiState is InterfaceGlobal.Success) {
-            val map = mutableMapOf<LocalDate, MutableList<Appointment>>()
-            uiState.data.forEach { appointment ->
-                val dateStr = appointment.startTime?.split("T", " ")?.firstOrNull()
+            uiState.data.associateBy {
                 try {
-                    if (dateStr != null) {
-                        val date = LocalDate.parse(dateStr)
-                        map.getOrPut(date) { mutableListOf() }.add(appointment)
-                    }
-                } catch (e: Exception) {}
+                    val cleanDate = it.date.take(10)
+                    LocalDate.parse(cleanDate)
+                } catch (e: Exception) {
+                    null
+                }
             }
-            map
         } else emptyMap()
     }
 
@@ -495,17 +509,13 @@ fun CalendarHomepage(viewModel: AppointmentViewModel, onDayClick: (LocalDate, Li
                             if (day in 1..daysInMonth) {
                                 val cellDate = currentMonth.atDay(day)
                                 val isToday = cellDate == today
-                                val dayAppointments = appointmentsByDate[cellDate] ?: emptyList()
-                                val hasAppointment = dayAppointments.isNotEmpty()
-
-
-                                val hasInfectious = dayAppointments.any { appt ->
-                                    !appt.patient?.medicalRecord?.infectiousDeceases.isNullOrBlank()
-                                }
+                                val summary = summaryByDate[cellDate]
+                                val hasAppointment = summary?.hasAppointments == true
+                                val hasInfectious = summary?.hasinfeciousPatient == true
                                 val circleColor = if (hasInfectious) Color(0xFFD32F2F) else ButtonPrimary
 
                                 Box(
-                                    modifier = Modifier.size(30.dp).clickable(enabled = hasAppointment) { onDayClick(cellDate, dayAppointments) },
+                                    modifier = Modifier.size(30.dp).clickable(enabled = hasAppointment) { onDayClick(cellDate) },
                                     contentAlignment = Alignment.Center
                                 ) {
                                     if (hasAppointment) Surface(shape = CircleShape, color = circleColor, modifier = Modifier.fillMaxSize()) {}

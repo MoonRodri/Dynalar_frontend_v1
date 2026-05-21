@@ -51,6 +51,7 @@ import java.util.Locale
 fun DayAppointmentsDialog(
     date: LocalDate,
     appointments: List<Appointment>,
+    isLoading: Boolean = false,
     onDismiss: () -> Unit,
     onAppointmentClick: (Appointment) -> Unit
 ) {
@@ -70,7 +71,14 @@ fun DayAppointmentsDialog(
             )
         },
         text = {
-            if (appointments.isEmpty()) {
+            if (isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(150.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = ButtonPrimary)
+                }
+            } else if (appointments.isEmpty()) {
                 Text(
                     text = "No hay citas programadas para este día.",
                     color = Color.Gray,
