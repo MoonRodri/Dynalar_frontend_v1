@@ -1,5 +1,6 @@
 package com.example.dynalar_frontend_v1.service
 
+import com.example.dynalar_frontend_v1.model.PageResponse
 import com.example.dynalar_frontend_v1.model.patient.Patient
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -10,8 +11,16 @@ import retrofit2.http.*
 interface PatientApiService {
 
 
-    @GET("/patient/index")
-    suspend fun getAllPatients(): Response <List<Patient>>
+    @GET("patient/index")
+    suspend fun getAllPatients(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20): Response <PageResponse<Patient>>
+
+    @GET("patient/search")
+    suspend fun searchPatients(
+        @Query("query") query: String,
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20): Response<PageResponse<Patient>>
 
 
     @GET("patient/{id}")

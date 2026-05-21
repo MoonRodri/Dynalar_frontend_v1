@@ -51,8 +51,10 @@ fun CalendarPage(
     val sharedScrollState = rememberScrollState()
 
 
-    LaunchedEffect(Unit) {
-        viewModel.fetchCalendar()
+    LaunchedEffect(selectedDate) {
+        val startOfDay = selectedDate.atStartOfDay()
+        val endOfDay = selectedDate.atTime(23, 59, 59)
+        viewModel.fetchCalendar(startOfDay, endOfDay)
     }
 
     val uiState = viewModel.uiStateCalendar

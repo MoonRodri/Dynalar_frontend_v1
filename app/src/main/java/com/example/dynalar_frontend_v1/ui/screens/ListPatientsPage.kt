@@ -36,6 +36,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -73,15 +75,10 @@ fun ListPatientsScreen(
 ) {
     val uiState = viewModel.uiStatePatient
     val textFieldState = rememberTextFieldState()
+    val listState = rememberLazyListState()
 
-    // Estados para controlar el pop-up de confirmación de borrado
     var showDeleteDialog by remember { mutableStateOf(false) }
     var patientToDelete by remember { mutableStateOf<Long?>(null) }
-
-
-    LaunchedEffect(Unit) {
-        viewModel.getPatients()
-    }
 
     Scaffold { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
@@ -91,7 +88,6 @@ fun ListPatientsScreen(
                 onNavigateBack = onNavigateBack
             )
 
-            // SearchBar
             SearchPatientBar(textFieldState = textFieldState, viewModel = viewModel)
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -107,12 +103,26 @@ fun ListPatientsScreen(
                 }
 
                 is InterfaceGlobal.Success -> {
-                    val patients = uiState.data
-                        .filter { !it.name.isNullOrBlank() }
-                        .groupBy { it.name!!.first().uppercaseChar() }
+                    val filteredPatients = remember(uiState.data) {
+                        uiState.data
+                            .filter { !it.name.isNullOrBlank() }
+                            .sortedBy { it.name?.uppercase() }
+                    }
 
-                    val firstPatientId = patients.values.firstOrNull()?.firstOrNull()?.id
+                    val patients = remember(filteredPatients) {
+                        filteredPatients.groupBy { it.name!!.first().uppercaseChar() }
+                    }
+
+                    val lastPatientId = remember(filteredPatients) {
+                        filteredPatients.lastOrNull()?.id
+                    }
+
+                    val firstPatientId = remember(filteredPatients) {
+                        filteredPatients.firstOrNull()?.id
+                    }
+                    
                     LazyColumn(
+                        state = listState,
                         modifier = Modifier.weight(1f).fillMaxWidth(),
                         contentPadding = PaddingValues(bottom = 24.dp)
                     ) {
@@ -121,6 +131,13 @@ fun ListPatientsScreen(
 
 
                             items(patientList, key = { it.id ?: 0L }) { patient ->
+                                
+                                if (patient.id == lastPatientId) {
+                                    LaunchedEffect(patient.id) {
+                                        android.util.Log.d("Pagination", ">>> S'ha arribat al final de la llista (ID: ${patient.id}). Disparant carga...")
+                                        viewModel.loadNextPage()
+                                    }
+                                }
 
                                 val isFirstElement = (patient.id == firstPatientId)
                                 SwipeToDeleteContainer(
@@ -137,6 +154,22 @@ fun ListPatientsScreen(
                                         onClick = { selectedPatient ->
                                             selectedPatient.id?.let { onNavigateToPatientProfile(it) }
                                         }
+                                    )
+                                }
+                            }
+                        }
+
+                        if (viewModel.isFetching) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        color = ButtonPrimary
                                     )
                                 }
                             }
@@ -161,7 +194,6 @@ fun ListPatientsScreen(
         }
     }
 
-    // PopUp Eliminar
     if (showDeleteDialog) {
         DeleteConfirmationDialog(
             message = "¿Estàs segur que vols eliminar aquest pacient?",
@@ -184,13 +216,23 @@ fun SearchPatientBar(
     textFieldState: TextFieldState,
     viewModel: PatientViewModel
 ) {
+    val query = textFieldState.text.toString()
+
+    LaunchedEffect(query) {
+        if (query.isNotEmpty()) {
+            kotlinx.coroutines.delay(500)
+            viewModel.searchPatients(query)
+        } else {
+            viewModel.getPatients()
+        }
+    }
+
     SearchBar(
         inputField = {
             SearchBarDefaults.InputField(
-                query = textFieldState.text.toString(),
+                query = query,
                 onQueryChange = { text ->
                     textFieldState.edit { replace(0, length, text) }
-                    viewModel.searchPatients(text)
                 },
                 onSearch = {},
                 expanded = false,
