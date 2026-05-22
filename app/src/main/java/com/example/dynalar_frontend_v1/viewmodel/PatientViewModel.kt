@@ -11,6 +11,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.dynalar_frontend_v1.model.patient.Patient
 import com.example.dynalar_frontend_v1.interfaces.InterfaceGlobal
 import com.example.dynalar_frontend_v1.repository.PatientRepository
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class PatientViewModel: ViewModel() {
@@ -32,6 +34,11 @@ class PatientViewModel: ViewModel() {
     var uploadState by mutableStateOf<InterfaceGlobal<Unit>>(InterfaceGlobal.Idle)
         private set
 
+    var crudError by mutableStateOf<String?>(null)
+        private set
+
+    private var searchJob: Job? = null
+
     var isDeleteHintShown by mutableStateOf(false)
 
     fun getPatients() {
@@ -47,7 +54,7 @@ class PatientViewModel: ViewModel() {
             try {
                 val pageResponse = patientRepository.getAllPatients(page = currentPage, size = pageSize)
                 allPatientsList.addAll(pageResponse.content)
-                
+
                 val totalPags = pageResponse.pageMetadata?.totalPages ?: pageResponse.totalPages
                 isLastPage = currentPage >= (totalPags - 1)
                 uiStatePatient = if (allPatientsList.isEmpty()) {
@@ -78,7 +85,7 @@ class PatientViewModel: ViewModel() {
             isFetching = true
             val nextPage = currentPage + 1
             Log.d("Pagination", ">>> Iniciant carga de pàgina: $nextPage (Query: '$currentQuery')")
-            
+
             try {
                 val response = if (currentQuery.isNotEmpty()) {
                     patientRepository.searchPatients(currentQuery, page = nextPage, size = pageSize)
@@ -93,21 +100,19 @@ class PatientViewModel: ViewModel() {
                     Log.d("Pagination", "La pàgina està buida. Marcant com a última pàgina.")
                 } else {
                     val currentPatients = (uiStatePatient as? InterfaceGlobal.Success)?.data ?: emptyList()
-                    
+
                     val newPatients = response.content.filter { new ->
-                        currentPatients.none { it.id == new.id } 
+                        currentPatients.none { it.id == new.id }
                     }
-                    
+
                     Log.d("Pagination", "Pacients nous detectats (sense duplicats): ${newPatients.size}")
 
-                    // Actualitzem la pàgina actual SEMPRE que la resposta no sigui buida
                     currentPage = nextPage
-                    
+
                     if (newPatients.isNotEmpty()) {
                         Log.d("Pagination", "Afegint ${newPatients.size} pacients nous a la llista de ${allPatientsList.size}")
                         allPatientsList.addAll(newPatients)
-                        
-                        // Creem una COPIA nova de la llista per forçar a Compose a refrescar
+
                         val updatedList = allPatientsList.toList()
                         uiStatePatient = InterfaceGlobal.Success(updatedList)
                         Log.d("Pagination", "UI State actualitzat amb ${updatedList.size} pacients totals.")
@@ -124,14 +129,16 @@ class PatientViewModel: ViewModel() {
     }
 
     fun searchPatients(query: String) {
-        if (isFetching) return
         currentQuery = query
-        
+
         if (query.isBlank()) {
             getPatients()
             return
         }
-        viewModelScope.launch {
+
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            delay(300)
             isFetching = true
             uiStatePatient = InterfaceGlobal.Loading
             currentPage = 0
@@ -139,16 +146,19 @@ class PatientViewModel: ViewModel() {
             allPatientsList.clear()
 
             try {
-                val pageResponse = patientRepository.searchPatients(query = query, page = currentPage, size = pageSize)
+                val pageResponse = patientRepository.searchPatients(
+                    query = query, page = currentPage, size = pageSize
+                )
                 allPatientsList.addAll(pageResponse.content)
                 isLastPage = currentPage >= pageResponse.totalPages - 1
 
-                if (allPatientsList.isEmpty()) {
-                    uiStatePatient = InterfaceGlobal.NotFound
+                uiStatePatient = if (allPatientsList.isEmpty()) {
+                    InterfaceGlobal.NotFound
                 } else {
-                    uiStatePatient = InterfaceGlobal.Success(allPatientsList.toList())
+                    InterfaceGlobal.Success(allPatientsList.toList())
                 }
             } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) return@launch
                 Log.e("PatientViewModel", "Error searching patients: ${e.message}")
                 uiStatePatient = InterfaceGlobal.Error(e.message)
             } finally {
@@ -174,18 +184,19 @@ class PatientViewModel: ViewModel() {
         }
     }
 
-    fun deletePatient(id: Long) {
+    fun deletePatient(id: Long, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
             try {
                 val response = patientRepository.deletePatient(id)
                 if (response.isSuccessful) {
                     getPatients()
+                    onSuccess()
                 } else {
-                    uiStatePatient = InterfaceGlobal.Error("No se pudo eliminar el paciente")
+                    crudError = "No se pudo eliminar el paciente: ${response.code()}"
                 }
             } catch (e: Exception) {
                 Log.e("PatientViewModel", "ERROR en deletePatient: ${e.message}")
-                uiStatePatient = InterfaceGlobal.Error(e.message)
+                crudError = e.message
             }
         }
     }
@@ -201,11 +212,11 @@ class PatientViewModel: ViewModel() {
                     Log.d("PatientViewModel", "Paciente actualizado correctamente")
                 } else {
                     Log.e("PatientViewModel", "Error API al actualizar: ${response.code()}")
-                    uiStatePatient = InterfaceGlobal.Error("No se pudo actualizar el paciente")
+                    crudError = "No se pudo actualizar el paciente: ${response.code()}"
                 }
             } catch (e: Exception) {
                 Log.e("PatientViewModel", "Excepción al actualizar: ${e.message}")
-                uiStatePatient = InterfaceGlobal.Error(e.message)
+                crudError = e.message
             }
         }
     }
@@ -218,10 +229,10 @@ class PatientViewModel: ViewModel() {
                     getPatients()
                     onSuccess()
                 } else {
-                    uiStatePatient = InterfaceGlobal.Error("Error: ${response.code()}")
+                    crudError = "Error al crear el paciente: ${response.code()}"
                 }
             } catch (e: Exception) {
-                uiStatePatient = InterfaceGlobal.Error(e.message)
+                crudError = e.message
             }
         }
     }
@@ -271,4 +282,6 @@ class PatientViewModel: ViewModel() {
             }
         }
     }
+
+    fun clearCrudError() { crudError = null }
 }

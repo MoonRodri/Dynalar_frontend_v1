@@ -150,8 +150,8 @@ fun HomePage(
             NextAppointmentSection(
                 isLoading = uiState is InterfaceGlobal.Loading,
                 nextAppointments = nextAppointments,
-                onPatientClick = { patientId ->
-                    onNavigateToPatientProfile(patientId)
+                onAppointmentClick = { appointment ->
+                    onNavigateToAppointmentDetail(appointment)
                 }
             )
         }
@@ -196,7 +196,7 @@ fun GreetingSection(citasHoy: Int) {
 fun NextAppointmentSection(
     isLoading: Boolean,
     nextAppointments: List<Appointment>,
-    onPatientClick: (Long) -> Unit
+    onAppointmentClick: (Appointment) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -207,11 +207,13 @@ fun NextAppointmentSection(
             fontWeight = FontWeight.Bold,
             color = Color(0xFF2C3E50),
             fontSize = 18.sp,
-            modifier = Modifier.padding(horizontal = 24.dp) // Padding movido aquí
+            modifier = Modifier.padding(horizontal = 24.dp)
         )
+
         Spacer(modifier = Modifier.height(8.dp))
 
         if (isLoading) {
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -220,6 +222,7 @@ fun NextAppointmentSection(
             ) {
                 CircularProgressIndicator(color = ButtonPrimary)
             }
+
         } else if (nextAppointments.isNotEmpty()) {
 
             LazyRow(
@@ -227,38 +230,52 @@ fun NextAppointmentSection(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 contentPadding = PaddingValues(horizontal = 24.dp)
             ) {
+
                 items(nextAppointments) { appointment ->
+
                     NextAppointmentCardItem(
                         appointment = appointment,
-                        modifier = Modifier.fillParentMaxWidth(if (nextAppointments.size > 1) 0.85f else 1f),
-                        onPatientClick = onPatientClick
+                        modifier = Modifier.fillParentMaxWidth(
+                            if (nextAppointments.size > 1) 0.85f else 1f
+                        ),
+                        onAppointmentClick = onAppointmentClick
                     )
                 }
             }
+
         } else {
+
             Surface(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
                 shape = RoundedCornerShape(16.dp),
                 color = Color.Transparent,
                 border = BorderStroke(1.dp, Color(0xFFE0E0E0))
             ) {
+
                 Row(
                     modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+
                     Icon(
                         imageVector = Icons.Default.CheckCircle,
                         contentDescription = null,
                         tint = Color(0xFF4CAF50),
                         modifier = Modifier.size(30.dp)
                     )
+
                     Spacer(modifier = Modifier.width(16.dp))
+
                     Column {
+
                         Text(
                             text = "No tens més cites avui",
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF2C3E50)
                         )
+
                         Text(
                             text = "Has completat la teva jornada.",
                             color = Color.Gray,
@@ -270,23 +287,32 @@ fun NextAppointmentSection(
         }
     }
 }
-
 @Composable
 fun NextAppointmentCardItem(
     appointment: Appointment,
     modifier: Modifier = Modifier,
-    onPatientClick: (Long) -> Unit
+    onAppointmentClick: (Appointment) -> Unit
 ) {
-    val timeStr = appointment.startTime?.split("T", " ")?.lastOrNull()?.substring(0, 5) ?: "--:--"
-    val patientName = "${appointment.patient?.name ?: "Pacient"} ${appointment.patient?.lastName ?: ""}".trim()
-    val treatmentName = appointment.treatment?.name ?: "Sense especificar"
 
-    // EXTRAEMOS EL BOX
-    val boxInfo = appointment.box?.number?.let { "Box $it" } ?: ""
+    val timeStr = appointment.startTime
+        ?.split("T", " ")
+        ?.lastOrNull()
+        ?.substring(0, 5) ?: "--:--"
 
-    // EXTRAEMOS ALERGIAS E INFECCIONES
-    val allergies = appointment.patient?.medicalRecord?.allergies
-    val infectiousDeceases = appointment.patient?.medicalRecord?.infectiousDeceases
+    val patientName =
+        "${appointment.patient?.name ?: "Pacient"} ${appointment.patient?.lastName ?: ""}".trim()
+
+    val treatmentName =
+        appointment.treatment?.name ?: "Sense especificar"
+
+    val boxInfo =
+        appointment.box?.number?.let { "Box $it" } ?: ""
+
+    val allergies =
+        appointment.patient?.medicalRecord?.allergies
+
+    val infectiousDeceases =
+        appointment.patient?.medicalRecord?.infectiousDeceases
 
     Surface(
         modifier = modifier,
@@ -294,24 +320,27 @@ fun NextAppointmentCardItem(
         color = Color.White,
         shadowElevation = 2.dp
     ) {
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable {
-                    appointment.patient?.id?.let { patientId ->
-                        onPatientClick(patientId)
-                    }
+                    onAppointmentClick(appointment)
                 }
                 .padding(12.dp),
+
             verticalAlignment = Alignment.CenterVertically
         ) {
+
             Box(
                 modifier = Modifier
                     .size(45.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color(0xFFE3F2FD)),
+
                 contentAlignment = Alignment.Center
             ) {
+
                 Text(
                     text = timeStr,
                     fontWeight = FontWeight.Bold,
@@ -333,17 +362,20 @@ fun NextAppointmentCardItem(
                     overflow = TextOverflow.Ellipsis
                 )
 
-
                 Text(
-                    text = if (boxInfo.isNotEmpty()) "$boxInfo | $treatmentName" else treatmentName,
+                    text = if (boxInfo.isNotEmpty())
+                        "$boxInfo | $treatmentName"
+                    else
+                        treatmentName,
+
                     fontSize = 11.sp,
                     color = Color.Gray,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
 
-
                 if (!allergies.isNullOrBlank()) {
+
                     Text(
                         text = "Al·lèrgies: $allergies",
                         fontSize = 10.sp,
@@ -354,8 +386,8 @@ fun NextAppointmentCardItem(
                     )
                 }
 
-
                 if (!infectiousDeceases.isNullOrBlank()) {
+
                     Text(
                         text = "Infeccioses: $infectiousDeceases",
                         fontSize = 10.sp,
@@ -369,7 +401,7 @@ fun NextAppointmentCardItem(
 
             Icon(
                 imageVector = Icons.Default.KeyboardArrowRight,
-                contentDescription = "Veure perfil",
+                contentDescription = "Veure resum",
                 tint = Color(0xFF1A5BB2),
                 modifier = Modifier.size(18.dp)
             )

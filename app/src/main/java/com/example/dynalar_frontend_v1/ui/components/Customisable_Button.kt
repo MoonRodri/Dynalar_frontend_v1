@@ -83,7 +83,8 @@ fun Navegate_Button(
     iconSize: Dp = 20.dp,
     height: Dp = 56.dp,
     cornerRadius: Dp = 12.dp,
-    fillMaxWidth: Boolean = true
+    fillMaxWidth: Boolean = true,
+
 ) {
     Button(
         onClick = onClick,
@@ -124,7 +125,7 @@ fun AddButton(
     onClick: () -> Unit,
     iconRes: Int,
     modifier: Modifier = Modifier,
-    iconSize: Dp = 30.dp
+    iconSize: Dp = 35.dp
 ) {
     Surface(
         modifier = modifier

@@ -159,7 +159,6 @@ fun TimeSlotGrid(slots: List<String>, selH: Int, selM: Int, onSelect: (Int, Int)
             val isSelected = selH == h && selM == m
 
             Surface(
-                onClick = { onSelect(h, m) },
                 shape = RoundedCornerShape(8.dp),
                 color = if (isSelected) ButtonPrimary else Color(0xFFF0F4F8),
                 modifier = Modifier.width(74.dp)
