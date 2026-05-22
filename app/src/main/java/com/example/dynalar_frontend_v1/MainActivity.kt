@@ -68,7 +68,7 @@ class MainActivity : ComponentActivity() {
 
                 NavHost(
                     navController = navController,
-                    startDestination = AppRoutes.Login.route
+                    startDestination = AppRoutes.Home.route
                 ) {
 
                     composable(AppRoutes.Login.route) {
@@ -133,6 +133,7 @@ class MainActivity : ComponentActivity() {
                         route = AppRoutes.PatientProfile.route,
                         arguments = listOf(navArgument("patientId") { type = NavType.LongType })
                     ) { backStackEntry ->
+
                         val patientId = backStackEntry.arguments?.getLong("patientId") ?: -1L
 
                         LaunchedEffect(patientId) {
@@ -142,75 +143,71 @@ class MainActivity : ComponentActivity() {
                         }
 
                         val patient = patientViewModel.selectedPatient
+
                         if (patient != null) {
+
                             PatientProfilePage(
                                 patient = patient,
-                                appointmentViewModel = appointmentViewModel, // Importante para cargar las citas
-                                onBackClick = { navController.popBackStack() },
+                                appointmentViewModel = appointmentViewModel,
+
+                                onBackClick = {
+                                    navController.popBackStack()
+                                },
+
+                                onDeleteClick = { id ->
+                                    patientViewModel.deletePatient(id) {
+                                        navController.navigate(AppRoutes.ListPatients.route) {
+                                            popUpTo(AppRoutes.PatientProfile.route) { inclusive = true }
+                                            launchSingleTop = true
+                                        }
+                                    }
+                                },
                                 onOdontogramClick = {
-                                    patient.odontogram?.id?.let { id ->
+                                    patient.odontogram?.id?.let { odontogramId ->
                                         navController.navigate(
-                                            AppRoutes.OdontogramPage.createRoute(
-                                                id
-                                            )
+                                            AppRoutes.OdontogramPage.createRoute(odontogramId)
                                         )
                                     }
                                 },
+
                                 onEditClick = { id ->
-                                    navController.navigate(AppRoutes.EditPatient.createRoute(id))
+                                    navController.navigate(
+                                        AppRoutes.EditPatient.createRoute(id)
+                                    )
                                 },
+
                                 onAppointmentClick = { appointment ->
                                     appointmentViewModel.selectedAppointment = appointment
                                     navController.navigate(AppRoutes.ResumeDate.route)
                                 },
+
                                 onFilesClick = {
                                     patient.id?.let { id ->
-                                        navController.navigate(AppRoutes.PatientFiles.createRoute(id))
+                                        navController.navigate(
+                                            AppRoutes.PatientFiles.createRoute(id)
+                                        )
                                     }
                                 },
+
                                 onCalendarClick = {
                                     navController.navigate(AppRoutes.CalendarPage.route)
                                 },
+
                                 onDateInformationClick = {
                                     patient.id?.let { id ->
-                                        navController.navigate(AppRoutes.DateInformationPage.createRoute(id))
+                                        navController.navigate(
+                                            AppRoutes.DateInformationPage.createRoute(id)
+                                        )
                                     }
                                 }
                             )
+
                         } else {
+
                             Box(
                                 modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center
                             ) {
-                                CircularProgressIndicator()
-                            }
-                        }
-                    }
-                    composable(
-                        route = AppRoutes.DateInformationPage.route,
-                        arguments = listOf(navArgument("patientId") { type = NavType.LongType })
-                    ) { backStackEntry ->
-                        val patientId = backStackEntry.arguments?.getLong("patientId") ?: -1L
-
-                        LaunchedEffect(patientId) {
-                            if (patientId != -1L) {
-                                patientViewModel.getPatientById(patientId)
-                            }
-                        }
-
-                        val patient = patientViewModel.selectedPatient
-
-                        if (patient != null) {
-                            DateInformationPage(
-                                patient = patient,
-                                onBackClick = { navController.popBackStack() },
-                                onUpdatePatient = { updatedPatient ->
-                                    // Aquí es donde el ViewModel hace su trabajo
-                                    patientViewModel.updatePatient(updatedPatient)
-                                }
-                            )
-                        } else {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 CircularProgressIndicator()
                             }
                         }

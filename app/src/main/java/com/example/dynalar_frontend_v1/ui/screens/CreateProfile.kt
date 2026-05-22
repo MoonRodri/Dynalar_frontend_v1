@@ -36,12 +36,10 @@ import com.example.dynalar_frontend_v1.viewmodel.PatientViewModel
 
 @Composable
 fun CreateProfilePage(
-
     onNavigateBack: () -> Unit,
     patientViewModel: PatientViewModel = viewModel()
 ) {
     CreateProfileForm(
-
         onNavigateBack = onNavigateBack,
         patientViewModel = patientViewModel
     )
@@ -49,7 +47,6 @@ fun CreateProfilePage(
 
 @Composable
 fun CreateProfileForm(
-
     onNavigateBack: () -> Unit,
     patientViewModel: PatientViewModel
 ) {
@@ -73,13 +70,19 @@ fun CreateProfileForm(
     var allergies by remember { mutableStateOf("") }
     var infectiousDeceases by remember { mutableStateOf("") }
 
-
     var signatureStep by remember { mutableStateOf(0) }
     var tempAnesthesiaSignature by remember { mutableStateOf<String?>(null) }
 
     val context = LocalContext.current
 
-    // En CreateProfile.kt
+    // Muestra Toast si createPatient falla, sin romper el estado de la lista
+    LaunchedEffect(patientViewModel.crudError) {
+        patientViewModel.crudError?.let { error ->
+            Toast.makeText(context, error, Toast.LENGTH_LONG).show()
+            patientViewModel.clearCrudError()
+        }
+    }
+
     val performSave = { anesthesiaSig: String?, historySig: String? ->
         val newPatient = Patient(
             name = name,
@@ -113,10 +116,10 @@ fun CreateProfileForm(
             infectiousDeceases = infectiousDeceases,
             allergies = allergies,
             onConfirm = { signature ->
-                tempAnesthesiaSignature = signature // Guardamos temporalmente la primera
-                signatureStep = 2 // Pasamos al diálogo 2
+                tempAnesthesiaSignature = signature
+                signatureStep = 2
             },
-            onDismiss = { signatureStep = 0 } // Cancelamos el proceso
+            onDismiss = { signatureStep = 0 }
         )
     } else if (signatureStep == 2) {
         ValidationAndSignatureDialog(
@@ -129,13 +132,12 @@ fun CreateProfileForm(
             onConfirm = { signature ->
                 val historySignature = signature
                 signatureStep = 0
-
-
                 performSave(tempAnesthesiaSignature, historySignature)
             },
-            onDismiss = { signatureStep = 0 } // Cancelamos el proceso
+            onDismiss = { signatureStep = 0 }
         )
     }
+
     Scaffold(
         bottomBar = {
             Surface(
@@ -151,29 +153,32 @@ fun CreateProfileForm(
                     Navegate_Button(
                         text = "Guarda i Continua",
                         onClick = {
-
                             if (name.isBlank() || lastName.isBlank() || email.isBlank() || dni.isBlank() || phone.isBlank()) {
                                 Toast.makeText(context, "Per favor, emplena tots els camps", Toast.LENGTH_SHORT).show()
                                 return@Navegate_Button
                             }
 
-                            val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-zA-Z]{2,}\$".toRegex()
+                            val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-zA-Z]{2,}$".toRegex()
                             if (!email.matches(emailRegex)) {
                                 Toast.makeText(context, "Correu electrònic invàlid", Toast.LENGTH_SHORT).show()
                                 return@Navegate_Button
                             }
-                            val phoneRegex = "^[0-9]{9}\$".toRegex()
+
+                            val phoneRegex = "^[0-9]{9}$".toRegex()
                             if (!phone.trim().matches(phoneRegex)) {
                                 Toast.makeText(context, "Format de telèfon invàlid (han de ser 9 dígits)", Toast.LENGTH_SHORT).show()
                                 return@Navegate_Button
                             }
-                            val dniRegex = "^[XYZxyz]?\\d{7,8}[A-Za-z]\$".toRegex()
+
+                            val dniRegex = "^[XYZxyz]?\\d{7,8}[A-Za-z]$".toRegex()
                             if (!dni.trim().matches(dniRegex)) {
                                 Toast.makeText(context, "Format de DNI o NIE invàlid", Toast.LENGTH_SHORT).show()
                                 return@Navegate_Button
                             }
+
                             signatureStep = 1
                         },
+                        enabled = selectedTab == 1
                     )
                 }
             }
@@ -203,9 +208,6 @@ fun CreateProfileForm(
                         countryCode = countryCode, onCountryCodeChange = { countryCode = it },
                         phone = phone, onPhoneChange = { phone = it },
                         sex = sex, onSexChange = { sex = it },
-
-
-
                     )
                 } else {
                     InformationMedical(
@@ -294,7 +296,6 @@ fun InformationPersonal(
         InputFieldEditable(label = "Nom", value = name, onValueChange = onNameChange, placeholder = "Nom")
         InputFieldEditable(label = "Cognoms", value = lastName, onValueChange = onLastNameChange, placeholder = "Cognoms")
 
-
         Column {
             Text(
                 text = "Sexe",
@@ -347,9 +348,6 @@ fun InformationPersonal(
                 onPhoneChange(filteredPhone)
             }
         )
-
-
-
     }
 }
 
@@ -359,7 +357,7 @@ fun InformationMedical(
     dentalConditions: String, onDentalConditionsChange: (String) -> Unit,
     medicalNotes: String, onMedicalNotesChange: (String) -> Unit,
     allergies: String, onAllergiesChange: (String) -> Unit,
-    infectiousDeceases: String, // Recibir parámetro
+    infectiousDeceases: String,
     onInfectiousDeceasesChange: (String) -> Unit
 ) {
     Column(
@@ -396,6 +394,5 @@ fun InformationMedical(
             onValueChange = onInfectiousDeceasesChange,
             placeholder = "Hepatitis, VIH, etc."
         )
-
     }
 }

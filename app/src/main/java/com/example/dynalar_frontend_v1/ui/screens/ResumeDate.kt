@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -64,13 +65,19 @@ fun ResumeDateScreen(
                 appointment.patient?.let { patient ->
                     PatientHeaderSectionApp(
                         patient = patient,
-                        onClick = { patient.id?.let { id -> onPatientClick(id) } }
+                        onClick = { patient.id?.let { id -> onPatientClick(id) } },
+                        onDelete = {
+                            patient.id?.let { id ->
+                                patientViewModel.deletePatient(id)
+                                onBackClick()
+                            }
+                        }
                     )
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // TARJETA DE DETALLES QUE PERMITE EDITAR
+
                 AppointmentDetailsCard(
                     appointment = appointment,
                     appointmentViewModel = appointmentViewModel,
@@ -150,12 +157,18 @@ fun AppointmentDetailsCard(
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
-            // CABECERA: Solo título y botón de editar
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text("Detalls de la Cita", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 if (!isEditing) {
-                    IconButton(onClick = { isEditing = true }) {
-                        Icon(Icons.Default.Edit, "Editar", tint = ButtonPrimary)
+                    Row {
+                        IconButton(onClick = { isEditing = true }) {
+                            Icon(Icons.Default.Edit, "Editar", tint = ButtonPrimary)
+                        }
                     }
                 }
             }
@@ -206,24 +219,8 @@ fun AppointmentDetailsCard(
                     value = if (editedNotes.isNullOrBlank()) "Cap observació" else editedNotes
                 )
 
-                // SECCIÓN DE ELIMINAR (Separada y segura)
-                Spacer(modifier = Modifier.height(16.dp))
-                HorizontalDivider(color = Color(0xFFF5F5F5), thickness = 1.dp)
-                Spacer(modifier = Modifier.height(8.dp))
 
-                TextButton(
-                    onClick = { showDeleteConfirm = true },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = null,
-                        tint = Color(0xFFD32F2F),
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text("Eliminar cita", color = Color(0xFFD32F2F))
-                }
+
             }
         }
     }

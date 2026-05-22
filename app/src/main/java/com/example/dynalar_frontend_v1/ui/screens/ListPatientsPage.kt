@@ -120,7 +120,7 @@ fun ListPatientsScreen(
                     val firstPatientId = remember(filteredPatients) {
                         filteredPatients.firstOrNull()?.id
                     }
-                    
+
                     LazyColumn(
                         state = listState,
                         modifier = Modifier.weight(1f).fillMaxWidth(),

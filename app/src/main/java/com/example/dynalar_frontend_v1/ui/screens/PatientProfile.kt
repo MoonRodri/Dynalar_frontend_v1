@@ -1,6 +1,7 @@
 package com.example.dynalar_frontend_v1.ui.screens
 
 import PatientHeaderSection
+import PatientHeaderSectionApp
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -44,6 +45,7 @@ fun PatientProfilePage(
     onCalendarClick: () -> Unit,
     onDateInformationClick: () -> Unit,
     onFilesClick: () -> Unit,
+    onDeleteClick: (Long) -> Unit = {},
 ) {
     LaunchedEffect(patient.id) {
         patient.id?.let { appointmentViewModel.fetchPatientAppointments(it) }
@@ -82,8 +84,11 @@ fun PatientProfilePage(
                 .padding(horizontal = 30.dp)
         ) {
             Spacer(modifier = Modifier.height(20.dp))
+            PatientHeaderSectionApp(
+                patient = patient,
+                onDelete = { patient.id?.let { onDeleteClick(it) } }
+            )
 
-            PatientHeaderSection(patient = patient)
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -245,7 +250,7 @@ fun ActionCard(title: String, icon: ImageVector, badgeCount: Int = 0, modifier: 
                 }
             }
             Column(modifier = Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(imageVector = icon, contentDescription = title, tint = Color(0xFF0D47A1), modifier = Modifier.size(32.dp))
+                Icon(imageVector = icon, contentDescription = title, tint = Color(0xFF0D47A1), modifier = Modifier.size(40.dp))
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(text = title, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = Color(0xFF1E293B))
             }

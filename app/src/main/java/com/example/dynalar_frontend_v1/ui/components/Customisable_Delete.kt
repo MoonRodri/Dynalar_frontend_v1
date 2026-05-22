@@ -111,25 +111,24 @@ fun SwipeToDeleteContainer(
     LaunchedEffect(enableHintAnimation, hintAlreadyShown) {
         if (enableHintAnimation && !hintAlreadyShown) {
 
-            delay(1200)
-
+            delay(400)
 
             hintOffset.animateTo(
                 targetValue = -180f,
                 animationSpec = tween(
-                    durationMillis = 1000,
+                    durationMillis = 500,
                     easing = EaseInOutCubic
                 )
             )
 
 
-            delay(1000)
+            delay(400)
 
 
             hintOffset.animateTo(
                 targetValue = 0f,
                 animationSpec = tween(
-                    durationMillis = 800,
+                    durationMillis = 400,
                     easing = EaseInOutQuart
                 )
             )

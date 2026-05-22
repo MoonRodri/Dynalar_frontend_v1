@@ -30,7 +30,7 @@ import java.io.ByteArrayOutputStream
 fun ValidationAndSignatureDialog(
     title: String = "Validació i Consentiment",
     consentTitle: String = "Consentiment Anestèsia:",
-    consentText: String? = null, // Si es null, usa el texto por defecto de anestesia
+    consentText: String? = null,
     infectiousDeceases: String?,
     allergies: String?,
     isOptional: Boolean = true,

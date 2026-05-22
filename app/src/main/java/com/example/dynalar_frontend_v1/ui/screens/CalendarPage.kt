@@ -8,8 +8,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +22,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -44,7 +48,8 @@ fun CalendarPage(
     viewModel: AppointmentViewModel = viewModel(),
     onAppointmentClick: (Appointment) -> Unit = {},
     onAddAppointmentClick: (LocalDate, Int, Int) -> Unit = { _, _, _ -> },
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+
 ) {
 
     val selectedDate = viewModel.selectedCalendarDate
@@ -72,15 +77,50 @@ fun CalendarPage(
         containerColor = Color.White,
         topBar = {
             Column(modifier = Modifier.background(Color.White)) {
-                Spacer(modifier = Modifier.height(25.dp))
-                CustomTopBar(title = "Calendari", onNavigateBack = onNavigateBack)
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 10.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
 
+                    // TOP BAR
+                    Box(modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.CenterStart) {
+                        CustomTopBar(
+                            title = "Calendari",
+                            onNavigateBack = onNavigateBack
+                        )
+                    }
+
+                    // BOTÓN +
+                    Box(
+                        modifier = Modifier
+                            .offset(y = 2.dp)
+                            .size(42.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0xFF537895))
+                            .clickable {
+                                onAddAppointmentClick(selectedDate, 9, 0)
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Afegir cita",
+                            tint = Color.White,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
                 // 2. ACTUALIZAMOS usando el ViewModel en lugar de variables locales
                 CalendarHeader(
                     selectedDate = selectedDate,
                     onPrevDay = { viewModel.updateSelectedDate(selectedDate.minusDays(1)) },
                     onNextDay = { viewModel.updateSelectedDate(selectedDate.plusDays(1)) },
-                    onTodayClick = { viewModel.updateSelectedDate(LocalDate.now()) }
+                    onTodayClick = { viewModel.updateSelectedDate(LocalDate.now()) },
+                    onDateSelected = { viewModel.updateSelectedDate(it) }
                 )
                 // Usamos HorizontalDivider de M3 o simplemente una caja fina
                 Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0xFFEEEEEE)))
@@ -122,32 +162,123 @@ fun CalendarHeader(
     selectedDate: LocalDate,
     onPrevDay: () -> Unit,
     onNextDay: () -> Unit,
-    onTodayClick: () -> Unit
+    onTodayClick: () -> Unit,
+    onDateSelected: (LocalDate) -> Unit = {}
 ) {
-    val dayName = selectedDate.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale("es")).replaceFirstChar { it.uppercase() }
-    val dayNum = selectedDate.dayOfMonth
-    val monthName = selectedDate.month.getDisplayName(TextStyle.SHORT, Locale("es")).replaceFirstChar { it.uppercase() }
 
+    val dayName = selectedDate.dayOfWeek
+        .getDisplayName(TextStyle.SHORT, Locale("es"))
+        .replaceFirstChar { it.uppercase() }
+
+    val dayNum = selectedDate.dayOfMonth
+
+    val monthName = selectedDate.month
+        .getDisplayName(TextStyle.SHORT, Locale("es"))
+        .replaceFirstChar { it.uppercase() }
+
+    var showDatePicker by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    if (showDatePicker) {
+        val dialog = remember(selectedDate) {
+            android.app.DatePickerDialog(
+                context,
+                { _, year, month, day ->
+                    onDateSelected(LocalDate.of(year, month + 1, day))
+                    showDatePicker = false
+                },
+                selectedDate.year,
+                selectedDate.monthValue - 1,
+                selectedDate.dayOfMonth
+            ).also {
+                it.setOnDismissListener { showDatePicker = false }
+            }
+        }
+
+        LaunchedEffect(Unit) {
+            dialog.show()
+        }
+    }
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+
+        // AVUI IZQUIERDA
         OutlinedButton(
             onClick = onTodayClick,
             shape = RoundedCornerShape(10.dp),
-            contentPadding = PaddingValues(horizontal = 40.dp, vertical = 10.dp),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF537895)),
-            modifier = Modifier.padding(start = 10.dp)
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = Color(0xFF537895)
+            ),
+            modifier = Modifier.height(50.dp)
         ) {
-            Text(text = "Hoy", fontSize = 15.sp, fontWeight = FontWeight.Medium)
+            Text(
+                text = "Avui",
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium
+            )
         }
-        Spacer(modifier = Modifier.width(8.dp))
-        IconButton(onClick = onPrevDay) { Icon(Icons.Default.ChevronLeft, "Atrás") }
-        IconButton(onClick = onNextDay) { Icon(Icons.Default.ChevronRight, "Siguiente") }
+
         Spacer(modifier = Modifier.weight(1f))
-        Text(text = "$dayName $dayNum de $monthName", fontWeight = FontWeight.SemiBold, fontSize = 16.sp, color = Color.DarkGray)
+
+        // FLECHA IZQUIERDA
+        IconButton(
+            onClick = onPrevDay,
+            modifier = Modifier.size(38.dp)
+        ) {
+            Icon(
+                Icons.Default.ChevronLeft,
+                contentDescription = "Anterior",
+                tint = Color(0xFF537895)
+            )
+        }
+
+        Spacer(modifier = Modifier.width(5.dp))
+
+        // FLECHA DERECHA
+        IconButton(
+            onClick = onNextDay,
+            modifier = Modifier.size(38.dp)
+        ) {
+            Icon(
+                Icons.Default.ChevronRight,
+                contentDescription = "Següent",
+                tint = Color(0xFF537895)
+            )
+        }
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        // FECHA DERECHA
+        TextButton(
+            onClick = { showDatePicker = true },
+            contentPadding = PaddingValues(0.dp),
+            modifier = Modifier.height(32.dp)
+        ) {
+
+            Icon(
+                imageVector = Icons.Default.CalendarMonth,
+                contentDescription = null,
+                tint = Color(0xFF537895),
+                modifier = Modifier.size(18.dp)
+            )
+
+            Spacer(modifier = Modifier.width(4.dp))
+
+            Text(
+                text = "$dayName $dayNum de $monthName",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF537895)
+            )
+        }
     }
-}
+        }
+
 
 @Composable
 fun HoursColumn() {
@@ -281,7 +412,10 @@ fun AppointmentCard(
             .clickable { onClick() }
             .padding(start = 8.dp, top = 4.dp, end = 4.dp, bottom = 4.dp)
     ) {
-        Column {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
 
             Text(
                 text = if (boxInfo.isNotEmpty()) "$startLabel - $endLabel | $boxInfo" else "$startLabel - $endLabel",
@@ -289,7 +423,6 @@ fun AppointmentCard(
                 color = color,
                 fontWeight = FontWeight.SemiBold
             )
-
 
             Text(
                 text = patientName.ifEmpty { "Pacient Desconegut" },
@@ -300,13 +433,13 @@ fun AppointmentCard(
                 overflow = TextOverflow.Ellipsis
             )
 
-            // 3. Alertas Médicas (Alergias en Rojo)
+            // ALERTAS
             if (hasAllergies) {
                 Text(
                     text = "Al·lèrgies: $allergies",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color(0xFFD32F2F), // Color rojo alerta
+                    color = Color(0xFFD32F2F),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -333,11 +466,34 @@ fun AppointmentCard(
                     overflow = TextOverflow.Ellipsis
                 )
             }
+
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
+                Icon(
+                    imageVector = Icons.Default.Visibility,
+                    contentDescription = null,
+                    tint = color,
+                    modifier = Modifier.size(15.dp)
+                )
+
+                Spacer(modifier = Modifier.width(4.dp))
+
+                Text(
+                    text = "Veure Resum Cita",
+                    fontSize = 10.sp,
+                    color = color,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
         }
     }
 }
 
-// --- UTILS ---
 fun colorForTreatment(treatmentId: Long?): Color {
     if (treatmentId == null) return Color(0xFF4DB6AC)
     return TreatmentColors[(treatmentId % TreatmentColors.size).toInt()]
