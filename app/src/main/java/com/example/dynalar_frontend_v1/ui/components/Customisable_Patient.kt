@@ -4,6 +4,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Coronavirus
 import androidx.compose.material.icons.filled.Delete
@@ -36,15 +38,21 @@ fun PatientHeaderSection(patient: Patient) {
 }
 
 @Composable
-fun PatientHeaderSectionApp(patient: Patient,  onClick: (() -> Unit)? = null, onDelete: (() -> Unit)? = null) {
-    PatientHeaderSectionAppBase(patient = patient, onClick = onClick, onDelete = onDelete)
+fun PatientHeaderSectionApp(
+    patient: Patient,
+    onClick: (() -> Unit)? = null,
+    onDelete: (() -> Unit)? = null,
+    onGoToProfile: (() -> Unit)? = null
+) {
+    PatientHeaderSectionAppBase(patient = patient, onClick = onClick, onDelete = onDelete, onGoToProfile = onGoToProfile)
 }
 
 @Composable
 private fun PatientHeaderSectionAppBase(
     patient: Patient,
     onClick: (() -> Unit)?,
-    onDelete: (() -> Unit)? = null
+    onDelete: (() -> Unit)? = null,
+    onGoToProfile: (() -> Unit)? = null
 ) {
     val allergies = patient.medicalRecord?.allergies
     val infectiousDeceases = patient.medicalRecord?.infectiousDeceases
@@ -73,12 +81,8 @@ private fun PatientHeaderSectionAppBase(
             .clip(RoundedCornerShape(24.dp))
             .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
-        )
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
 
@@ -113,7 +117,7 @@ private fun PatientHeaderSectionAppBase(
                     )
                 }
 
-                Spacer(modifier = Modifier.width(16.dp),)
+                Spacer(modifier = Modifier.width(16.dp))
 
                 Column(
                     verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -200,6 +204,30 @@ private fun PatientHeaderSectionAppBase(
                                 color = if (hasAllergies) Color(0xFFE65100) else Color(0xFF388E3C),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+                    if (onGoToProfile != null) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.End,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 2.dp, end = 10.dp)
+                        ) {
+                            Text(
+                                text = "Fitxa del pacient",
+                                color = ButtonPrimary,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(
+                                imageVector = Icons.Default.ArrowForward,
+                                contentDescription = null,
+                                tint = ButtonPrimary,
+                                modifier = Modifier.size(14.dp)
                             )
                         }
                     }

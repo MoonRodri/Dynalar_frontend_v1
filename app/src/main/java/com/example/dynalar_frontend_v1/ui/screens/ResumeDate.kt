@@ -71,7 +71,9 @@ fun ResumeDateScreen(
                                 patientViewModel.deletePatient(id)
                                 onBackClick()
                             }
-                        }
+                        },
+                        onGoToProfile = { patient.id?.let { id -> onPatientClick(id) } }
+
                     )
                 }
 
