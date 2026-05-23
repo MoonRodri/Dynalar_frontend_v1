@@ -138,7 +138,7 @@ class PatientViewModel: ViewModel() {
 
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
-            delay(300)
+            delay(400)
             isFetching = true
             uiStatePatient = InterfaceGlobal.Loading
             currentPage = 0
@@ -146,11 +146,34 @@ class PatientViewModel: ViewModel() {
             allPatientsList.clear()
 
             try {
-                val pageResponse = patientRepository.searchPatients(
-                    query = query, page = currentPage, size = pageSize
-                )
+                val parts = query.trim().split("\\s+".toRegex())
+                val firstName = parts.firstOrNull() ?: query
+                val lastName = if (parts.size > 1) parts.drop(1).joinToString(" ") else query
+
+
+                val pageResponse = if (parts.size >= 2) {
+                    patientRepository.searchPatients(
+                        query = firstName,
+                        page = currentPage,
+                        size = pageSize
+                    ).let { firstResult ->
+
+                        val filtered = firstResult.content.filter { patient ->
+                            patient.lastName?.contains(lastName, ignoreCase = true) == true
+                        }
+
+                        firstResult.copy(content = filtered)
+                    }
+                } else {
+                    patientRepository.searchPatients(
+                        query = query,
+                        page = currentPage,
+                        size = pageSize
+                    )
+                }
+
                 allPatientsList.addAll(pageResponse.content)
-                isLastPage = currentPage >= pageResponse.totalPages - 1
+                isLastPage = currentPage >= (pageResponse.totalPages - 1)
 
                 uiStatePatient = if (allPatientsList.isEmpty()) {
                     InterfaceGlobal.NotFound
@@ -166,7 +189,6 @@ class PatientViewModel: ViewModel() {
             }
         }
     }
-
     fun getPatientById(id: Long) {
         viewModelScope.launch {
             try {
