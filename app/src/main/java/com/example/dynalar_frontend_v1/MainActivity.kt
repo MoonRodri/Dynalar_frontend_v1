@@ -67,7 +67,7 @@ class MainActivity : ComponentActivity() {
 
                 NavHost(
                     navController = navController,
-                    startDestination = AppRoutes.Home.route
+                    startDestination = AppRoutes.Login.route
                 ) {
 
                     composable(AppRoutes.Login.route) {
