@@ -26,7 +26,7 @@ class PatientViewModel: ViewModel() {
     var isFetching by mutableStateOf(false)
         private set
     private var currentQuery = ""
-    private val pageSize = 300
+    private val pageSize = 100
 
     var selectedPatient by mutableStateOf<Patient?>(null)
         private set
