@@ -7,7 +7,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -445,6 +444,37 @@ class MainActivity : ComponentActivity() {
                             appointmentViewModel = appointmentViewModel,
                             onBackClick = { navController.popBackStack() }
                         )
+                    }
+                    composable(
+                        route = AppRoutes.DateInformationPage.route,
+                        arguments = listOf(navArgument("patientId") { type = NavType.LongType })
+                    ) { backStackEntry ->
+                        val patientId = backStackEntry.arguments?.getLong("patientId") ?: -1L
+
+                        LaunchedEffect(patientId) {
+                            if (patientId != -1L) {
+                                patientViewModel.getPatientById(patientId)
+                            }
+                        }
+
+                        val patient = patientViewModel.selectedPatient
+
+                        if (patient != null) {
+                            DateInformationPage(
+                                patient = patient,
+                                onBackClick = { navController.popBackStack() },
+                                onUpdatePatient = { updatedPatient ->
+                                    patientViewModel.updatePatient(updatedPatient)
+                                }
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
                     }
                 }
             }
