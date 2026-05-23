@@ -97,6 +97,8 @@ fun ScheduleAppointmentPage(
                 Navegate_Button(
                     text = if (isLoading) "Assignant..." else "Confirmar Cita",
                     onClick = {
+                        if (!canConfirm) return@Navegate_Button
+
                         val hasInfections = !selectedPatient?.medicalRecord?.infectiousDeceases.isNullOrBlank()
 
                         if (hasInfections && !hasAcceptedInfectionWarning) {
