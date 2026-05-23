@@ -131,7 +131,7 @@ fun ListPatientsScreen(
 
 
                             items(patientList, key = { it.id ?: 0L }) { patient ->
-                                
+
                                 if (patient.id == lastPatientId) {
                                     LaunchedEffect(patient.id) {
                                         android.util.Log.d("Pagination", ">>> S'ha arribat al final de la llista (ID: ${patient.id}). Disparant carga...")
@@ -220,7 +220,6 @@ fun SearchPatientBar(
 
     LaunchedEffect(query) {
         if (query.isNotEmpty()) {
-            kotlinx.coroutines.delay(500)
             viewModel.searchPatients(query)
         } else {
             viewModel.getPatients()
