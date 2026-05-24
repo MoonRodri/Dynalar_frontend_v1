@@ -105,12 +105,14 @@ fun ListPatientsScreen(
                 is InterfaceGlobal.Success -> {
                     val filteredPatients = remember(uiState.data) {
                         uiState.data
-                            .filter { !it.name.isNullOrBlank() }
-                            .sortedBy { it.name?.uppercase() }
+                            .filter { !it.name.isNullOrBlank() || !it.lastName.isNullOrBlank() }
+                            .sortedBy { (it.name ?: it.lastName ?: "").uppercase() }
                     }
 
                     val patients = remember(filteredPatients) {
-                        filteredPatients.groupBy { it.name!!.first().uppercaseChar() }
+                        filteredPatients.groupBy { 
+                            (it.name ?: it.lastName ?: "?").first().uppercaseChar() 
+                        }
                     }
 
                     val lastPatientId = remember(filteredPatients) {

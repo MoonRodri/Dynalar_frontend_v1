@@ -26,7 +26,7 @@ class PatientViewModel: ViewModel() {
     var isFetching by mutableStateOf(false)
         private set
     private var currentQuery = ""
-    private val pageSize = 100
+    private val pageSize = 25
 
     var selectedPatient by mutableStateOf<Patient?>(null)
         private set
@@ -50,7 +50,6 @@ class PatientViewModel: ViewModel() {
             isLastPage = false
             currentQuery = ""
             allPatientsList.clear()
-
             try {
                 val pageResponse = patientRepository.getAllPatients(page = currentPage, size = pageSize)
                 allPatientsList.addAll(pageResponse.content)
@@ -70,22 +69,10 @@ class PatientViewModel: ViewModel() {
             }
         }
     }
-
     fun loadNextPage() {
-        if (isFetching) {
-            Log.d("Pagination", "loadNextPage abortat: Ja s'està carregant (isFetching = true)")
-            return
-        }
-        if (isLastPage) {
-            Log.d("Pagination", "loadNextPage abortat: Ja s'ha arribat a l'última pàgina (isLastPage = true)")
-            return
-        }
-
         viewModelScope.launch {
             isFetching = true
             val nextPage = currentPage + 1
-            Log.d("Pagination", ">>> Iniciant carga de pàgina: $nextPage (Query: '$currentQuery')")
-
             try {
                 val response = if (currentQuery.isNotEmpty()) {
                     patientRepository.searchPatients(currentQuery, page = nextPage, size = pageSize)
@@ -93,26 +80,16 @@ class PatientViewModel: ViewModel() {
                     patientRepository.getAllPatients(page = nextPage, size = pageSize)
                 }
 
-                Log.d("Pagination", "Resposta rebuda. Pacients en pàgina: ${response.content.size}, Total pàgines: ${response.totalPages}")
-
                 if (response.content.isEmpty()) {
                     isLastPage = true
-                    Log.d("Pagination", "La pàgina està buida. Marcant com a última pàgina.")
                 } else {
                     val currentPatients = (uiStatePatient as? InterfaceGlobal.Success)?.data ?: emptyList()
-
                     val newPatients = response.content.filter { new ->
                         currentPatients.none { it.id == new.id }
                     }
-
-                    Log.d("Pagination", "Pacients nous detectats (sense duplicats): ${newPatients.size}")
-
                     currentPage = nextPage
-
                     if (newPatients.isNotEmpty()) {
-                        Log.d("Pagination", "Afegint ${newPatients.size} pacients nous a la llista de ${allPatientsList.size}")
                         allPatientsList.addAll(newPatients)
-
                         val updatedList = allPatientsList.toList()
                         uiStatePatient = InterfaceGlobal.Success(updatedList)
                         Log.d("Pagination", "UI State actualitzat amb ${updatedList.size} pacients totals.")
@@ -130,12 +107,10 @@ class PatientViewModel: ViewModel() {
 
     fun searchPatients(query: String) {
         currentQuery = query
-
         if (query.isBlank()) {
             getPatients()
             return
         }
-
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
             delay(400)
@@ -144,36 +119,15 @@ class PatientViewModel: ViewModel() {
             currentPage = 0
             isLastPage = false
             allPatientsList.clear()
-
             try {
-                val parts = query.trim().split("\\s+".toRegex())
-                val firstName = parts.firstOrNull() ?: query
-                val lastName = if (parts.size > 1) parts.drop(1).joinToString(" ") else query
-
-
-                val pageResponse = if (parts.size >= 2) {
-                    patientRepository.searchPatients(
-                        query = firstName,
-                        page = currentPage,
-                        size = pageSize
-                    ).let { firstResult ->
-
-                        val filtered = firstResult.content.filter { patient ->
-                            patient.lastName?.contains(lastName, ignoreCase = true) == true
-                        }
-
-                        firstResult.copy(content = filtered)
-                    }
-                } else {
-                    patientRepository.searchPatients(
-                        query = query,
-                        page = currentPage,
-                        size = pageSize
-                    )
-                }
-
+                val pageResponse = patientRepository.searchPatients(
+                    query = query,
+                    page = currentPage,
+                    size = pageSize
+                )
                 allPatientsList.addAll(pageResponse.content)
-                isLastPage = currentPage >= (pageResponse.totalPages - 1)
+                val totalPags = pageResponse.pageMetadata?.totalPages ?: pageResponse.totalPages
+                isLastPage = currentPage >= (totalPags - 1)
 
                 uiStatePatient = if (allPatientsList.isEmpty()) {
                     InterfaceGlobal.NotFound
